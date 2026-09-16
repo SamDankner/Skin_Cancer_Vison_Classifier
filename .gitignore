@@ -1,0 +1,27 @@
+@"
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+data/*
+!data/.gitkeep
+
+# Model weights
+models/*
+!models/.gitkeep
+*.pth
+*.pt
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+"@ | Set-Content .gitignore
