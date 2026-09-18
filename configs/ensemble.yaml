@@ -1,1 +1,27 @@
 model: ensemble
+task: diagnosis_binary
+prediction_split: validation
+class_order: ["0", "1"]
+method: equal_weight_probability_average
+weighted_method:
+  enabled: true
+  fit_split: validation
+  objective: negative_log_likelihood
+  iterations: 1000
+  learning_rate: 0.1
+missing_member_policy: renormalize_available
+threshold:
+  objective: sensitivity_constrained
+  minimum_sensitivity: 0.90
+  fit_split: validation
+calibration:
+  method: temperature_scaling
+  fit_split: validation
+  preserve_only_if_brier_improves: true
+bootstrap:
+  resamples: 1000
+  confidence: 0.95
+  seed: 42
+  group_column: patient_id
+# Add development-selected members only after their validation predictions exist.
+members: []

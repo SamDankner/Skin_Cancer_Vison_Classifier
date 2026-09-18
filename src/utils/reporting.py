@@ -23,6 +23,13 @@ def report_run(run: dict) -> str:
 def append_experiment_summary(run: dict, path: str | Path = "results/experiment_summary.csv") -> Path:
     """Append a flattened run record for sortable cross-experiment comparison."""
     path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
-    row = {**flatten_dict(run.get("config", {})), **flatten_dict(run.get("metrics", {}), "metrics"), "run_name": run.get("run_name"), "best_epoch": run.get("best_epoch")}
+    row = {
+        **flatten_dict(run.get("config", {})),
+        **flatten_dict(run.get("metrics", {}), "metrics"),
+        **flatten_dict(run.get("timing", {}), "timing"),
+        "run_name": run.get("run_name"), "best_epoch": run.get("best_epoch"),
+        "best_checkpoint": run.get("best_checkpoint"), "status": run.get("status", "complete"),
+        "leakage_free": run.get("leakage_free", False),
+    }
     existing = pd.read_csv(path) if path.exists() and path.stat().st_size else pd.DataFrame()
     pd.concat([existing, pd.DataFrame([row])], ignore_index=True).to_csv(path, index=False); return path

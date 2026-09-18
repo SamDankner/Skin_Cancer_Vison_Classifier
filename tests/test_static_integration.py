@@ -33,7 +33,13 @@ def test_configs_reference_supported_strategy_names_and_safe_datasets():
         assert config["task"] in {"lesion_presence", "diagnosis_binary", "diagnosis_multiclass", "image_quality"}
         assert isinstance(config.get("backbone"), str)
         assert not _references_ddi_in_development_data(config)
-    assert yaml.safe_load((ROOT / "configs" / "ensemble.yaml").read_text(encoding="utf-8")) == {"model": "ensemble"}
+    ensemble = yaml.safe_load((ROOT / "configs" / "ensemble.yaml").read_text(encoding="utf-8"))
+    assert ensemble["model"] == "ensemble"
+    assert ensemble["prediction_split"] == "validation"
+    assert ensemble["weighted_method"]["fit_split"] == "validation"
+    assert ensemble["threshold"]["fit_split"] == "validation"
+    assert ensemble["calibration"]["fit_split"] == "validation"
+    assert not _references_ddi_in_development_data(ensemble)
 
 
 def test_production_modules_use_shared_interfaces_and_portable_paths():

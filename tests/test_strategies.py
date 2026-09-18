@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 import torch
 
 from conftest import TinyDinoBackbone, TinyImageModel
@@ -70,3 +71,10 @@ def test_efficientnet_checkpoint_round_trip_is_prediction_stable(monkeypatch, tm
     image = torch.randn(2, 3, 32, 32)
     assert state["architecture"] == "efficientnet_v2_s"
     assert torch.allclose(model(image), loaded(image), atol=1e-6)
+
+
+def test_training_rejects_pre_split_patient_or_lesion_leakage(manifest_frame):
+    from src.strategies.efficientnet_strategy import train
+
+    with pytest.raises(ValueError, match="groups cross"):
+        train(manifest_frame, {"task": "diagnosis_binary", "pretrained": False, "epochs": 1})

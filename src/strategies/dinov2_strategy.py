@@ -12,7 +12,7 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
-from src.data.splits import validate_split_class_coverage
+from src.data.splits import leakage_report, validate_split_class_coverage
 from src.data.transforms import build_transforms
 from src.evaluation.metrics import classification_metrics
 from src.training.checkpointing import checkpoint_path, save_checkpoint
@@ -75,6 +75,7 @@ def make_image_loaders(manifest, task, image_size, batch_size, augmentation=None
     """Build loaders from existing manifest splits; this function never creates splits."""
     frame = select_task_manifest(validate_manifest(manifest), task)
     if not set(frame.split.dropna()).issuperset({"train", "validation"}): raise ValueError("Manifest must have train/validation splits from make_group_splits")
+    if not leakage_report(frame).empty: raise ValueError("Patient/lesion/image groups cross development splits")
     validate_split_class_coverage(frame, TASK_TARGETS[task])
     labels = sorted(frame.loc[frame.split.eq("train"), TASK_TARGETS[task]].unique().tolist()); class_to_index = {label: index for index, label in enumerate(labels)}
     if len(class_to_index) < 2: raise ValueError("Training split needs at least two classes")
@@ -121,7 +122,7 @@ def train_dinov2(manifest, config: dict, backbone_factory: Callable[..., nn.Modu
         else: stale += 1
         if stale >= cfg["patience"]: break
     run_name = cfg.get("run_name", f"{cfg['task']}_{cfg['backbone']}"); path = checkpoint_path("dinov2", cfg["backbone"], run_name); model.load_state_dict(best_state); save_checkpoint(model, optimizer, best_epoch, path, config=cfg, class_to_index=class_to_index, metrics=best_metrics)
-    result = TrainingResult(history=history, best_epoch=best_epoch, best_checkpoint=str(path), config=cfg, timing={"training_seconds":time.monotonic() - start}, metrics=best_metrics); persist_run(result.as_dict(), Path("results/runs") / run_name); return result
+    result = TrainingResult(history=history, best_epoch=best_epoch, best_checkpoint=str(path), config=cfg, timing={"training_seconds":time.monotonic() - start}, metrics=best_metrics); run = result.as_dict(); run.update({"leakage_free": True, "status": "complete"}); persist_run(run, Path("results/runs") / run_name); return result
 
 
 def load_dinov2_checkpoint(path: str | Path, backbone_factory=load_dinov2_backbone, map_location="cpu"):

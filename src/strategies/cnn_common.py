@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 from PIL import Image
 
 from src.data.datasets import ManifestImageDataset, select_task_manifest, validate_manifest
-from src.data.splits import validate_split_class_coverage
+from src.data.splits import leakage_report, validate_split_class_coverage
 from src.data.transforms import build_transforms
 from src.evaluation.metrics import classification_metrics, lesion_presence_metrics
 from src.training.checkpointing import checkpoint_path, save_checkpoint
@@ -196,6 +196,8 @@ def train_cnn_strategy(manifest, config: dict, strategy_name: str, architecture:
         raise PermissionError("DDI cannot be used by development CNN training")
     if not {"train", "validation"}.issubset(set(selected.split.dropna())):
         raise ValueError("Manifest needs independent train and validation splits before training")
+    if not leakage_report(selected).empty:
+        raise ValueError("Patient/lesion/image groups cross development splits")
     validate_split_class_coverage(selected, {"diagnosis_binary": "binary_target", "diagnosis_multiclass": "harmonized_diagnosis", "lesion_presence": "lesion_present"}[task])
     class_names = class_names_for_manifest(selected, task)
     if len(class_names) < 2:
@@ -251,7 +253,7 @@ def train_cnn_strategy(manifest, config: dict, strategy_name: str, architecture:
     model.load_state_dict(best_state)
     _, true, predicted, scores = _epoch(model, val_loader, optimizer, scaler, device, method, weights, float(config.get("focal_gamma", 2)), False)
     final_metrics = _metrics(task, true, predicted, scores)
-    payload = {"run_name": run_name, "config": {**config, "strategy_name": strategy_name, "backbone": architecture, "class_names": class_names, "class_weights": weights.cpu().tolist() if weights is not None else None, "checkpoint_path": str(checkpoint), "device": str(device)}, "history": history, "best_epoch": best_epoch, "best_checkpoint": str(checkpoint), "metrics": final_metrics, "timing": {"training_seconds": perf_counter() - start}}
+    payload = {"run_name": run_name, "config": {**config, "strategy_name": strategy_name, "backbone": architecture, "class_names": class_names, "class_weights": weights.cpu().tolist() if weights is not None else None, "checkpoint_path": str(checkpoint), "device": str(device)}, "history": history, "best_epoch": best_epoch, "best_checkpoint": str(checkpoint), "metrics": final_metrics, "timing": {"training_seconds": perf_counter() - start}, "leakage_free": True, "status": "complete"}
     run_dir = create_run_directory(run_name)
     persist_run(payload, run_dir)
     return TrainingResult(history=history, validation_history=history, best_epoch=best_epoch, best_checkpoint=str(checkpoint), config=payload["config"], timing=payload["timing"], metrics=final_metrics)
