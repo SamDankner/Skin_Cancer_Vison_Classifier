@@ -10,11 +10,14 @@ def main():
     parser.add_argument("--dataset", choices=DEVELOPMENT_DATASETS, action="append")
     parser.add_argument("--all-development", action="store_true", help="Record provenance and build manifests; does not download.")
     args = parser.parse_args(); root = Path(__file__).resolve().parent; raw = root / "data" / "raw"
-    selected = args.dataset or (DEVELOPMENT_DATASETS if args.all_development else DEVELOPMENT_DATASETS)
+    selected = args.dataset or DEVELOPMENT_DATASETS
     for dataset in selected:
-        write_provenance(raw, dataset, manual_required=dataset == "Fitzpatrick17k")
+        write_provenance(raw, dataset, manual_required=dataset in {"Fitzpatrick17k", "ImageQX", "Muhaba", "ENCoDE"})
     (root / "data" / "normal_skin").mkdir(parents=True, exist_ok=True)
     (root / "data" / "normal_skin" / "REQUIRES_DATA.md").write_text("No approved normal-skin macro-photo dataset is configured. Do not relabel benign lesions as normal skin. Obtain an explicitly licensed clinical normal-skin source before enabling lesion-presence negatives.\n", encoding="utf-8")
-    print(build_development_manifest(root))
+    report = build_development_manifest(root, datasets=selected)
+    for dataset in report["datasets"]:
+        print(f"{dataset['dataset']}: {dataset['status'].upper()}")
+    print(report)
 
 if __name__ == "__main__": main()

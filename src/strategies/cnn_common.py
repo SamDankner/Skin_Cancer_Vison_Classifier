@@ -222,7 +222,7 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
-            probability = torch.softmax(logits.detach(), dim=1)
+            probability = torch.softmax(logits.detach().float(), dim=1)
             total_loss += float(loss.detach()) * len(targets)
             count += len(targets)
             true.extend(targets.cpu().tolist())

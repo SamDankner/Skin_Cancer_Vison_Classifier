@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from src.inference import metadata_from_json, predict_image
+from src.inference import metadata_from_json, predict_image, predict_with_lesion_routing
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -16,6 +16,7 @@ def _parser() -> argparse.ArgumentParser:
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--checkpoint", type=Path, help="Saved strategy checkpoint")
     source.add_argument("--frozen-config", type=Path, help="Saved frozen ensemble configuration")
+    parser.add_argument("--lesion-presence-checkpoint", type=Path, help="Optional lesion-presence checkpoint used before diagnosis")
     parser.add_argument("--metadata", help="Inline JSON or a JSON/YAML metadata file")
     parser.add_argument("--age", type=float)
     parser.add_argument("--sex")
@@ -54,14 +55,12 @@ def main() -> int:
             "No trained system configured. Pass --checkpoint/--frozen-config or set one in configs/inference.yaml."
         )
     try:
-        result = predict_image(
-            args.image,
-            checkpoint=checkpoint,
-            frozen_config=frozen_config,
-            metadata=metadata or None,
-            device=args.device,
-            repeats=args.timing_runs,
-        )
+        if args.lesion_presence_checkpoint:
+            if not checkpoint or frozen_config:
+                raise ValueError("Lesion routing requires one diagnostic --checkpoint, not a frozen ensemble")
+            result = predict_with_lesion_routing(args.image, lesion_presence_checkpoint=args.lesion_presence_checkpoint, diagnosis_checkpoint=checkpoint, metadata=metadata or None, device=args.device, repeats=args.timing_runs)
+        else:
+            result = predict_image(args.image, checkpoint=checkpoint, frozen_config=frozen_config, metadata=metadata or None, device=args.device, repeats=args.timing_runs)
     except (FileNotFoundError, ValueError, TypeError, RuntimeError) as exc:
         raise SystemExit(f"Inference failed: {exc}") from exc
     print(json.dumps(result, indent=2))

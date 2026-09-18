@@ -172,6 +172,19 @@ def lesion_presence_metrics(targets, predictions=None, probabilities=None, **kwa
     return result
 
 
+def source_stratified_metrics(targets, predictions, probabilities, sources, *, metric_function=classification_metrics, **kwargs) -> dict:
+    """Compute the identical metric contract per declared source dataset."""
+    y_true, y_pred, source = np.asarray(targets), np.asarray(predictions), np.asarray(sources, dtype=str)
+    probability = None if probabilities is None else np.asarray(probabilities)
+    if len(source) != len(y_true):
+        raise ValueError("sources and targets must have equal length")
+    return {
+        name: metric_function(y_true[index], y_pred[index], None if probability is None else probability[index], **kwargs)
+        for name in sorted(set(source))
+        for index in [np.flatnonzero(source == name)]
+    }
+
+
 def bootstrap_confidence_intervals(
     targets,
     predictions,

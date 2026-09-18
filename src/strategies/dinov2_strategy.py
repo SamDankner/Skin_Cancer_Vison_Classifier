@@ -199,7 +199,7 @@ def _phase(model, loader, optimizer, scaler, device, config, weights, *, trainin
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
-            probability = logits.detach().softmax(1)
+            probability = logits.detach().float().softmax(1)
             total += float(loss.detach()) * len(target)
             targets.extend(target.cpu().tolist())
             probabilities.extend(probability.cpu().tolist())

@@ -130,7 +130,7 @@ def _predict_bundle(bundle: CheckpointBundle, photo: Image.Image, metadata, devi
     )
     with torch.inference_mode():
         logits = bundle.model(*args)
-        probability = torch.softmax(logits, dim=1)[0].detach().cpu().numpy()
+        probability = torch.softmax(logits.float(), dim=1)[0].detach().cpu().numpy()
     return {
         "probabilities": probability,
         "metadata_used": metadata_used,
@@ -272,3 +272,13 @@ def metadata_from_json(value: str | Path | None) -> dict | None:
     if not isinstance(data, dict):
         raise ValueError("Metadata input must contain an object/mapping")
     return data
+
+
+def predict_with_lesion_routing(image, *, lesion_presence_checkpoint, diagnosis_checkpoint, metadata=None, **kwargs) -> dict:
+    """Route a photo through lesion presence before optional diagnosis inference."""
+    presence = predict_image(image, checkpoint=lesion_presence_checkpoint, metadata=metadata, **kwargs)
+    if presence.get("task") != "lesion_presence":
+        raise ValueError("lesion_presence_checkpoint must contain a lesion_presence model")
+    if presence.get("lesion_presence_result") in {"normal_skin", "0"}:
+        return {"routing": "no_lesion_detected", "lesion_presence": presence, "message": "No lesion was detected by the model; this is not a clinical confirmation of healthy skin."}
+    return {"routing": "lesion_detected", "lesion_presence": presence, "diagnosis": predict_image(image, checkpoint=diagnosis_checkpoint, metadata=metadata, **kwargs)}

@@ -215,7 +215,7 @@ def collect_predictions(model, loader, *, device=None, class_order: Sequence[str
             if not valid_indices:
                 continue
             output = _forward_model(model, batch, device)
-            logits.append(output[valid_indices].detach().cpu().numpy())
+            logits.append(output[valid_indices].detach().float().cpu().numpy())
             targets.extend(lookup[str(raw_targets[index])] for index in valid_indices)
             rows = batch.get("metadata", [{} for _ in raw_targets])
             metadata.extend(rows[index] for index in valid_indices)
