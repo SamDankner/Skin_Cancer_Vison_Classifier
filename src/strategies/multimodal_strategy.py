@@ -41,7 +41,7 @@ class MetadataPreprocessor:
         else: result["continuous"] = torch.empty((len(frame), 0), dtype=torch.float32)
         for field, vocabulary in self.vocabularies.items():
             values = frame[field].fillna("<MISSING>").astype(str).str.strip().replace("", "<MISSING>")
-            encoded = torch.tensor([vocabulary.get(value, 1) for value in values], dtype=torch.long); encoded[values.eq("<MISSING>").to_numpy()] = 0; result[field] = encoded
+            result[field] = torch.tensor([0 if value == "<MISSING>" else vocabulary.get(value, 1) for value in values], dtype=torch.long)
         return result
     def config(self): return {"fields":list(self.fields), "age_mean":self.age_mean, "age_std":self.age_std, "vocabularies":self.vocabularies}
 

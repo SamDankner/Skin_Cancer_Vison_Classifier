@@ -12,6 +12,7 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
+from src.data.splits import validate_split_class_coverage
 from src.data.transforms import build_transforms
 from src.evaluation.metrics import classification_metrics
 from src.training.checkpointing import checkpoint_path, save_checkpoint
@@ -74,6 +75,7 @@ def make_image_loaders(manifest, task, image_size, batch_size, augmentation=None
     """Build loaders from existing manifest splits; this function never creates splits."""
     frame = select_task_manifest(validate_manifest(manifest), task)
     if not set(frame.split.dropna()).issuperset({"train", "validation"}): raise ValueError("Manifest must have train/validation splits from make_group_splits")
+    validate_split_class_coverage(frame, TASK_TARGETS[task])
     labels = sorted(frame.loc[frame.split.eq("train"), TASK_TARGETS[task]].unique().tolist()); class_to_index = {label: index for index, label in enumerate(labels)}
     if len(class_to_index) < 2: raise ValueError("Training split needs at least two classes")
     train = _EncodedManifestDataset(frame.loc[frame.split.eq("train")], build_transforms(image_size, True, augmentation), task, class_to_index)
