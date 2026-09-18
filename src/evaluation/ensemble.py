@@ -9,6 +9,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class EnsembleMember:
+    """Describe aligned probabilities from one task-compatible model."""
     name: str
     task: str
     class_order: tuple[str, ...]
@@ -45,6 +46,7 @@ def _validate_members(members: Sequence[EnsembleMember]) -> tuple[int, int]:
 
 
 def normalize_weights(weights, member_count: int) -> np.ndarray:
+    """Validate and normalize non-negative ensemble weights."""
     values = np.asarray(weights, dtype=float)
     if values.shape != (member_count,) or not np.isfinite(values).all() or (values < 0).any() or values.sum() <= 0:
         raise ValueError("Weights must be finite, non-negative, non-zero, and match the member count")
@@ -94,6 +96,7 @@ def average_probabilities(
 
 
 def equal_weight_ensemble(members: Sequence[EnsembleMember], **kwargs) -> tuple[np.ndarray, dict]:
+    """Average compatible member probabilities with equal initial weights."""
     return average_probabilities(members, np.ones(len(members)), **kwargs)
 
 

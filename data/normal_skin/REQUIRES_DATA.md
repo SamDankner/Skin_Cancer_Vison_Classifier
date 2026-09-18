@@ -1,0 +1,1 @@
+No approved normal-skin macro-photo dataset is configured. Do not relabel benign lesions as normal skin. Obtain an explicitly licensed clinical normal-skin source before enabling lesion-presence negatives.

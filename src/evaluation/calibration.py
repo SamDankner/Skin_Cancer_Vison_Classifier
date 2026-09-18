@@ -89,6 +89,7 @@ def apply_temperature(values, temperature: float, *, input_type: str = "logits")
 
 @dataclass(frozen=True)
 class TemperatureCalibration:
+    """Persist and apply one validation-fitted calibration temperature."""
     temperature: float
     class_order: tuple[str, ...]
     fit_split: str = "validation"

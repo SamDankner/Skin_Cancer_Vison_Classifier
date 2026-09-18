@@ -1,3 +1,4 @@
+"""Static integration tests for configs, imports, paths, and safeguards."""
 from __future__ import annotations
 
 import importlib

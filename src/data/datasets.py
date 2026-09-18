@@ -10,7 +10,25 @@ from torch.utils.data import Dataset
 MANIFEST_COLUMNS = ["dataset", "image_path", "image_id", "patient_id", "lesion_id", "original_label", "harmonized_diagnosis", "binary_target", "lesion_present", "normal_skin", "image_quality_label", "localization_available", "bounding_box", "segmentation_mask_path", "supported_for_lesion_detection", "supported_for_diagnosis", "age", "sex", "anatomical_site", "skin_tone", "image_modality", "label_source", "ground_truth_method", "split"]
 DATASET_SETUP = {"PAD-UFES-20": "https://data.mendeley.com/datasets/zr7vgbcyr2/1", "MILK10k": "https://doi.org/10.1038/s41597-024-03501-y", "Fitzpatrick17k": "https://github.com/mattgroh/fitzpatrick17k", "SCIN": "https://github.com/google-research-datasets/scin", "DDI": "https://stanfordaimi.github.io/digital-dermatology/"}
 
+
+def _nullable_boolean(values: pd.Series, name: str) -> pd.Series:
+    mapping = {
+        True: True, False: False, 1: True, 0: False,
+        "true": True, "false": False, "1": True, "0": False,
+        "yes": True, "no": False, "y": True, "n": False,
+    }
+    converted = values.map(
+        lambda value: pd.NA if pd.isna(value) or str(value).strip() == "" else mapping.get(
+            value if isinstance(value, (bool, int)) else str(value).strip().lower(), "<INVALID>"
+        )
+    )
+    if converted.eq("<INVALID>").any():
+        invalid = sorted(values.loc[converted.eq("<INVALID>")].astype(str).unique().tolist())
+        raise ValueError(f"Manifest column {name!r} has invalid boolean values: {invalid}")
+    return converted.astype("boolean")
+
 def empty_manifest() -> pd.DataFrame:
+    """Return an empty manifest with the complete public schema."""
     return pd.DataFrame(columns=MANIFEST_COLUMNS)
 
 def validate_manifest(manifest: pd.DataFrame, allow_final_test: bool = False) -> pd.DataFrame:
@@ -18,19 +36,23 @@ def validate_manifest(manifest: pd.DataFrame, allow_final_test: bool = False) ->
     missing = set(MANIFEST_COLUMNS) - set(manifest.columns)
     if missing: raise ValueError(f"Manifest missing required columns: {sorted(missing)}")
     result = manifest.copy()
+    for column in ("lesion_present", "normal_skin", "localization_available", "supported_for_lesion_detection", "supported_for_diagnosis"):
+        result[column] = _nullable_boolean(result[column], column)
     modality = result.image_modality.fillna("clinical").str.lower()
     if modality.str.contains("dermoscop|micro|patholog", regex=True).any(): raise ValueError("Only ordinary clinical/macro photographs are allowed")
     if result.dataset.fillna("").str.upper().eq("DDI").any() and not allow_final_test: raise PermissionError("DDI is final external test data; pass allow_final_test=True explicitly")
-    normal = result.normal_skin.fillna(False).astype(bool)
+    normal = result.normal_skin.fillna(False)
     if normal.any() and result.loc[normal, "harmonized_diagnosis"].notna().any(): raise ValueError("Normal skin cannot be assigned a lesion diagnosis")
     if normal.any() and result.loc[normal, "binary_target"].notna().any(): raise ValueError("Normal skin cannot be assigned a benign/malignant target")
     return result
 
 def write_manifest(manifest: pd.DataFrame, path: str | Path, allow_final_test: bool = False) -> Path:
+    """Validate and save a manifest CSV, returning its path."""
     path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
     validate_manifest(manifest, allow_final_test).to_csv(path, index=False); return path
 
 def file_sha256(path: str | Path, chunk_size: int = 1_048_576) -> str:
+    """Return the SHA-256 digest of a file without loading it all at once."""
     digest = sha256()
     with Path(path).open("rb") as handle:
         for chunk in iter(lambda: handle.read(chunk_size), b""): digest.update(chunk)
@@ -56,8 +78,12 @@ def select_task_manifest(manifest: pd.DataFrame, task: str) -> pd.DataFrame:
     """Filter one manifest for a separable learning task without relabeling normal skin."""
     if task not in TASK_TARGETS: raise ValueError(f"Unknown task {task!r}; choose from {sorted(TASK_TARGETS)}")
     result = manifest.copy(); target = TASK_TARGETS[task]
-    if task == "lesion_presence": result = result.loc[result.supported_for_lesion_detection.fillna(False).astype(bool)]
-    elif task.startswith("diagnosis"): result = result.loc[result.supported_for_diagnosis.fillna(False).astype(bool) & result.lesion_present.fillna(False).astype(bool)]
+    if task == "lesion_presence":
+        result = result.loc[_nullable_boolean(result.supported_for_lesion_detection, "supported_for_lesion_detection").fillna(False)]
+    elif task.startswith("diagnosis"):
+        supported = _nullable_boolean(result.supported_for_diagnosis, "supported_for_diagnosis").fillna(False)
+        lesion = _nullable_boolean(result.lesion_present, "lesion_present").fillna(False)
+        result = result.loc[supported & lesion]
     return result.loc[result[target].notna()].copy()
 
 class ManifestImageDataset(Dataset):

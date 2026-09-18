@@ -3,9 +3,11 @@ from __future__ import annotations
 from .cnn_common import build_cnn_model, load_cnn_checkpoint, train_cnn_strategy
 
 def build_model(num_classes: int = 2, dropout: float = .2, pretrained: bool = True, architecture: str = "efficientnet_v2_s"):
+    """Build a lesion-present versus normal-skin classifier."""
     return build_cnn_model(architecture, num_classes, dropout, pretrained)
 
 def train(manifest, config: dict, run_name: str | None = None):
+    """Train lesion presence only when genuine normal-skin negatives exist."""
     config = dict(config)
     task = config.setdefault("task", "lesion_presence")
     if task != "lesion_presence":

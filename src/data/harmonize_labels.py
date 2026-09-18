@@ -8,6 +8,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class LabelDecision:
+    """Record one explicit harmonized label decision and its rationale."""
     harmonized_diagnosis: str | None
     binary_target: int | None
     reason: str

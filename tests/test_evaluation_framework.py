@@ -1,3 +1,4 @@
+"""Tests for evaluation, calibration, ensemble, and DDI safeguards."""
 from __future__ import annotations
 
 import json

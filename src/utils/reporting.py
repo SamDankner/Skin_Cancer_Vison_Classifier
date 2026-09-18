@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 def flatten_dict(values: dict, prefix: str = "") -> dict:
+    """Flatten nested mappings for a one-row experiment summary."""
     output = {}
     for key, value in values.items():
         name = f"{prefix}.{key}" if prefix else key

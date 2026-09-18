@@ -1,3 +1,4 @@
+"""Tests for shared manifests, labels, splits, and transformations."""
 from __future__ import annotations
 
 import importlib
@@ -10,7 +11,7 @@ from PIL import Image
 
 from src.data.datasets import MANIFEST_COLUMNS, select_task_manifest, validate_manifest
 from src.data.harmonize_labels import harmonize_label
-from src.data.splits import class_coverage_report, make_group_splits, validate_split_class_coverage
+from src.data.splits import class_coverage_report, leakage_report, make_group_splits, validate_split_class_coverage
 from src.data.transforms import build_transforms
 
 
@@ -64,6 +65,18 @@ def test_dermoscopy_and_ddi_are_protected(manifest_frame):
     assert validate_manifest(ddi, allow_final_test=True).iloc[0]["dataset"] == "DDI"
 
 
+def test_string_boolean_values_do_not_become_truthy(manifest_frame):
+    row = manifest_frame.iloc[[0]].copy()
+    row["normal_skin"] = "False"
+    row["supported_for_diagnosis"] = "False"
+    checked = validate_manifest(row)
+    assert checked.normal_skin.item() == False
+    assert select_task_manifest(checked, "diagnosis_binary").empty
+    row["normal_skin"] = "unclear"
+    with pytest.raises(ValueError, match="invalid boolean"):
+        validate_manifest(row)
+
+
 def test_patient_and_lesion_groups_do_not_cross_development_splits(manifest_frame):
     split = make_group_splits(manifest_frame, random_state=3)
     assert split.groupby("patient_id")["split"].nunique().max() == 1
@@ -75,6 +88,14 @@ def test_patient_and_lesion_groups_do_not_cross_development_splits(manifest_fram
         validate_split_class_coverage(incomplete, "binary_target")
     with pytest.raises(ValueError, match="enough independent"):
         make_group_splits(manifest_frame.iloc[:6])
+
+
+def test_exact_duplicate_hashes_crossing_splits_are_reported(manifest_frame):
+    frame = manifest_frame.iloc[[0, 4]].copy()
+    frame["split"] = ["train", "validation"]
+    frame["file_sha256"] = ["same-digest", "same-digest"]
+    report = leakage_report(frame)
+    assert "sha256:same-digest" in report["_group"].tolist()
 
 
 def test_transforms_shape_and_evaluation_determinism():

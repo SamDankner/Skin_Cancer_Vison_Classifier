@@ -29,6 +29,7 @@ PREDICTION_COLUMNS = [
 
 @dataclass
 class CheckpointBundle:
+    """Keep a loaded model together with its persisted inference contract."""
     model: torch.nn.Module
     strategy: str
     task: str
@@ -205,7 +206,7 @@ def collect_predictions(model, loader, *, device=None, class_order: Sequence[str
     lookup = {str(label): index for index, label in enumerate(class_order)}
     targets, logits, metadata = [], [], []
     model.eval()
-    with torch.no_grad():
+    with torch.inference_mode():
         for batch in loader:
             raw_targets = batch["target"]
             if torch.is_tensor(raw_targets):
@@ -287,6 +288,7 @@ def prediction_frame(
 
 
 def export_predictions(frame: pd.DataFrame, path: str | Path) -> Path:
+    """Validate and save standard row-aligned prediction exports."""
     missing = set(PREDICTION_COLUMNS) - set(frame.columns)
     if missing:
         raise ValueError(f"Prediction export is missing columns: {sorted(missing)}")
@@ -354,6 +356,7 @@ def lesion_presence_readiness(manifest: pd.DataFrame) -> dict:
 
 
 def major_result_report(targets, predictions, probabilities, *, class_order, groups=None, n_resamples: int = 1000, seed: int = 42) -> dict:
+    """Return metrics plus grouped or sample-level bootstrap intervals."""
     target, probability = np.asarray(targets), np.asarray(probabilities)
     cross_entropy = -float(np.mean(np.log(np.clip(probability[np.arange(len(target)), target], 1e-12, 1.0))))
     metrics = classification_metrics(target, predictions, probability, labels=list(range(len(class_order))), class_names=class_order, loss=cross_entropy)

@@ -1,0 +1,116 @@
+# Development-only one-command workflow. This file must never reference DDI.
+manifest_path: data/processed/development_manifest.csv
+output_root: results/runs
+models_root: models
+summary_path: results/experiment_summary.csv
+seed: 42
+deterministic: false
+default_inference_strategy: efficientnet
+
+strategies:
+  efficientnet:
+    enabled: true
+    config: configs/efficientnet.yaml
+    search: true
+  convnext:
+    enabled: false
+    config: configs/convnext.yaml
+    search: true
+  dinov2:
+    enabled: false
+    config: configs/dinov2.yaml
+    search: true
+    screening_overrides:
+      image_size: 196
+      epochs: 5
+    screening_candidates:
+      - head_learning_rate: 0.0003
+        backbone_learning_rate: 0.00001
+        unfreeze_last_blocks: 0
+        weight_decay: 0.0001
+        dropout: 0.2
+        loss: weighted_cross_entropy
+        early_stopping_patience: 3
+        early_stopping_min_delta: 0.001
+      - head_learning_rate: 0.0001
+        backbone_learning_rate: 0.000005
+        unfreeze_last_blocks: 2
+        weight_decay: 0.0001
+        dropout: 0.3
+        loss: focal
+        focal_gamma: 2.0
+        early_stopping_patience: 5
+        early_stopping_min_delta: 0.0005
+  multimodal:
+    enabled: false
+    config: configs/multimodal.yaml
+    search: true
+    screening_overrides:
+      image_size: 196
+      epochs: 5
+    screening_candidates:
+      - head_learning_rate: 0.0003
+        backbone_learning_rate: 0.00001
+        metadata_width: 64
+        fusion_width: 256
+        metadata_dropout: 0.2
+        dropout: 0.2
+        unfreeze_last_blocks: 0
+        early_stopping_patience: 3
+        early_stopping_min_delta: 0.001
+      - head_learning_rate: 0.0001
+        backbone_learning_rate: 0.000005
+        metadata_width: 128
+        fusion_width: 256
+        metadata_dropout: 0.3
+        dropout: 0.3
+        unfreeze_last_blocks: 2
+        early_stopping_patience: 5
+        early_stopping_min_delta: 0.0005
+  lesion_presence:
+    enabled: false
+    config: configs/lesion_presence.yaml
+    search: false
+
+# Staged search is opt-in. Screening uses only validation results; development
+# test metrics are recorded but are never used to rank candidates.
+parameter_search:
+  enabled: false
+  top_k: 2
+  screening_overrides:
+    image_size: 160
+    epochs: 5
+  serious_overrides:
+    image_size: 224
+    epochs: 20
+  screening_candidates:
+    - learning_rate: 0.0003
+      fine_tuning_learning_rate: 0.00003
+      weight_decay: 0.0001
+      batch_size: 16
+      optimizer: adamw
+      scheduler: reduce_on_plateau
+      dropout: 0.2
+      loss: weighted_cross_entropy
+      early_stopping_patience: 3
+      early_stopping_min_delta: 0.001
+      scheduler_patience: 2
+      scheduler_factor: 0.5
+      augmentation:
+        crop_scale: [0.75, 1.0]
+        rotation_degrees: 20
+    - learning_rate: 0.0001
+      fine_tuning_learning_rate: 0.00001
+      weight_decay: 0.00001
+      batch_size: 12
+      optimizer: sgd
+      momentum: 0.9
+      scheduler: cosine
+      dropout: 0.3
+      loss: focal
+      focal_gamma: 2.0
+      early_stopping_patience: 5
+      early_stopping_min_delta: 0.0005
+      augmentation:
+        crop_scale: [0.8, 1.0]
+        rotation_degrees: 15

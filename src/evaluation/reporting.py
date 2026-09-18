@@ -118,6 +118,7 @@ def select_development_models(records: pd.DataFrame, *, task: str, count: int = 
 
 
 def save_comparison(frame: pd.DataFrame, output_directory: str | Path) -> dict[str, Path]:
+    """Save an experiment comparison as CSV and JSON."""
     destination = Path(output_directory); destination.mkdir(parents=True, exist_ok=True)
     csv_path, json_path = destination / "experiment_comparison.csv", destination / "experiment_comparison.json"
     export = frame.drop(columns=["source_record"], errors="ignore")
@@ -167,6 +168,7 @@ def compare_crop_strategies(
 
 
 def plot_confusion_matrix(matrix, class_names: Sequence[str], path: str | Path) -> Path:
+    """Save a labelled confusion-matrix figure and close it."""
     matrix = np.asarray(matrix)
     figure, axis = plt.subplots(figsize=(max(4, len(class_names)), max(4, len(class_names))))
     image = axis.imshow(matrix, cmap="Blues")
@@ -181,16 +183,47 @@ def plot_confusion_matrix(matrix, class_names: Sequence[str], path: str | Path) 
 
 
 def plot_training_history(history: pd.DataFrame, path: str | Path) -> Path:
-    figure, axes = plt.subplots(1, 2, figsize=(10, 4))
+    """Save loss, validation performance, and learning-rate histories."""
+    figure, axes = plt.subplots(1, 3, figsize=(15, 4))
     for prefix in ("train", "validation"):
         if f"{prefix}_loss" in history:
             axes[0].plot(history.epoch, history[f"{prefix}_loss"], label=prefix)
         if f"{prefix}_macro_f1" in history:
             axes[1].plot(history.epoch, history[f"{prefix}_macro_f1"], label=prefix)
-    axes[0].set(xlabel="Epoch", ylabel="Loss"); axes[1].set(xlabel="Epoch", ylabel="Macro F1")
-    axes[0].legend(); axes[1].legend(); figure.tight_layout()
+    if "learning_rate" in history:
+        axes[2].plot(history.epoch, history.learning_rate, label="learning rate", color="tab:green")
+    axes[0].set(xlabel="Epoch", ylabel="Loss", title="Training and validation loss")
+    axes[1].set(xlabel="Epoch", ylabel="Macro F1", title="Training and validation performance")
+    axes[2].set(xlabel="Epoch", ylabel="Learning rate", title="Learning-rate schedule")
+    for axis in axes:
+        handles, _ = axis.get_legend_handles_labels()
+        if handles:
+            axis.legend()
+    figure.tight_layout()
     destination = Path(path); destination.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(destination, dpi=150); plt.close(figure)
+    return destination
+
+
+def plot_parameter_search(frame: pd.DataFrame, path: str | Path, metric: str) -> Path:
+    """Save validation performance and runtime by staged-search candidate."""
+    if frame.empty or "validation_metric" not in frame:
+        raise ValueError("Parameter-search results are empty or incomplete")
+    labels = frame["run_name"].astype(str).tolist()
+    positions = np.arange(len(labels))
+    figure, axes = plt.subplots(1, 2, figsize=(max(10, len(labels) * 1.2), 4))
+    axes[0].bar(positions, frame["validation_metric"].astype(float))
+    axes[0].set(title=f"Validation {metric} by configuration", xlabel="Configuration", ylabel=metric)
+    if "training_seconds" in frame:
+        axes[1].bar(positions, frame["training_seconds"].astype(float), color="tab:orange")
+    axes[1].set(title="Runtime by configuration", xlabel="Configuration", ylabel="Training seconds")
+    for axis in axes:
+        axis.set_xticks(positions, labels, rotation=45, ha="right")
+    figure.tight_layout()
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(destination, dpi=150)
+    plt.close(figure)
     return destination
 
 

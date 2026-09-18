@@ -1,3 +1,4 @@
+"""Shared offline fixtures and tiny neural networks for the test suite."""
 from __future__ import annotations
 
 import pandas as pd

@@ -1,0 +1,3 @@
+# Set exactly one path after training. CLI flags override these values.
+checkpoint: null
+frozen_config: null

@@ -49,4 +49,18 @@ def validate_split_class_coverage(manifest: pd.DataFrame, target_column: str, re
         raise ValueError(f"Required split class coverage is incomplete for {target_column}: {details}")
 
 def leakage_report(manifest: pd.DataFrame) -> pd.DataFrame:
-    groups = group_key(manifest); return manifest.assign(_group=groups).groupby("_group").split.nunique().rename("split_count").loc[lambda x: x > 1].reset_index()
+    """Return patient/lesion/image groups that cross assigned splits."""
+    groups = group_key(manifest)
+    reports = [
+        manifest.assign(_group=groups)
+        .groupby("_group").split.nunique()
+        .rename("split_count").loc[lambda value: value > 1].reset_index()
+    ]
+    if "file_sha256" in manifest:
+        hashes = manifest.file_sha256.astype("string").fillna("").str.strip()
+        duplicate_rows = manifest.loc[hashes.ne("")].assign(_group="sha256:" + hashes.loc[hashes.ne("")])
+        reports.append(
+            duplicate_rows.groupby("_group").split.nunique()
+            .rename("split_count").loc[lambda value: value > 1].reset_index()
+        )
+    return pd.concat(reports, ignore_index=True).drop_duplicates() if reports else pd.DataFrame(columns=["_group", "split_count"])

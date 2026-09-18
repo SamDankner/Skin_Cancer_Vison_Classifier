@@ -1,3 +1,4 @@
+"""Offline strategy construction and checkpoint tests."""
 from __future__ import annotations
 
 import pytest
