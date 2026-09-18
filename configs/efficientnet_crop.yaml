@@ -1,6 +1,10 @@
 strategy_name: efficientnet
 task: diagnosis_binary
 backbone: efficientnet_v2_s
+input_mode: lesion_crop
+crop_margin: 0.15
+# Provide box_provider to train(); it must return automatic xyxy predictions per manifest row.
+ground_truth_crop_ablation: false
 image_size: 224
 batch_size: 16
 learning_rate: 0.0003
@@ -12,7 +16,6 @@ dropout: 0.2
 loss: cross_entropy
 selection_metric: macro_f1
 early_stopping_patience: 5
-input_mode: full_image
 augmentation:
   crop_scale: [0.75, 1.0]
   rotation_degrees: 20

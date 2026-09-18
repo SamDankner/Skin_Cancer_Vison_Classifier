@@ -1,1 +1,14 @@
-model: multimodal
+strategy_name: multimodal
+task: diagnosis_binary
+backbone: dinov2_vits14
+pretrained: true
+image_size: 224
+batch_size: 8
+metadata_fields: [age, sex, anatomical_site, skin_tone]
+metadata_embedding_dim: 16
+metadata_width: 64
+fusion_width: 256
+dropout: 0.2
+unfreeze_last_blocks: 0
+loss: weighted_cross_entropy
+ablation: image_plus_metadata

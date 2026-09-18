@@ -1,8 +1,12 @@
 strategy_name: efficientnet
 task: diagnosis_binary
 backbone: efficientnet_v2_s
+input_mode: full_plus_crop
+crop_margin: 0.15
+# Evaluate margins 0.10, 0.15, 0.20, and 0.25 as distinct development runs.
+ground_truth_crop_ablation: false
 image_size: 224
-batch_size: 16
+batch_size: 12
 learning_rate: 0.0003
 fine_tuning_learning_rate: 0.00003
 weight_decay: 0.00001
@@ -12,7 +16,6 @@ dropout: 0.2
 loss: cross_entropy
 selection_metric: macro_f1
 early_stopping_patience: 5
-input_mode: full_image
 augmentation:
   crop_scale: [0.75, 1.0]
   rotation_degrees: 20

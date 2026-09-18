@@ -1,1 +1,17 @@
-model: dinov2
+strategy_name: dinov2
+task: diagnosis_binary
+backbone: dinov2_vits14
+pretrained: true
+image_size: 224
+batch_size: 8
+epochs: 12
+head_learning_rate: 0.0003
+backbone_learning_rate: 0.00001
+unfreeze_last_blocks: 0
+weight_decay: 0.0001
+dropout: 0.2
+loss: weighted_cross_entropy
+patience: 4
+augmentation:
+  crop_scale: [0.75, 1.0]
+  rotation_degrees: 20

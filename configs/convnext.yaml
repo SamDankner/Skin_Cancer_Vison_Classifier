@@ -1,1 +1,18 @@
-model: convnext
+strategy_name: convnext
+task: diagnosis_binary
+backbone: convnext_tiny
+image_size: 224
+batch_size: 16
+learning_rate: 0.0003
+fine_tuning_learning_rate: 0.00003
+weight_decay: 0.00001
+epochs: 20
+head_epochs: 3
+dropout: 0.2
+loss: cross_entropy
+selection_metric: macro_f1
+early_stopping_patience: 5
+input_mode: full_image
+augmentation:
+  crop_scale: [0.75, 1.0]
+  rotation_degrees: 20

@@ -1,5 +1,5 @@
-strategy_name: efficientnet
-task: diagnosis_binary
+strategy_name: lesion_presence
+task: lesion_presence
 backbone: efficientnet_v2_s
 image_size: 224
 batch_size: 16
@@ -12,7 +12,7 @@ dropout: 0.2
 loss: cross_entropy
 selection_metric: macro_f1
 early_stopping_patience: 5
-input_mode: full_image
 augmentation:
   crop_scale: [0.75, 1.0]
   rotation_degrees: 20
+# Requires true normal-skin (lesion_present=0, normal_skin=true) examples.
