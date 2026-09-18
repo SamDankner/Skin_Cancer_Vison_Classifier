@@ -56,7 +56,12 @@ def _metadata_frame(metadata: Mapping[str, Any] | None) -> pd.DataFrame:
     return pd.DataFrame([dict(metadata or {})])
 
 
-def _bundle_input(bundle: CheckpointBundle, photo: Image.Image, metadata, device) -> tuple[tuple, bool, list[str]]:
+def _bundle_input(
+    bundle: CheckpointBundle,
+    photo: Image.Image,
+    metadata,
+    device,
+) -> tuple[tuple, bool, list[str]]:
     """Prepare the persisted input contract for one full-image checkpoint."""
     input_mode = bundle.config.get("input_mode", "full_image")
     if input_mode != "full_image":
@@ -74,7 +79,12 @@ def _bundle_input(bundle: CheckpointBundle, photo: Image.Image, metadata, device
     processor = getattr(bundle.model, "metadata_preprocessor", None)
     if processor is None:
         raise ValueError("Multimodal checkpoint has no fitted metadata preprocessor")
-    encoded = {key: value.to(device) for key, value in processor.transform(_metadata_frame(metadata)).items()}
+    # The fitted processor carries training-only statistics and explicit
+    # missing-value indicators, so inference must use it unchanged.
+    encoded = {
+        key: value.to(device)
+        for key, value in processor.transform(_metadata_frame(metadata)).items()
+    }
     supplied = dict(metadata or {})
     provided_fields = {
         field for field in processor.fields
@@ -91,7 +101,12 @@ def _bundle_input(bundle: CheckpointBundle, photo: Image.Image, metadata, device
     return (image_tensor, encoded), bool(provided_fields), warnings
 
 
-def _interpret(task: str, class_order: list[str], probabilities: np.ndarray, threshold: float | None) -> dict:
+def _interpret(
+    task: str,
+    class_order: list[str],
+    probabilities: np.ndarray,
+    threshold: float | None,
+) -> dict:
     """Create task-specific output without conflating clinical tasks."""
     predicted_index = int(probabilities.argmax())
     if threshold is not None and len(class_order) == 2:
@@ -100,7 +115,10 @@ def _interpret(task: str, class_order: list[str], probabilities: np.ndarray, thr
         "task": task,
         "predicted_class": class_order[predicted_index],
         "confidence": float(probabilities[predicted_index]),
-        "probabilities": {name: float(probabilities[index]) for index, name in enumerate(class_order)},
+        "probabilities": {
+            name: float(probabilities[index])
+            for index, name in enumerate(class_order)
+        },
         "threshold": threshold,
     }
     if task == "lesion_presence":
@@ -120,16 +138,26 @@ def _interpret(task: str, class_order: list[str], probabilities: np.ndarray, thr
     return result
 
 
-def _predict_bundle(bundle: CheckpointBundle, photo: Image.Image, metadata, device, warmup: int, repeats: int) -> dict:
+def _predict_bundle(
+    bundle: CheckpointBundle,
+    photo: Image.Image,
+    metadata,
+    device,
+    warmup: int,
+    repeats: int,
+) -> dict:
     preprocessing_started = perf_counter()
     args, metadata_used, warnings = _bundle_input(bundle, photo, metadata, device)
     preprocessing_ms = (perf_counter() - preprocessing_started) * 1000.0
+    # Evaluation mode and inference_mode prevent training-time behavior and
+    # gradient allocation from affecting a production prediction.
     bundle.model.to(device).eval()
     timing = benchmark_callable(
         lambda: bundle.model(*args), device=device, warmup=warmup, repeats=repeats
     )
     with torch.inference_mode():
         logits = bundle.model(*args)
+        # Convert unbounded class logits into a normalized class distribution.
         probability = torch.softmax(logits.float(), dim=1)[0].detach().cpu().numpy()
     return {
         "probabilities": probability,
@@ -157,6 +185,7 @@ def predict_image(
         raise ValueError("Provide exactly one of checkpoint or frozen_config")
     resolved_device = torch.device(device) if device is not None else get_device()
     request_started = perf_counter()
+
     decode_started = perf_counter()
     photo = _load_rgb_image(image)
     image_decode_ms = (perf_counter() - decode_started) * 1000.0
@@ -190,14 +219,27 @@ def predict_image(
             if len(class_order) < 2 or not frozen.get("models"):
                 raise ValueError("Frozen configuration needs class_order and at least one model")
             members, warnings, metadata_used, member_timings = [], [], False, {}
+
             for definition in frozen["models"]:
-                if definition.get("checkpoint_sha256") and file_sha256(definition["checkpoint"]) != definition["checkpoint_sha256"]:
+                # A frozen ensemble is valid only for its exact persisted artifacts.
+                if (
+                    definition.get("checkpoint_sha256")
+                    and file_sha256(definition["checkpoint"])
+                    != definition["checkpoint_sha256"]
+                ):
                     raise ValueError(f"Frozen checkpoint hash mismatch: {definition['checkpoint']}")
-                if definition.get("config") and definition.get("config_sha256") and file_sha256(definition["config"]) != definition["config_sha256"]:
+                if (
+                    definition.get("config")
+                    and definition.get("config_sha256")
+                    and file_sha256(definition["config"])
+                    != definition["config_sha256"]
+                ):
                     raise ValueError(f"Frozen model config hash mismatch: {definition['config']}")
                 bundle = load_checkpoint_bundle(
-                    definition["checkpoint"], strategy=definition.get("strategy"),
-                    config_path=definition.get("config"), device=resolved_device,
+                    definition["checkpoint"],
+                    strategy=definition.get("strategy"),
+                    config_path=definition.get("config"),
+                    device=resolved_device,
                 )
                 if bundle.task != frozen["task"] or bundle.class_order != class_order:
                     raise ValueError("Frozen ensemble member task/class order mismatch")
@@ -206,17 +248,21 @@ def predict_image(
                 except ValueError as exc:
                     if (frozen.get("ensemble") or {}).get("missing_member_policy") != "renormalize_available":
                         raise
-                    warnings.append(f"Omitted ensemble member {definition.get('name', bundle.strategy)}: {exc}")
+                    warnings.append(
+                        f"Omitted ensemble member {definition.get('name', bundle.strategy)}: {exc}"
+                    )
                     continue
                 metadata_used = metadata_used or output["metadata_used"]
                 warnings.extend(output["warnings"])
                 member_timings[definition.get("name", Path(bundle.checkpoint_path).stem)] = output["timing"]
-                members.append(EnsembleMember(
-                    definition.get("name", Path(bundle.checkpoint_path).stem),
-                    bundle.task,
-                    tuple(class_order),
-                    output["probabilities"][None, :],
-                ))
+                members.append(
+                    EnsembleMember(
+                        definition.get("name", Path(bundle.checkpoint_path).stem),
+                        bundle.task,
+                        tuple(class_order),
+                        output["probabilities"][None, :],
+                    )
+                )
             if not members:
                 raise ValueError("No frozen ensemble member can process this photograph")
             ensemble = frozen.get("ensemble") or {}
@@ -231,8 +277,12 @@ def predict_image(
             probability = probabilities[0]
             calibration = frozen.get("calibration") or {}
             if calibration.get("enabled"):
+                # Apply the validation-fitted calibration only after members
+                # have been combined in the frozen ensemble's class order.
                 probability = apply_temperature(
-                    probability[None, :], float(calibration["temperature"]), input_type="probabilities"
+                    probability[None, :],
+                    float(calibration["temperature"]),
+                    input_type="probabilities",
                 )[0]
             threshold = (frozen.get("threshold") or {}).get("threshold")
             result = _interpret(frozen["task"], class_order, probability, threshold)
@@ -249,7 +299,8 @@ def predict_image(
             perf_counter() - request_started
         ) * 1000.0
         result.setdefault("warnings", []).append(
-            "This output is a model prediction, not a diagnosis. No trained image-quality or OOD detector is bundled."
+            "This output is a model prediction, not a diagnosis. No trained "
+            "image-quality or OOD detector is bundled."
         )
         return result
     finally:
@@ -268,17 +319,51 @@ def metadata_from_json(value: str | Path | None) -> dict | None:
         if not candidate.is_file():
             raise FileNotFoundError(candidate)
         text = candidate.read_text(encoding="utf-8")
-        data = yaml.safe_load(text) if candidate.suffix.lower() in {".yaml", ".yml"} else json.loads(text)
+        data = (
+            yaml.safe_load(text)
+            if candidate.suffix.lower() in {".yaml", ".yml"}
+            else json.loads(text)
+        )
     if not isinstance(data, dict):
         raise ValueError("Metadata input must contain an object/mapping")
     return data
 
 
-def predict_with_lesion_routing(image, *, lesion_presence_checkpoint, diagnosis_checkpoint, metadata=None, **kwargs) -> dict:
+def predict_with_lesion_routing(
+    image,
+    *,
+    lesion_presence_checkpoint,
+    diagnosis_checkpoint,
+    metadata=None,
+    **kwargs,
+) -> dict:
     """Route a photo through lesion presence before optional diagnosis inference."""
-    presence = predict_image(image, checkpoint=lesion_presence_checkpoint, metadata=metadata, **kwargs)
+    presence = predict_image(
+        image,
+        checkpoint=lesion_presence_checkpoint,
+        metadata=metadata,
+        **kwargs,
+    )
     if presence.get("task") != "lesion_presence":
         raise ValueError("lesion_presence_checkpoint must contain a lesion_presence model")
     if presence.get("lesion_presence_result") in {"normal_skin", "0"}:
-        return {"routing": "no_lesion_detected", "lesion_presence": presence, "message": "No lesion was detected by the model; this is not a clinical confirmation of healthy skin."}
-    return {"routing": "lesion_detected", "lesion_presence": presence, "diagnosis": predict_image(image, checkpoint=diagnosis_checkpoint, metadata=metadata, **kwargs)}
+        # Do not run a diagnosis model after the lesion-presence gate rejects
+        # the image; the result remains a model output, not healthy-skin proof.
+        return {
+            "routing": "no_lesion_detected",
+            "lesion_presence": presence,
+            "message": (
+                "No lesion was detected by the model; this is not a clinical "
+                "confirmation of healthy skin."
+            ),
+        }
+    return {
+        "routing": "lesion_detected",
+        "lesion_presence": presence,
+        "diagnosis": predict_image(
+            image,
+            checkpoint=diagnosis_checkpoint,
+            metadata=metadata,
+            **kwargs,
+        ),
+    }

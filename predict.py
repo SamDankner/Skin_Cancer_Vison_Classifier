@@ -16,7 +16,11 @@ def _parser() -> argparse.ArgumentParser:
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--checkpoint", type=Path, help="Saved strategy checkpoint")
     source.add_argument("--frozen-config", type=Path, help="Saved frozen ensemble configuration")
-    parser.add_argument("--lesion-presence-checkpoint", type=Path, help="Optional lesion-presence checkpoint used before diagnosis")
+    parser.add_argument(
+        "--lesion-presence-checkpoint",
+        type=Path,
+        help="Optional lesion-presence checkpoint used before diagnosis",
+    )
     parser.add_argument("--metadata", help="Inline JSON or a JSON/YAML metadata file")
     parser.add_argument("--age", type=float)
     parser.add_argument("--sex")
@@ -39,6 +43,7 @@ def _default_source() -> dict:
 def main() -> int:
     """Parse CLI inputs, run inference, and print machine-readable JSON."""
     args = _parser().parse_args()
+
     try:
         metadata = metadata_from_json(args.metadata) or {}
     except (FileNotFoundError, ValueError, TypeError) as exc:
@@ -47,6 +52,7 @@ def main() -> int:
         value = getattr(args, field)
         if value is not None:
             metadata[field] = value
+
     defaults = _default_source()
     checkpoint = args.checkpoint or defaults.get("checkpoint")
     frozen_config = args.frozen_config or defaults.get("frozen_config")
@@ -58,9 +64,23 @@ def main() -> int:
         if args.lesion_presence_checkpoint:
             if not checkpoint or frozen_config:
                 raise ValueError("Lesion routing requires one diagnostic --checkpoint, not a frozen ensemble")
-            result = predict_with_lesion_routing(args.image, lesion_presence_checkpoint=args.lesion_presence_checkpoint, diagnosis_checkpoint=checkpoint, metadata=metadata or None, device=args.device, repeats=args.timing_runs)
+            result = predict_with_lesion_routing(
+                args.image,
+                lesion_presence_checkpoint=args.lesion_presence_checkpoint,
+                diagnosis_checkpoint=checkpoint,
+                metadata=metadata or None,
+                device=args.device,
+                repeats=args.timing_runs,
+            )
         else:
-            result = predict_image(args.image, checkpoint=checkpoint, frozen_config=frozen_config, metadata=metadata or None, device=args.device, repeats=args.timing_runs)
+            result = predict_image(
+                args.image,
+                checkpoint=checkpoint,
+                frozen_config=frozen_config,
+                metadata=metadata or None,
+                device=args.device,
+                repeats=args.timing_runs,
+            )
     except (FileNotFoundError, ValueError, TypeError, RuntimeError) as exc:
         raise SystemExit(f"Inference failed: {exc}") from exc
     print(json.dumps(result, indent=2))

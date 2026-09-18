@@ -181,6 +181,8 @@ def _head_parameters(model: nn.Module) -> list[nn.Parameter]:
 
 def set_backbone_trainable(model: nn.Module, trainable: bool) -> None:
     """Freeze or unfreeze the feature extractor while keeping the head trainable."""
+    # The replacement classifier must continue learning during the head-only
+    # phase, even while pretrained image features are frozen.
     for parameter in model.parameters():
         parameter.requires_grad = trainable
     for parameter in _head_parameters(model):
@@ -215,6 +217,9 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
             targets = _targets(batch["target"], loader.class_names).to(device, non_blocking=True)
             if training:
                 optimizer.zero_grad(set_to_none=True)
+
+            # CUDA autocast reduces activation precision where safe; GradScaler
+            # below protects small gradients during the backward pass.
             with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
                 logits = _forward(model, batch, device)
                 loss = _loss(logits, targets, config["loss"], weights, float(config.get("focal_gamma", 2.0)))
@@ -222,6 +227,7 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
+            # Metrics consume normalized probabilities, never raw logits.
             probability = torch.softmax(logits.detach().float(), dim=1)
             total_loss += float(loss.detach()) * len(targets)
             count += len(targets)
@@ -351,6 +357,8 @@ def train_cnn_strategy(
     model = build_diagnostic_input_model(
         cfg["input_mode"], architecture, len(class_names), float(cfg["dropout"]), bool(cfg["pretrained"])
     ).to(device)
+
+    # Begin by adapting only the replacement head to the project data.
     set_backbone_trainable(model, False)
     encoded_train = _targets(datasets["train"].frame[datasets["train"].target_column].tolist(), class_names)
     weights = None
@@ -379,6 +387,8 @@ def train_cnn_strategy(
     training_started = perf_counter()
     for epoch in range(1, int(cfg["epochs"]) + 1):
         if epoch == int(cfg["head_epochs"]) + 1:
+            # Fine-tuning starts with a new optimizer so the lower configured
+            # learning rate applies to the now-trainable pretrained backbone.
             set_backbone_trainable(model, True)
             optimizer = build_optimizer(
                 model.parameters(), cfg, default_lr=float(cfg["fine_tuning_learning_rate"])
@@ -422,6 +432,9 @@ def train_cnn_strategy(
     training_seconds = perf_counter() - training_started
     if stopper.best_state is None:
         raise RuntimeError("Training completed without a valid validation checkpoint")
+
+    # Development-test metrics must use the validation-selected state, not the
+    # final epoch, which may have already begun to overfit.
     model.load_state_dict(stopper.best_state)
     validation = _epoch(model, loaders["validation"], optimizer, scaler, device, cfg, weights, training=False)
     evaluation_started = perf_counter()

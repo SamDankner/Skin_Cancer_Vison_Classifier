@@ -43,10 +43,19 @@ def select_binary_threshold(
     if objective == "sensitivity_constrained" and not 0 <= (minimum_sensitivity if minimum_sensitivity is not None else -1) <= 1:
         raise ValueError("minimum_sensitivity in [0, 1] is required for sensitivity-constrained selection")
 
-    thresholds = np.unique(np.concatenate((np.linspace(0.0, 1.0, grid_size), scores, [0.5])))
+    # Include observed scores and 0.5 so ties are resolved on attainable
+    # decision boundaries while retaining the conventional default threshold.
+    thresholds = np.unique(
+        np.concatenate((np.linspace(0.0, 1.0, grid_size), scores, [0.5]))
+    )
     candidates = []
     for threshold in thresholds:
-        metrics = classification_metrics(y_true, _binary_predictions(scores, threshold), np.column_stack((1 - scores, scores)), labels=[0, 1])
+        metrics = classification_metrics(
+            y_true,
+            _binary_predictions(scores, threshold),
+            np.column_stack((1 - scores, scores)),
+            labels=[0, 1],
+        )
         if objective == "youden_j":
             value = metrics["sensitivity"] + metrics["specificity"] - 1
         elif objective == "sensitivity_constrained":
@@ -81,6 +90,8 @@ def apply_temperature(values, temperature: float, *, input_type: str = "logits")
     logits = _probabilities_to_logits(array) if input_type == "probabilities" else array
     if input_type not in {"logits", "probabilities"} or logits.ndim != 2:
         raise ValueError("values must be a two-dimensional logits/probabilities array")
+    # Subtracting the row maximum keeps the softmax numerically stable without
+    # changing its probabilities.
     scaled = logits / float(temperature)
     scaled -= scaled.max(axis=1, keepdims=True)
     exponent = np.exp(scaled)
@@ -122,7 +133,12 @@ def fit_temperature(
     tensor_logits = torch.tensor(values, dtype=torch.float64)
     tensor_targets = torch.tensor(y_true, dtype=torch.long)
     log_temperature = torch.zeros(1, dtype=torch.float64, requires_grad=True)
-    optimizer = torch.optim.LBFGS([log_temperature], lr=0.05, max_iter=max_iter, line_search_fn="strong_wolfe")
+    optimizer = torch.optim.LBFGS(
+        [log_temperature],
+        lr=0.05,
+        max_iter=max_iter,
+        line_search_fn="strong_wolfe",
+    )
 
     def closure():
         optimizer.zero_grad()

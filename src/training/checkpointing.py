@@ -1,19 +1,41 @@
 """Model checkpoint persistence utilities."""
 from pathlib import Path
+
 import torch
 
 
-def checkpoint_path(strategy_name: str, backbone: str, run_name: str, root: str | Path = "models") -> Path:
+def checkpoint_path(
+    strategy_name: str,
+    backbone: str,
+    run_name: str,
+    root: str | Path = "models",
+) -> Path:
     """Return a strategy-scoped checkpoint path, creating its directory."""
-    path = Path(root) / strategy_name; path.mkdir(parents=True, exist_ok=True); return path / f"{strategy_name}_{backbone}_{run_name}.pt"
+    path = Path(root) / strategy_name
+    path.mkdir(parents=True, exist_ok=True)
+    return path / f"{strategy_name}_{backbone}_{run_name}.pt"
+
+
 def save_checkpoint(model, optimizer, epoch: int, path: str | Path, **extra) -> Path:
     """Persist model state, optimizer state, epoch, and extra metadata."""
-    path = Path(path); path.parent.mkdir(parents=True, exist_ok=True); torch.save({"model_state_dict": model.state_dict(), "optimizer_state_dict": optimizer.state_dict() if optimizer else None, "epoch": epoch, **extra}, path); return path
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict() if optimizer else None,
+            "epoch": epoch,
+            **extra,
+        },
+        path,
+    )
+    return path
 
 
 def update_checkpoint_metadata(path: str | Path, **extra) -> Path:
     """Add metadata without replacing best-epoch model or optimizer state."""
     checkpoint = Path(path)
+    # Load onto CPU because metadata updates do not require accelerator memory.
     payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
     payload.update(extra)
     torch.save(payload, checkpoint)

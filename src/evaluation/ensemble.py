@@ -76,6 +76,9 @@ def average_probabilities(
         raise ValueError("missing_member_policy must be renormalize_available or error")
     if missing_member_policy == "error" and row_missing.any():
         raise ValueError("An ensemble member is ineligible for at least one sample")
+
+    # Per-sample renormalization preserves a probability distribution when a
+    # compatible member cannot use legitimately absent metadata.
     available_weight = (~row_missing) * weight[:, None]
     denominators = available_weight.sum(axis=0)
     if (denominators == 0).any():
