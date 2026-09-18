@@ -8,15 +8,16 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data
-data/*
-!data/.gitkeep
-
-# Model weights
-models/*
-!models/.gitkeep
-*.pth
-*.pt
+# Data and generated artifacts
+data/raw/
+data/processed/
+data/manifests/*.csv
+data/final_external_test/*
+!data/final_external_test/.gitkeep
+models/**/*.pt
+models/**/*.pth
+results/runs/*
+!results/runs/.gitkeep
 
 # Environment
 .env

@@ -1,0 +1,10 @@
+strategy_name: efficientnet
+task: diagnosis_binary
+image_size: 224
+batch_size: 16
+learning_rate: 0.0003
+weight_decay: 0.00001
+epochs: 20
+augmentation:
+  crop_scale: [0.75, 1.0]
+  rotation_degrees: 20

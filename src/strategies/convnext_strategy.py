@@ -1,0 +1,1 @@
+"""ConvNeXt training strategy."""
