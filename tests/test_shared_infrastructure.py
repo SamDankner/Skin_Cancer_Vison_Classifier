@@ -98,6 +98,14 @@ def test_exact_duplicate_hashes_crossing_splits_are_reported(manifest_frame):
     assert "sha256:same-digest" in report["_group"].tolist()
 
 
+def test_exact_duplicates_are_assigned_to_one_split(manifest_frame):
+    frame = manifest_frame.copy()
+    frame["file_sha256"] = [f"digest-{index}" for index in range(len(frame))]
+    frame.loc[[0, 4], "file_sha256"] = "same-digest"
+    split = make_group_splits(frame, random_state=3)
+    assert split.loc[split.file_sha256.eq("same-digest"), "split"].nunique() == 1
+
+
 def test_transforms_shape_and_evaluation_determinism():
     image = Image.new("RGB", (80, 60), color=(64, 128, 192))
     train = build_transforms(32, training=True)

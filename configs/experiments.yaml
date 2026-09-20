@@ -9,7 +9,7 @@ default_inference_strategy: efficientnet
 
 strategies:
   efficientnet:
-    enabled: true
+    enabled: false
     config: configs/efficientnet.yaml
     search: true
   convnext:
@@ -68,7 +68,7 @@ strategies:
         early_stopping_patience: 5
         early_stopping_min_delta: 0.0005
   lesion_presence:
-    enabled: false
+    enabled: true
     config: configs/lesion_presence.yaml
     search: false
 

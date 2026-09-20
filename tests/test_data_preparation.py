@@ -1,13 +1,33 @@
 """Tests for conservative clinical-photo manifest preparation."""
 from __future__ import annotations
 
+import json
+from io import BytesIO
+from pathlib import Path
+from urllib.error import HTTPError
+from urllib.parse import unquote
+
 import pandas as pd
 import numpy as np
 import pytest
 from PIL import Image
 
-from src.data.preparation import build_dataset_manifest
+from src.data.preparation import _json_safe, build_dataset_manifest, build_development_manifest
 from src.data.datasets import MANIFEST_COLUMNS, select_task_manifest, validate_manifest
+from src.data.scin_download import SCIN_BUCKET_URL, SCIN_KNOWN_MISSING_OBJECTS, download_scin_dataset
+
+
+class _DownloadResponse(BytesIO):
+    status = 200
+
+    def getcode(self):
+        return self.status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        self.close()
 
 
 def test_milk_manifest_excludes_dermoscopy_using_metadata(tmp_path):
@@ -35,6 +55,53 @@ def test_corrupt_images_are_reported(tmp_path):
     assert len(report["invalid_images"]) == 1
 
 
+def test_development_report_grouped_counts_are_json_records(tmp_path):
+    directory = tmp_path / "data" / "raw" / "PAD-UFES-20"
+    directory.mkdir(parents=True)
+    for index in range(10):
+        Image.new("RGB", (4, 4), color=(index * 20, 0, 0)).save(directory / f"image-{index}.png")
+
+    report = build_development_manifest(tmp_path, datasets=["PAD-UFES-20"])
+    report_path = tmp_path / "data" / "processed" / "preparation_report.json"
+    with report_path.open(encoding="utf-8") as handle:
+        reloaded = json.load(handle)
+
+    assert reloaded == report
+    assert reloaded["source_distribution_by_split"]
+    assert all(
+        set(record) == {"source_dataset", "split", "count"}
+        and record["source_dataset"] == "PAD-UFES-20"
+        and isinstance(record["count"], int)
+        for record in reloaded["source_distribution_by_split"]
+    )
+
+
+def test_report_json_conversion_preserves_types_and_rejects_structural_keys():
+    report = {
+        "integer": np.int64(7),
+        "floating": np.float64(2.5),
+        "boolean": np.bool_(True),
+        "missing": [pd.NA, np.nan, pd.NaT],
+        "path": Path("data/processed"),
+        "timestamp": pd.Timestamp("2026-09-18T12:30:00"),
+        "set_values": {"weak", "strong"},
+        "tuple_values": (1, 2),
+    }
+
+    reloaded = json.loads(json.dumps(_json_safe(report), allow_nan=False))
+
+    assert reloaded["integer"] == 7 and isinstance(reloaded["integer"], int)
+    assert reloaded["floating"] == 2.5 and isinstance(reloaded["floating"], float)
+    assert reloaded["boolean"] is True
+    assert reloaded["missing"] == [None, None, None]
+    assert reloaded["path"] == str(Path("data/processed"))
+    assert reloaded["timestamp"] == "2026-09-18T12:30:00"
+    assert reloaded["set_values"] == ["strong", "weak"]
+    assert reloaded["tuple_values"] == [1, 2]
+    with pytest.raises(TypeError, match="non-string dictionary key"):
+        _json_safe({"grouped": {("SCIN", "weak"): np.int64(123)}})
+
+
 def test_scin_healthy_is_weak_and_ungradable_alone_is_not_normal(tmp_path):
     directory = tmp_path / "SCIN"; directory.mkdir()
     Image.new("RGB", (4, 4)).save(directory / "healthy.jpg")
@@ -50,6 +117,142 @@ def test_scin_healthy_is_weak_and_ungradable_alone_is_not_normal(tmp_path):
     assert healthy.age_group == "AGE_30_TO_39"
     assert not manifest.loc[manifest.case_id.eq("ungradable"), "normal_skin"].item()
     assert select_task_manifest(validate_manifest(manifest), "diagnosis_binary").empty
+
+
+def test_zero_image_datasets_are_not_ready(tmp_path):
+    pad = tmp_path / "PAD-UFES-20"
+    pad.mkdir()
+    _, pad_report = build_dataset_manifest(tmp_path, "PAD-UFES-20")
+    assert pad_report["valid_images"] == 0
+    assert pad_report["status"] != "ready"
+
+    fitzpatrick = tmp_path / "Fitzpatrick17k"
+    fitzpatrick.mkdir()
+    pd.DataFrame([{"md5hash": "example", "label": "example"}]).to_csv(
+        fitzpatrick / "fitzpatrick17k.csv", index=False
+    )
+    _, fitzpatrick_report = build_dataset_manifest(tmp_path, "Fitzpatrick17k")
+    assert fitzpatrick_report["status"] == "metadata_only"
+
+
+def test_scin_metadata_only_and_known_missing_image_handling(tmp_path):
+    directory = tmp_path / "SCIN"
+    images = directory / "dataset" / "images"
+    images.mkdir(parents=True)
+    known_missing = next(iter(SCIN_KNOWN_MISSING_OBJECTS))
+    valid_object = "dataset/images/valid-object"
+    Image.new("RGB", (4, 4)).save(directory / valid_object, format="PNG")
+    pd.DataFrame([
+        {"case_id": "valid", "related_category": "RASH", "image_1_path": valid_object},
+        {"case_id": "missing", "related_category": "RASH", "image_1_path": known_missing},
+    ]).to_csv(directory / "dataset" / "scin_cases.csv", index=False)
+    pd.DataFrame([{"case_id": "valid"}, {"case_id": "missing"}]).to_csv(
+        directory / "dataset" / "scin_labels.csv", index=False
+    )
+
+    manifest, report = build_dataset_manifest(tmp_path, "SCIN")
+
+    assert report["status"] == "ready"
+    assert report["known_missing_images"] == [known_missing]
+    assert report["unexpected_missing_images"] == []
+    assert len(manifest) == 1 and Path(manifest.image_path.item()).is_file()
+
+    (directory / valid_object).unlink()
+    _, metadata_only = build_dataset_manifest(tmp_path, "SCIN")
+    assert metadata_only["status"] == "metadata_only"
+
+
+def test_official_scin_download_is_idempotent_and_tolerates_known_missing(tmp_path):
+    known_missing = next(iter(SCIN_KNOWN_MISSING_OBJECTS))
+    valid_object = "dataset/images/valid-object"
+    cases = pd.DataFrame([
+        {"case_id": "valid", "image_1_path": valid_object},
+        {"case_id": "missing", "image_1_path": known_missing},
+    ]).to_csv(index=False).encode()
+    labels = pd.DataFrame([{"case_id": "valid"}, {"case_id": "missing"}]).to_csv(index=False).encode()
+    image_buffer = BytesIO()
+    Image.new("RGB", (4, 4)).save(image_buffer, format="PNG")
+    objects = {
+        "dataset/scin_cases.csv": cases,
+        "dataset/scin_labels.csv": labels,
+        valid_object: image_buffer.getvalue(),
+    }
+    calls = []
+
+    def opener(request, timeout):
+        del timeout
+        object_name = unquote(request.full_url.removeprefix(f"{SCIN_BUCKET_URL}/"))
+        calls.append(object_name)
+        if object_name not in objects:
+            raise HTTPError(request.full_url, 404, "not found", {}, None)
+        return _DownloadResponse(objects[object_name])
+
+    first = download_scin_dataset(tmp_path, opener=opener, workers=2, progress=None)
+    second = download_scin_dataset(tmp_path, opener=opener, workers=2, progress=None)
+
+    assert first["downloaded_images"] == 1
+    assert first["known_missing_images"] == [known_missing]
+    assert second["reused_valid_images"] == 1
+    assert second["downloaded_images"] == 0
+    assert calls.count(valid_object) == 1
+
+
+def test_scin_case_grouping_and_condition_side_of_lesion_presence(tmp_path):
+    directory = tmp_path / "data" / "raw" / "SCIN"
+    image_directory = directory / "dataset" / "images"
+    image_directory.mkdir(parents=True)
+    cases = []
+    labels = []
+    for case_index in range(10):
+        related = "LOOKS_HEALTHY" if case_index % 2 == 0 else "RASH"
+        case = {"case_id": f"case-{case_index}", "related_category": related}
+        for image_index in range(2):
+            object_name = f"dataset/images/{case_index}-{image_index}"
+            Image.new("RGB", (4, 4), color=(case_index * 20, image_index * 80, 0)).save(
+                directory / object_name, format="PNG"
+            )
+            case[f"image_{image_index + 1}_path"] = object_name
+        cases.append(case)
+        labels.append({"case_id": f"case-{case_index}"})
+    pd.DataFrame(cases).to_csv(directory / "dataset" / "scin_cases.csv", index=False)
+    pd.DataFrame(labels).to_csv(directory / "dataset" / "scin_labels.csv", index=False)
+
+    report = build_development_manifest(tmp_path, datasets=["SCIN"])
+    manifest = pd.read_csv(report["manifest"])
+
+    assert manifest.groupby("case_id").split.nunique().max() == 1
+    assert manifest.loc[manifest.self_reported_related_category.eq("LOOKS_HEALTHY"), "lesion_present"].eq(0).all()
+    assert manifest.loc[manifest.self_reported_related_category.eq("RASH"), "lesion_present"].eq(1).all()
+    assert not manifest.supported_for_diagnosis.fillna(False).any()
+
+
+def test_development_report_uses_only_eligible_rows_and_covers_test_split(tmp_path):
+    directory = tmp_path / "data" / "raw" / "MILK10k"
+    directory.mkdir(parents=True)
+    metadata = []
+    for index in range(10):
+        diagnosis_1 = "Benign" if index % 2 == 0 else "Malignant"
+        diagnosis_3 = "Nevus" if index % 2 == 0 else "Melanoma"
+        for modality in ("clinical", "dermoscopic"):
+            image_id = f"{modality}-{index}"
+            metadata.append({
+                "isic_id": image_id, "image_type": modality, "lesion_id": f"lesion-{index}",
+                "diagnosis_1": diagnosis_1, "diagnosis_3": diagnosis_3,
+            })
+            Image.new("RGB", (4, 4), color=(index * 20, 0 if modality == "clinical" else 100, 0)).save(
+                directory / f"{image_id}.png"
+            )
+    pd.DataFrame(metadata).to_csv(directory / "metadata.csv", index=False)
+
+    report = build_development_manifest(tmp_path, datasets=["MILK10k"])
+
+    assert report["all_rows"] == 20
+    assert report["eligible_development_rows"] == 10
+    assert sum(report["class_distribution"].values()) == 10
+    assert report["lesion_presence_distribution"] == {"present": 10, "absent": 0}
+    assert report["excluded_dermoscopy_images"] == 10
+    assert {item["split"] for item in report["class_coverage"]} == {"train", "validation", "test"}
+    assert {item["split"] for item in report["lesion_presence_coverage"]} == {"train", "validation", "test"}
 
 
 def test_nullable_boolean_accepts_serialized_binary_numbers_and_rejects_fraction():

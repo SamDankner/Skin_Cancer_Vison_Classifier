@@ -7,16 +7,54 @@ import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 
 def group_key(manifest: pd.DataFrame) -> pd.Series:
-    """Prefer patient, then lesion, then image identity to keep correlated images together."""
+    """Keep patient/case/lesion groups and exact duplicate images together."""
     patient = manifest.patient_id.astype("string").fillna("").str.strip()
     lesion = manifest.lesion_id.astype("string").fillna("").str.strip()
-
-    # The most stable identity available wins, keeping related photographs in
-    # one split even when a source omits patient or lesion identifiers.
-    return (
+    primary = (
         ("image:" + manifest.image_id.astype(str))
         .where(lesion.eq(""), "lesion:" + lesion)
         .where(patient.eq(""), "patient:" + patient)
+    )
+    if "file_sha256" not in manifest:
+        return primary
+
+    hashes = manifest.file_sha256.astype("string").fillna("").str.strip()
+    parent = list(range(len(manifest)))
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            parent[right_root] = left_root
+
+    owners: dict[str, int] = {}
+    for position, (primary_key, digest) in enumerate(zip(primary.tolist(), hashes.tolist())):
+        tokens = [primary_key]
+        if digest:
+            tokens.append(f"sha256:{digest}")
+        for token in tokens:
+            if token in owners:
+                union(position, owners[token])
+            else:
+                owners[token] = position
+
+    members: dict[int, list[int]] = {}
+    for position in range(len(manifest)):
+        members.setdefault(find(position), []).append(position)
+    labels = {
+        position: min(str(primary.iloc[member]) for member in component)
+        for component in members.values()
+        for position in component
+    }
+    return pd.Series(
+        [labels[position] for position in range(len(manifest))],
+        index=manifest.index,
+        dtype="string",
     )
 
 def make_group_splits(

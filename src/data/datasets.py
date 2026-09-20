@@ -9,6 +9,8 @@ import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
 
+from src.data.targets import TASK_TARGETS, canonical_target
+
 MANIFEST_COLUMNS = [
     "dataset", "source_dataset", "image_path", "image_id", "patient_id", "case_id",
     "lesion_id", "original_label", "harmonized_diagnosis", "binary_target",
@@ -17,7 +19,9 @@ MANIFEST_COLUMNS = [
     "bounding_box", "segmentation_mask_path", "supported_for_lesion_detection",
     "supported_for_lesion_presence", "supported_for_diagnosis", "age", "age_group",
     "sex", "anatomical_site", "skin_tone", "monk_skin_tone", "image_modality",
-    "label_source", "ground_truth_method", "split",
+    "label_source", "ground_truth_method", "self_reported_related_category",
+    "dermatologist_skin_condition_label", "weighted_skin_condition_label",
+    "dermatologist_fitzpatrick_skin_type", "split",
 ]
 DATASET_SETUP = {"PAD-UFES-20": "https://data.mendeley.com/datasets/zr7vgbcyr2/1", "MILK10k": "https://doi.org/10.1038/s41597-024-03501-y", "Fitzpatrick17k": "https://github.com/mattgroh/fitzpatrick17k", "SCIN": "https://github.com/google-research-datasets/scin", "DDI": "https://stanfordaimi.github.io/digital-dermatology/"}
 
@@ -132,13 +136,6 @@ def find_perceptual_duplicates(manifest: pd.DataFrame, hasher: Callable[[str], o
                 )
     return pd.DataFrame(rows, columns=["left_index", "right_index", "distance", "possible_duplicate"])
 
-TASK_TARGETS = {
-    "lesion_presence": "lesion_present",
-    "diagnosis_binary": "binary_target",
-    "diagnosis_multiclass": "harmonized_diagnosis",
-    "image_quality": "image_quality_label",
-}
-
 def select_task_manifest(manifest: pd.DataFrame, task: str) -> pd.DataFrame:
     """Filter one manifest for a separable learning task without relabeling normal skin."""
     if task not in TASK_TARGETS:
@@ -187,6 +184,7 @@ class ManifestImageDataset(Dataset):
         frame = select_task_manifest(frame, task)
         self.frame = frame if split is None else frame.loc[frame.split.eq(split)].reset_index(drop=True)
         self.transform = transform
+        self.task = task
         self.target_column = target_column or TASK_TARGETS[task]
 
     def __len__(self):
@@ -198,10 +196,6 @@ class ManifestImageDataset(Dataset):
             image = source.convert("RGB")
         if self.transform:
             image = self.transform(image)
-        target = row[self.target_column]
-        target = (
-            None
-            if pd.isna(target)
-            else str(target) if self.target_column == "harmonized_diagnosis" else int(target)
-        )
+        value = row[self.target_column]
+        target = None if pd.isna(value) else canonical_target(value, self.task)
         return {"image": image, "target": target, "metadata": row.to_dict()}

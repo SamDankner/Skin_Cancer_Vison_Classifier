@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
 from src.data.splits import leakage_report, validate_split_class_coverage
+from src.data.targets import TargetEncoding, target_encoding_for_manifest
 from src.data.transforms import build_transforms
 from src.evaluation.evaluator import export_predictions, prediction_frame
 from src.evaluation.metrics import classification_metrics
@@ -102,17 +103,18 @@ class DinoV2Classifier(nn.Module):
 class _EncodedManifestDataset(Dataset):
     """Wrap manifest images with persisted integer target encoding."""
 
-    def __init__(self, manifest, transform, task, class_to_index):
+    def __init__(self, manifest, transform, task, target_encoding: TargetEncoding):
         self.base = ManifestImageDataset(manifest, transform=transform, task=task)
         self.frame = self.base.frame
-        self.class_to_index = {str(key): value for key, value in class_to_index.items()}
+        self.target_encoding = target_encoding
+        self.class_to_index = target_encoding.display_to_index
 
     def __len__(self):
         return len(self.base)
 
     def __getitem__(self, index):
         item = self.base[index]
-        return {**item, "target": self.class_to_index[str(item["target"])]}
+        return {**item, "target": self.target_encoding.encode(item["target"])}
 
 
 def _collate(batch: list[dict]) -> dict:
@@ -139,23 +141,21 @@ def make_image_loaders(
     if not leakage_report(frame).empty:
         raise ValueError("Patient/lesion/image groups cross development splits")
     validate_split_class_coverage(frame, TASK_TARGETS[task], ("train", "validation", "test"))
-    labels = sorted(frame.loc[frame.split.eq("train"), TASK_TARGETS[task]].unique().tolist(), key=str)
-    class_to_index = {str(label): index for index, label in enumerate(labels)}
-    if len(class_to_index) < 2:
-        raise ValueError("Training split needs at least two classes")
+    target_encoding = target_encoding_for_manifest(frame, task)
+    class_to_index = target_encoding.display_to_index
     datasets = {
         split: _EncodedManifestDataset(
             frame.loc[frame.split.eq(split)],
             build_transforms(image_size, split == "train", augmentation if split == "train" else None),
             task,
-            class_to_index,
+            target_encoding,
         )
         for split in ("train", "validation", "test")
     }
     sampler = None
     if weighted_sampling:
         targets = [datasets["train"][index]["target"] for index in range(len(datasets["train"]))]
-        counts = np.bincount(targets, minlength=len(labels))
+        counts = np.bincount(targets, minlength=len(target_encoding.class_values))
         sampler = WeightedRandomSampler([1.0 / counts[target] for target in targets], len(targets), replacement=True)
     loaders = {
         split: DataLoader(
@@ -169,6 +169,9 @@ def make_image_loaders(
         )
         for split, dataset in datasets.items()
     }
+    for loader in loaders.values():
+        loader.class_names = list(target_encoding.class_names)
+        loader.target_encoding = target_encoding
     return loaders, class_to_index
 
 

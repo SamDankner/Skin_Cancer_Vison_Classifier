@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
 from src.data.splits import leakage_report, validate_split_class_coverage
+from src.data.targets import TargetEncoding, canonical_target, target_encoding_for_manifest
 from src.data.transforms import build_transforms
 from src.evaluation.evaluator import export_predictions, prediction_frame
 from src.evaluation.metrics import classification_metrics, lesion_presence_metrics
@@ -123,8 +124,7 @@ class CropAssistedManifestDataset(ManifestImageDataset):
             image = source.convert("RGB")
             crop = lesion_crop(image, box, self.crop_margin)
             full_value = self.transform(image) if self.transform else image.copy()
-        target = row[self.target_column]
-        target = str(target) if self.target_column == "harmonized_diagnosis" else int(target)
+        target = canonical_target(row[self.target_column], self.task)
         if self.output_mode == "lesion_crop":
             return {"image": self.crop_transform(crop), "target": target, "metadata": metadata}
         return {
@@ -136,16 +136,14 @@ class CropAssistedManifestDataset(ManifestImageDataset):
 
 
 def class_names_for_manifest(manifest, task: str) -> list[str]:
-    """Return deterministic class order from the task's training rows."""
-    target = TASK_TARGETS[task]
+    """Return display labels; model target indices come from canonical values."""
     frame = select_task_manifest(manifest, task)
-    values = frame.loc[frame.split.eq("train"), target].dropna().unique().tolist()
-    return [str(value) for value in sorted(values, key=str)]
+    return list(target_encoding_for_manifest(frame, task).class_names)
 
 
-def _targets(values: Iterable[Any], class_names: list[str]) -> torch.Tensor:
-    lookup = {name: index for index, name in enumerate(class_names)}
-    return torch.tensor([lookup[str(value)] for value in values], dtype=torch.long)
+def _targets(values: Iterable[Any], target_encoding: TargetEncoding) -> torch.Tensor:
+    """Encode canonical task values without consulting display labels."""
+    return target_encoding.encode_tensor(values)
 
 
 def build_cnn_model(
@@ -214,7 +212,7 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
     context = torch.enable_grad() if training else torch.inference_mode()
     with context:
         for batch in loader:
-            targets = _targets(batch["target"], loader.class_names).to(device, non_blocking=True)
+            targets = _targets(batch["target"], loader.target_encoding).to(device, non_blocking=True)
             if training:
                 optimizer.zero_grad(set_to_none=True)
 
@@ -255,10 +253,12 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
     }
 
 
-def _loader(dataset, config: dict, class_names: list[str], *, training: bool) -> DataLoader:
+def _loader(dataset, config: dict, target_encoding: TargetEncoding, *, training: bool) -> DataLoader:
     sampler = None
     if training and config.get("weighted_sampling", False):
-        encoded = _targets(dataset.frame[dataset.target_column].tolist(), class_names).tolist()
+        encoded = _targets(
+            dataset.frame[dataset.target_column].tolist(), target_encoding
+        ).tolist()
         counts = Counter(encoded)
         sampler = WeightedRandomSampler(
             [1.0 / counts[target] for target in encoded], len(encoded), replacement=True
@@ -272,7 +272,8 @@ def _loader(dataset, config: dict, class_names: list[str], *, training: bool) ->
         pin_memory=torch.cuda.is_available(),
         collate_fn=collate_manifest_batch,
     )
-    loader.class_names = class_names
+    loader.class_names = list(target_encoding.class_names)
+    loader.target_encoding = target_encoding
     return loader
 
 
@@ -343,14 +344,16 @@ def train_cnn_strategy(
     if not leakage_report(selected).empty:
         raise ValueError("Patient/lesion/image groups cross development splits")
     validate_split_class_coverage(selected, TASK_TARGETS[task], ("train", "validation", "test"))
-    class_names = class_names_for_manifest(selected, task)
-    if len(class_names) < 2:
+    try:
+        target_encoding = target_encoding_for_manifest(selected, task)
+    except ValueError as exc:
         suffix = " Add true normal-skin examples." if task == "lesion_presence" else ""
-        raise ValueError("Training needs at least two target classes." + suffix)
+        raise ValueError(str(exc) + suffix) from exc
+    class_names = list(target_encoding.class_names)
 
     datasets = _datasets(selected, cfg, box_provider)
     loaders = {
-        split: _loader(dataset, cfg, class_names, training=split == "train")
+        split: _loader(dataset, cfg, target_encoding, training=split == "train")
         for split, dataset in datasets.items()
     }
     device = get_device()
@@ -360,7 +363,10 @@ def train_cnn_strategy(
 
     # Begin by adapting only the replacement head to the project data.
     set_backbone_trainable(model, False)
-    encoded_train = _targets(datasets["train"].frame[datasets["train"].target_column].tolist(), class_names)
+    encoded_train = _targets(
+        datasets["train"].frame[datasets["train"].target_column].tolist(),
+        target_encoding,
+    )
     weights = None
     if cfg["loss"] in {"weighted_cross_entropy", "focal"}:
         counts = torch.bincount(encoded_train, minlength=len(class_names)).float()

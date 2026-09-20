@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
 from src.data.splits import leakage_report, validate_split_class_coverage
+from src.data.targets import TargetEncoding, target_encoding_for_manifest
 from src.data.transforms import build_transforms
 from src.evaluation.evaluator import export_predictions, prediction_frame
 from src.evaluation.metrics import classification_metrics
@@ -199,17 +200,18 @@ class MultimodalClassifier(nn.Module):
 class _MultimodalDataset(Dataset):
     """Attach encoded targets while retaining raw metadata for export."""
 
-    def __init__(self, frame: pd.DataFrame, transform, task: str, class_to_index: dict):
+    def __init__(self, frame: pd.DataFrame, transform, task: str, target_encoding: TargetEncoding):
         self.base = ManifestImageDataset(frame, transform=transform, task=task)
         self.frame = self.base.frame
-        self.class_to_index = {str(key): value for key, value in class_to_index.items()}
+        self.target_encoding = target_encoding
+        self.class_to_index = target_encoding.display_to_index
 
     def __len__(self) -> int:
         return len(self.base)
 
     def __getitem__(self, index: int) -> dict:
         item = self.base[index]
-        return {**item, "target": self.class_to_index[str(item["target"])]}
+        return {**item, "target": self.target_encoding.encode(item["target"])}
 
 
 def _collate_multimodal(batch: list[dict], processor: MetadataPreprocessor) -> dict:
@@ -222,7 +224,12 @@ def _collate_multimodal(batch: list[dict], processor: MetadataPreprocessor) -> d
     }
 
 
-def _make_loaders(frame: pd.DataFrame, config: dict, processor: MetadataPreprocessor, class_to_index: dict) -> dict[str, DataLoader]:
+def _make_loaders(
+    frame: pd.DataFrame,
+    config: dict,
+    processor: MetadataPreprocessor,
+    target_encoding: TargetEncoding,
+) -> dict[str, DataLoader]:
     datasets = {
         split: _MultimodalDataset(
             frame.loc[frame.split.eq(split)],
@@ -232,14 +239,14 @@ def _make_loaders(frame: pd.DataFrame, config: dict, processor: MetadataPreproce
                 augmentation=config.get("augmentation") if split == "train" else None,
             ),
             config["task"],
-            class_to_index,
+            target_encoding,
         )
         for split in ("train", "validation", "test")
     }
     sampler = None
     if config.get("weighted_sampling", False):
         targets = [datasets["train"][index]["target"] for index in range(len(datasets["train"]))]
-        counts = np.bincount(targets, minlength=len(class_to_index))
+        counts = np.bincount(targets, minlength=len(target_encoding.class_values))
         sampler = WeightedRandomSampler([1.0 / counts[target] for target in targets], len(targets), replacement=True)
     loaders = {}
     for split, dataset in datasets.items():
@@ -252,6 +259,8 @@ def _make_loaders(frame: pd.DataFrame, config: dict, processor: MetadataPreproce
             pin_memory=torch.cuda.is_available(),
             collate_fn=partial(_collate_multimodal, processor=processor),
         )
+        loaders[split].class_names = list(target_encoding.class_names)
+        loaders[split].target_encoding = target_encoding
     return loaders
 
 
@@ -402,11 +411,11 @@ def train(
         raise ValueError("Patient/lesion/image groups cross development splits")
     target_column = TASK_TARGETS[cfg["task"]]
     validate_split_class_coverage(checked, target_column, ("train", "validation", "test"))
-    train_labels = sorted(checked.loc[checked.split.eq("train"), target_column].unique().tolist(), key=str)
-    class_names = [str(label) for label in train_labels]
-    class_to_index = {label: index for index, label in enumerate(class_names)}
+    target_encoding = target_encoding_for_manifest(checked, cfg["task"])
+    class_names = list(target_encoding.class_names)
+    class_to_index = target_encoding.display_to_index
     processor = MetadataPreprocessor(fields).fit(checked.loc[checked.split.eq("train")])
-    loaders = _make_loaders(checked, cfg, processor, class_to_index)
+    loaders = _make_loaders(checked, cfg, processor, target_encoding)
 
     device = get_device()
     model = build_multimodal_model(cfg, processor, len(class_names), backbone_factory).to(device)

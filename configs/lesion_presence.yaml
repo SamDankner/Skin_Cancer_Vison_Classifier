@@ -1,7 +1,7 @@
 strategy_name: lesion_presence
 task: lesion_presence
 backbone: efficientnet_v2_s
-pretrained: true
+pretrained: false
 image_size: 224
 batch_size: 16
 num_workers: 0
@@ -9,11 +9,11 @@ optimizer: adamw
 learning_rate: 0.0003
 fine_tuning_learning_rate: 0.00003
 weight_decay: 0.00001
-epochs: 20
-head_epochs: 3
+epochs: 1
+head_epochs: 1
 dropout: 0.2
 loss: cross_entropy
-weighted_sampling: false
+weighted_sampling: true
 # Eligible normal labels: strong, moderate, weak.  `auxiliary` ENCoDE-style
 # nonlesional candidates are excluded from lesion-presence training/evaluation.
 normal_label_strengths: [strong, moderate, weak]

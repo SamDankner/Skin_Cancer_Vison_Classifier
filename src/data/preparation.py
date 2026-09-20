@@ -6,13 +6,16 @@ or explicitly downloaded from a documented first-party URL.
 """
 from __future__ import annotations
 
-from datetime import date
+from collections.abc import Mapping
+from datetime import date, datetime
 import ast
 import json
+import math
 from pathlib import Path
 from typing import Iterable
 from hashlib import sha256
 
+import numpy as np
 import pandas as pd
 from PIL import Image, UnidentifiedImageError
 
@@ -24,7 +27,7 @@ try:
 except ModuleNotFoundError as exc:
     if exc.name != "torch":
         raise
-    MANIFEST_COLUMNS = ["dataset", "image_path", "image_id", "patient_id", "lesion_id", "original_label", "harmonized_diagnosis", "binary_target", "lesion_present", "normal_skin", "image_quality_label", "localization_available", "bounding_box", "segmentation_mask_path", "supported_for_lesion_detection", "supported_for_diagnosis", "age", "sex", "anatomical_site", "skin_tone", "image_modality", "label_source", "ground_truth_method", "split"]
+    MANIFEST_COLUMNS = ["dataset", "source_dataset", "image_path", "image_id", "patient_id", "case_id", "lesion_id", "original_label", "harmonized_diagnosis", "binary_target", "lesion_present", "normal_skin", "normal_label_strength", "normal_label_method", "other_skin_condition", "image_quality_label", "localization_available", "bounding_box", "segmentation_mask_path", "supported_for_lesion_detection", "supported_for_lesion_presence", "supported_for_diagnosis", "age", "age_group", "sex", "anatomical_site", "skin_tone", "monk_skin_tone", "image_modality", "label_source", "ground_truth_method", "self_reported_related_category", "dermatologist_skin_condition_label", "weighted_skin_condition_label", "dermatologist_fitzpatrick_skin_type", "split"]
     def empty_manifest():
         return pd.DataFrame(columns=MANIFEST_COLUMNS)
     def add_exact_hashes(manifest):
@@ -43,6 +46,13 @@ except ModuleNotFoundError as exc:
         manifest[MANIFEST_COLUMNS].to_csv(path, index=False)
         return path
 from src.data.harmonize_labels import harmonize_manifest
+from src.data.scin_download import (
+    SCIN_KNOWN_MISSING_OBJECTS,
+    expected_scin_image_objects,
+    local_scin_path,
+    scin_metadata_paths,
+    validate_image_file,
+)
 try:
     from src.data.splits import class_coverage_report, leakage_report, make_group_splits
 except ModuleNotFoundError as exc:
@@ -80,6 +90,56 @@ SOURCES = {
     "Muhaba": {"url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9060152/", "doi": "10.1002/ski2.120", "terms": "Available from corresponding author on reasonable request"},
     "ENCoDE": {"url": "https://physionet.org/content/encode-skin-color/1.0.0/", "doi": "10.13026/mcgk-1s42", "terms": "PhysioNet credentialed access and data-use agreement required"},
 }
+
+
+def _json_safe(value, path: str = "report"):
+    """Return a strict-JSON-safe report value without obscuring its structure."""
+    if value is None or value is pd.NA or value is pd.NaT:
+        return None
+    if isinstance(value, (str, bool, int)):
+        return value
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, np.bool_):
+        return bool(value)
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.floating):
+        number = float(value)
+        return number if math.isfinite(number) else None
+    if isinstance(value, (pd.Timestamp, datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, Mapping):
+        result = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise TypeError(
+                    f"{path} has a non-string dictionary key {key!r}; "
+                    "represent grouped data as nested dictionaries or records"
+                )
+            result[key] = _json_safe(item, f"{path}.{key}")
+        return result
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item, f"{path}[{index}]") for index, item in enumerate(value)]
+    if isinstance(value, (set, frozenset)):
+        ordered = sorted(value, key=lambda item: (type(item).__name__, str(item)))
+        return [_json_safe(item, f"{path}[{index}]") for index, item in enumerate(ordered)]
+    raise TypeError(f"{path} contains unsupported value {value!r} ({type(value).__name__})")
+
+
+def _grouped_count_records(frame: pd.DataFrame, columns: tuple[str, ...]) -> list[dict]:
+    """Represent grouped counts as records instead of tuple-keyed dictionaries."""
+    if frame.empty:
+        return []
+    return (
+        frame.groupby(list(columns), dropna=False)
+        .size()
+        .rename("count")
+        .reset_index()
+        .to_dict("records")
+    )
 
 def _norm(value):
     return "" if pd.isna(value) else str(value).strip()
@@ -126,70 +186,129 @@ def _scin_body_site(row: pd.Series) -> str | None:
     return "; ".join(sites) if sites else None
 
 
-def _scin_image_paths(directory: Path, row: pd.Series, image_lookup: dict[str, Path]) -> list[tuple[str, Path, object]]:
-    """Resolve only schema-declared SCIN image fields; never use text search labels."""
-    found = []
+def _scin_image_paths(directory: Path, row: pd.Series) -> list[tuple[str, Path, object]]:
+    """Resolve valid schema-declared SCIN images; official objects have no suffix."""
+    found: list[tuple[str, Path, object]] = []
     for column, value in row.items():
         name = str(column).lower()
         if not name.startswith("image_") or not name.endswith("_path") or not _nonempty(value):
             continue
-        candidate = Path(str(value))
-        path = candidate if candidate.is_absolute() else directory / candidate
-        if not path.is_file():
-            path = image_lookup.get(candidate.name.lower())
-        if path and path.is_file():
+        object_name = str(value).strip().lstrip("/")
+        path = local_scin_path(directory, object_name)
+        if validate_image_file(path) is None:
             shot = row.get(str(column).replace("_path", "_shot_type"))
             found.append((str(column), path, shot))
     return found
 
 
+def _scin_dermatologist_fitzpatrick(label: pd.Series | None) -> str | None:
+    if label is None:
+        return None
+    values = []
+    for index in range(1, 4):
+        value = _field(label, f"dermatologist_fitzpatrick_skin_type_label_{index}")
+        if _nonempty(value) and str(value) not in values:
+            values.append(str(value))
+    return "; ".join(values) if values else None
+
+
 def build_scin_manifests(raw_root: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict]:
     """Ingest official SCIN CSVs with conservative, explicitly weak normal labels."""
     directory = raw_root / "SCIN"
-    cases_path, labels_path = directory / "scin_cases.csv", directory / "scin_labels.csv"
+    cases_path, labels_path = scin_metadata_paths(directory)
     if not cases_path.is_file():
         empty = empty_manifest()
-        return empty, empty.copy(), empty.copy(), {"dataset": "SCIN", "status": "not present", "valid_images": 0, "invalid_images": []}
-    cases = pd.read_csv(cases_path, low_memory=False)
-    labels = pd.read_csv(labels_path, low_memory=False) if labels_path.is_file() else pd.DataFrame(columns=["case_id"])
+        return empty, empty.copy(), empty.copy(), {
+            "dataset": "SCIN", "status": "not_present", "total_cases": 0,
+            "expected_image_objects": 0, "valid_images": 0,
+            "missing_images": [], "corrupt_images": [], "invalid_images": [],
+        }
+    cases = pd.read_csv(cases_path, dtype={"case_id": "string"}, low_memory=False)
+    labels = pd.read_csv(labels_path, dtype={"case_id": "string"}, low_memory=False) if labels_path.is_file() else pd.DataFrame(columns=["case_id"])
     labels_by_case = {str(row.get("case_id")): row for _, row in labels.iterrows()}
-    images, invalid = _valid_images(directory)
-    image_lookup = {path.name.lower(): path for path in images}
+    expected_objects = expected_scin_image_objects(cases)
+    missing, corrupt = [], []
+    for object_name in expected_objects:
+        error = validate_image_file(local_scin_path(directory, object_name))
+        if error == "missing":
+            missing.append(object_name)
+        elif error:
+            corrupt.append({"object": object_name, "reason": error})
     rows = []
     for _, case in cases.iterrows():
         case_id = _norm(case.get("case_id"))
         label = labels_by_case.get(case_id)
         related = _norm(case.get("related_category")).upper()
-        dermatologist_values = [] if label is None else [value for name, value in label.items() if "dermatologist_skin_condition_label" in str(name).lower()]
-        has_dermatologist_condition = any(_nonempty(value) for value in dermatologist_values)
+        dermatologist_label = _field(
+            label,
+            "dermatologist_skin_condition_on_label_name",
+            "dermatologist_skin_condition_label_name",
+        )
+        weighted_label = _field(label, "weighted_skin_condition_label")
+        has_dermatologist_condition = _nonempty(dermatologist_label) or _nonempty(weighted_label)
         # LOOKS_HEALTHY is user-reported.  A negative/absent gradability flag
         # never changes that fact, because it also covers quality and ambiguity.
         weak_normal = related == "LOOKS_HEALTHY" and not has_dermatologist_condition
         growth = related == "GROWTH_OR_MOLE"
-        other_condition = bool(related and related not in {"LOOKS_HEALTHY", "GROWTH_OR_MOLE"})
-        for image_field, image, shot_type in _scin_image_paths(directory, case, image_lookup):
+        other_condition = bool(
+            (related and related not in {"LOOKS_HEALTHY", "GROWTH_OR_MOLE"})
+            or (has_dermatologist_condition and not growth)
+        )
+        condition_positive = growth or other_condition or has_dermatologist_condition
+        for image_field, image, shot_type in _scin_image_paths(directory, case):
             item = {column: None for column in MANIFEST_COLUMNS}
             item.update({
                 "dataset": "SCIN", "source_dataset": "SCIN", "image_path": str(image.resolve()),
                 "image_id": image.stem, "case_id": case_id or None, "patient_id": case_id or None,
-                "original_label": related or None, "lesion_present": 0 if weak_normal else (1 if growth else None),
+                "original_label": dermatologist_label or related or None,
+                "lesion_present": 0 if weak_normal else (1 if condition_positive else None),
                 "normal_skin": weak_normal, "normal_label_strength": "weak" if weak_normal else None,
                 "normal_label_method": "user_reported_related_category_LOOKS_HEALTHY" if weak_normal else None,
-                "other_skin_condition": other_condition, "supported_for_lesion_detection": weak_normal or growth,
-                "supported_for_lesion_presence": weak_normal or growth, "supported_for_diagnosis": False,
+                "other_skin_condition": other_condition,
+                "supported_for_lesion_detection": weak_normal or condition_positive,
+                "supported_for_lesion_presence": weak_normal or condition_positive,
+                "supported_for_diagnosis": False,
                 "age_group": _field(case, "age_group"), "sex": _field(case, "sex_at_birth"),
                 "anatomical_site": _scin_body_site(case),
                 "skin_tone": _field(case, "fitzpatrick_skin_type"),
                 "monk_skin_tone": _field(label, "monk_skin_tone_label_us", "monk_skin_tone_label_india"),
-                "image_modality": "clinical", "label_source": "SCIN user report" if weak_normal else "SCIN case metadata",
-                "ground_truth_method": "user_reported_related_category" if related else None,
+                "image_modality": "clinical",
+                "label_source": "SCIN dermatologist labels" if has_dermatologist_condition else "SCIN user report",
+                "ground_truth_method": "dermatologist differential" if has_dermatologist_condition else ("user_reported_related_category" if related else None),
+                "self_reported_related_category": related or None,
+                "dermatologist_skin_condition_label": dermatologist_label,
+                "weighted_skin_condition_label": weighted_label,
+                "dermatologist_fitzpatrick_skin_type": _scin_dermatologist_fitzpatrick(label),
                 "image_quality_label": _norm(shot_type) or None,
             })
             rows.append(item)
     broad = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
     normal = broad.loc[broad.normal_skin.fillna(False)].copy()
     conditions = broad.loc[(broad.lesion_present.fillna(-1).eq(1)) | broad.other_skin_condition.fillna(False)].copy()
-    report = {"dataset": "SCIN", "status": "ready", "metadata_file": str(cases_path), "valid_images": len(images), "eligible_clinical_images": len(broad), "weak_normal_images": len(normal), "condition_images": len(conditions), "invalid_images": invalid}
+    unexpected_missing = sorted(set(missing) - SCIN_KNOWN_MISSING_OBJECTS)
+    usable_images = len(expected_objects) - len(missing) - len(corrupt)
+    status = "metadata_only" if usable_images == 0 else (
+        "ready" if labels_path.is_file() and not unexpected_missing and not corrupt else "incomplete"
+    )
+    report = {
+        "dataset": "SCIN", "status": status, "metadata_file": str(cases_path),
+        "labels_file": str(labels_path) if labels_path.is_file() else None,
+        "total_cases": len(cases), "expected_image_objects": len(expected_objects),
+        "valid_images": usable_images, "downloaded_images": usable_images,
+        "eligible_clinical_images": len(broad), "weak_normal_images": len(normal),
+        "condition_images": len(conditions), "missing_images": sorted(missing),
+        "known_missing_images": sorted(set(missing) & SCIN_KNOWN_MISSING_OBJECTS),
+        "unexpected_missing_images": unexpected_missing, "corrupt_images": corrupt,
+        "invalid_images": corrupt,
+        "available_metadata": [
+            column for column in (
+                "age_group", "sex_at_birth", "fitzpatrick_skin_type", "body_parts_*",
+                "related_category", "dermatologist_skin_condition_label",
+                "weighted_skin_condition_label", "dermatologist_fitzpatrick_skin_type",
+                "monk_skin_tone",
+            )
+        ],
+    }
     return broad, normal, conditions, report
 
 def _clinical_from_metadata(dataset: str, row: pd.Series | None) -> bool:
@@ -208,6 +327,30 @@ def _clinical_from_metadata(dataset: str, row: pd.Series | None) -> bool:
     value = _norm(modality).lower()
     return value in {"clinical", "macro", "clinical close-up", "clinical: close-up", "close-up"}
 
+
+def _declared_modality(row: pd.Series | None) -> str:
+    if row is None:
+        return "unknown"
+    value = next(
+        (row[column] for column in row.index if str(column).lower() in {"modality", "image_modality", "image type", "image_type"}),
+        None,
+    )
+    normalized = _norm(value).lower()
+    if "dermoscop" in normalized:
+        return "dermoscopic"
+    if "microscop" in normalized:
+        return "microscopic"
+    if "patholog" in normalized:
+        return "pathology"
+    return "clinical" if normalized in {"clinical", "macro", "clinical close-up", "clinical: close-up", "close-up"} else "unknown"
+
+
+def _readiness_status(metadata_path: Path | None, valid_images: int, eligible_images: int) -> str:
+    """Only report ready when usable files exist for a supported task."""
+    if valid_images == 0:
+        return "metadata_only" if metadata_path is not None else "incomplete"
+    return "ready" if eligible_images > 0 else "incomplete"
+
 def _field(row: pd.Series | None, *names):
     if row is None:
         return None
@@ -221,24 +364,35 @@ def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, 
         return broad, report
     if dataset in {"ImageQX", "Muhaba", "ENCoDE"}:
         directory = raw_root / dataset
-        status = "manual access required" if dataset in {"ImageQX", "Muhaba"} else "credentialed access required"
+        status = "manual_access_required" if dataset in {"ImageQX", "Muhaba"} else "credentialed_access_required"
         # A locally supplied approved bundle is intentionally not guessed from
         # arbitrary CSVs.  Add a dataset-specific importer after access terms
         # and the official schema accompany the files.
-        return empty_manifest(), {"dataset": dataset, "status": status if not directory.exists() else "local files require schema review", "valid_images": 0, "invalid_images": []}
+        substantive_files = directory.exists() and any(
+            path.is_file() and path.name != "PROVENANCE.json" for path in directory.rglob("*")
+        )
+        return empty_manifest(), {
+            "dataset": dataset,
+            "status": "local_files_require_schema_review" if substantive_files else status,
+            "valid_images": 0,
+            "eligible_clinical_images": 0,
+            "invalid_images": [],
+        }
     directory = raw_root / dataset
     if not directory.exists():
-        return empty_manifest(), {"dataset": dataset, "status": "not present", "valid_images": 0, "invalid_images": []}
+        return empty_manifest(), {"dataset": dataset, "status": "not_present", "valid_images": 0, "eligible_clinical_images": 0, "invalid_images": []}
     metadata_path = _metadata_file(directory)
     metadata = pd.read_csv(metadata_path, low_memory=False) if metadata_path else pd.DataFrame()
     id_col = _column(metadata, ("image_id", "image", "image_name", "isic_id", "filename", "file_name", "img_id"))
     metadata_by_id = {_norm(row[id_col]).removesuffix(Path(_norm(row[id_col])).suffix): row for _, row in metadata.iterrows()} if id_col else {}
     images, invalid = _valid_images(directory)
     rows = []
+    excluded_dermoscopy = 0
     for image in images:
         image_id = _image_id(image)
         row = metadata_by_id.get(image_id)
         clinical = _clinical_from_metadata(dataset, row)
+        excluded_dermoscopy += int(_declared_modality(row) == "dermoscopic")
         original = _field(row, "diagnosis_3", "diagnostic", "diagnosis", "dx", "label", "three_partition_label")
         item = {column: None for column in MANIFEST_COLUMNS}
         item.update({
@@ -269,7 +423,17 @@ def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, 
             frame.loc[explicit_target.notna(), "binary_target"] = explicit_target[explicit_target.notna()]
             frame.loc[explicit_target.notna(), "binary_mapping_reason"] = "MILK10k publisher benign/malignant tier"
         frame["supported_for_diagnosis"] &= frame.binary_target.notna() | frame.harmonized_diagnosis.notna()
-    return frame, {"dataset": dataset, "status": "ready", "metadata_file": str(metadata_path) if metadata_path else None, "valid_images": len(images), "eligible_clinical_images": int(frame.image_modality.eq("clinical").sum()) if not frame.empty else 0, "invalid_images": invalid, "disk_bytes": sum(p.stat().st_size for p in directory.rglob("*") if p.is_file())}
+    eligible_images = int(frame.image_modality.eq("clinical").sum()) if not frame.empty else 0
+    return frame, {
+        "dataset": dataset,
+        "status": _readiness_status(metadata_path, len(images), eligible_images),
+        "metadata_file": str(metadata_path) if metadata_path else None,
+        "valid_images": len(images),
+        "eligible_clinical_images": eligible_images,
+        "excluded_dermoscopy_images": excluded_dermoscopy,
+        "invalid_images": invalid,
+        "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
+    }
 
 def build_development_manifest(project_root: str | Path = ".", datasets: Iterable[str] | None = None) -> dict:
     """Combine approved sources, make safe splits, and persist reports."""
@@ -288,10 +452,19 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
         frames.append(frame); reports.append(report)
     manifest = pd.concat(frames, ignore_index=True) if any(not f.empty for f in frames) else empty_manifest()
     eligible = manifest.loc[manifest.image_modality.eq("clinical")].copy()
-    if len(eligible) >= 3:
-        eligible = make_group_splits(eligible)
+    if manifest.dataset.fillna("").astype(str).str.upper().eq("DDI").any():
+        raise PermissionError("DDI is final external test data and cannot enter development preparation")
+    missing_eligible_paths = [
+        str(path) for path in eligible.image_path if not Path(str(path)).is_file()
+    ]
+    if missing_eligible_paths:
+        raise FileNotFoundError(
+            f"Eligible manifest contains {len(missing_eligible_paths)} missing image paths"
+        )
     if not eligible.empty:
         eligible = add_exact_hashes(eligible)
+    if len(eligible) >= 3:
+        eligible = make_group_splits(eligible)
     manifest.loc[eligible.index, MANIFEST_COLUMNS] = eligible[MANIFEST_COLUMNS]
     # Optional hash fields let the experiment runner detect exact duplicates
     # that cross otherwise independent patient/lesion groups.
@@ -309,15 +482,112 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
         write_manifest(scin_conditions, root / "data" / "processed" / "scin_lesion_skin_condition_manifest.csv")
     duplicate_path = root / "data" / "processed" / "exact_duplicates.csv"
     (eligible.loc[eligible.exact_duplicate_flag] if "exact_duplicate_flag" in eligible else pd.DataFrame()).to_csv(duplicate_path, index=False)
-    def counts(column):
-        return manifest[column].fillna("<missing>").astype(str).value_counts().to_dict() if column in manifest else {}
-    report = {"generated": date.today().isoformat(), "datasets": reports, "manifest": str(manifest_path), "rows": len(manifest), "eligible": len(eligible), "total_lesion_images": int(manifest.lesion_present.fillna(False).astype(bool).sum()), "total_normal_skin_images": int(manifest.normal_skin.fillna(False).astype(bool).sum()), "normal_skin_by_strength": manifest.loc[manifest.normal_skin.fillna(False), "normal_label_strength"].fillna("<missing>").value_counts().to_dict(), "normal_skin_by_source": manifest.loc[manifest.normal_skin.fillna(False), "source_dataset"].fillna(manifest.dataset).value_counts().to_dict(), "metadata_coverage": {key: int(manifest[key].notna().sum()) for key in ("age", "age_group", "sex", "skin_tone", "monk_skin_tone", "anatomical_site")}, "other_skin_condition_count": int(manifest.other_skin_condition.fillna(False).astype(bool).sum()), "class_distribution": counts("binary_target"), "split_counts": eligible.split.value_counts().to_dict() if "split" in eligible else {}, "source_distribution_by_split": eligible.groupby(["source_dataset", "split"], dropna=False).size().to_dict() if not eligible.empty else {}, "class_coverage": class_coverage_report(eligible, "binary_target").to_dict("records") if not eligible.empty else [], "leakage": leakage_report(eligible).to_dict("records") if not eligible.empty else []}
-    (root / "data" / "processed" / "preparation_report.json").write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
+    leakage = leakage_report(eligible) if not eligible.empty else pd.DataFrame()
+    if not leakage.empty:
+        raise RuntimeError("Patient/case/lesion or exact-duplicate groups cross development splits")
+
+    def counts(frame, column):
+        return frame[column].astype("string").fillna("<missing>").value_counts().to_dict() if column in frame else {}
+
+    eligible_normal = eligible.normal_skin.fillna(False).astype(bool) if "normal_skin" in eligible else pd.Series(False, index=eligible.index)
+    eligible_lesion = eligible.lesion_present.fillna(False).astype(bool) if "lesion_present" in eligible else pd.Series(False, index=eligible.index)
+    duplicate_rows = eligible.loc[eligible.exact_duplicate_flag] if "exact_duplicate_flag" in eligible else pd.DataFrame()
+    diagnosis_rows = eligible.loc[
+        eligible.supported_for_diagnosis.fillna(False).astype(bool)
+        & eligible.lesion_present.fillna(False).astype(bool)
+        & eligible.binary_target.notna()
+    ]
+    lesion_presence_rows = eligible.loc[
+        eligible.supported_for_lesion_presence.fillna(False).astype(bool)
+        & eligible.lesion_present.notna()
+    ].copy()
+    lesion_presence_rows["lesion_present"] = (
+        lesion_presence_rows.lesion_present.astype(bool).astype(int)
+    )
+    report = {
+        "generated": date.today().isoformat(),
+        "datasets": reports,
+        "manifest": str(manifest_path),
+        "all_rows": len(manifest),
+        "eligible_development_rows": len(eligible),
+        "eligible_lesion_images": int(eligible_lesion.sum()),
+        "eligible_normal_skin_images": int(eligible_normal.sum()),
+        "normal_skin_by_strength": eligible.loc[
+            eligible_normal, "normal_label_strength"
+        ].fillna("<missing>").value_counts().to_dict(),
+        "normal_skin_by_source": eligible.loc[
+            eligible_normal, "source_dataset"
+        ].fillna(eligible.dataset).value_counts().to_dict(),
+        "metadata_coverage": {
+            key: int(eligible[key].notna().sum())
+            for key in ("age", "age_group", "sex", "skin_tone", "monk_skin_tone", "anatomical_site")
+        },
+        "eligible_other_skin_condition_images": int(eligible.other_skin_condition.fillna(False).astype(bool).sum()),
+        "class_distribution": counts(diagnosis_rows, "binary_target"),
+        "eligible_binary_target_availability": counts(eligible, "binary_target"),
+        "lesion_presence_distribution": {
+            "present": int(lesion_presence_rows.lesion_present.fillna(False).astype(bool).sum()),
+            "absent": int((~lesion_presence_rows.lesion_present.fillna(False).astype(bool)).sum()),
+        },
+        "split_counts": eligible.split.value_counts().to_dict() if "split" in eligible else {},
+        "source_distribution": counts(eligible, "source_dataset"),
+        "source_distribution_by_split": _grouped_count_records(
+            eligible, ("source_dataset", "split")
+        ),
+        "class_coverage": class_coverage_report(
+            diagnosis_rows, "binary_target", ("train", "validation", "test")
+        ).to_dict("records") if not diagnosis_rows.empty else [],
+        "lesion_presence_coverage": class_coverage_report(
+            lesion_presence_rows, "lesion_present", ("train", "validation", "test")
+        ).to_dict("records") if not lesion_presence_rows.empty else [],
+        "excluded_dermoscopy_images": sum(
+            int(dataset_report.get("excluded_dermoscopy_images", 0)) for dataset_report in reports
+        ),
+        "exact_duplicate_images": len(duplicate_rows),
+        "exact_duplicate_groups": int(duplicate_rows.file_sha256.nunique()) if not duplicate_rows.empty else 0,
+        "leakage": leakage.to_dict("records") if not leakage.empty else [],
+        "integrity": {
+            "eligible_paths_exist": not missing_eligible_paths,
+            "ddi_rows": 0,
+            "eligible_nonclinical_rows": int((~eligible.image_modality.eq("clinical")).sum()),
+            "group_or_duplicate_leakage_rows": len(leakage),
+            "predictive_metadata_excludes": ["dataset", "source_dataset"],
+        },
+    }
+    report = _json_safe(report)
+    (root / "data" / "processed" / "preparation_report.json").write_text(
+        json.dumps(report, indent=2, allow_nan=False), encoding="utf-8"
+    )
     return report
 
-def write_provenance(raw_root: Path, dataset: str, downloaded_files: list[str] | None = None, manual_required: bool = False) -> Path:
+def write_provenance(
+    raw_root: Path,
+    dataset: str,
+    downloaded_files: list[str] | None = None,
+    manual_required: bool = False,
+    acquisition_report: dict | None = None,
+) -> Path:
     """Write source, license, download, and exclusion provenance metadata."""
     folder = raw_root / dataset; folder.mkdir(parents=True, exist_ok=True)
     source = SOURCES[dataset]
-    payload = {"dataset": dataset, "official_source_url": source["url"], "citation_or_doi": source["doi"], "license_or_terms": source["terms"], "download_date": date.today().isoformat(), "downloaded_files": downloaded_files or [], "extraction_method": "not performed by default", "exclusions": "MILK10k dermoscopy excluded; unknown modality is never eligible", "known_missing_files": [], "manual_access_required": manual_required}
+    payload = {
+        "dataset": dataset,
+        "official_source_url": source["url"],
+        "citation_or_doi": source["doi"],
+        "license_or_terms": source["terms"],
+        "download_date": date.today().isoformat(),
+        "downloaded_files": downloaded_files or [],
+        "extraction_method": "official dx-scin-public-data GCS objects" if acquisition_report else "not performed by default",
+        "exclusions": "MILK10k dermoscopy excluded; unknown modality is never eligible",
+        "known_missing_files": acquisition_report.get("known_missing_images", []) if acquisition_report else [],
+        "manual_access_required": manual_required,
+    }
+    if acquisition_report:
+        payload["acquisition_counts"] = {
+            key: acquisition_report[key]
+            for key in (
+                "cases", "expected_image_objects", "reused_valid_images",
+                "downloaded_images", "usable_images",
+            )
+        }
     path = folder / "PROVENANCE.json"; path.write_text(json.dumps(payload, indent=2), encoding="utf-8"); return path

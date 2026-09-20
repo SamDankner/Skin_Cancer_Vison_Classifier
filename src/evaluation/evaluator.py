@@ -204,19 +204,29 @@ def collect_predictions(model, loader, *, device=None, class_order: Sequence[str
     if not class_order:
         raise ValueError("class_order is required for universal evaluation")
     lookup = {str(label): index for index, label in enumerate(class_order)}
+    target_encoding = getattr(loader, "target_encoding", None)
     targets, logits, metadata = [], [], []
     model.eval()
     with torch.inference_mode():
         for batch in loader:
             raw_targets = batch["target"]
-            if torch.is_tensor(raw_targets):
+            targets_are_encoded = torch.is_tensor(raw_targets)
+            if targets_are_encoded:
                 raw_targets = raw_targets.cpu().tolist()
             valid_indices = [index for index, value in enumerate(raw_targets) if value is not None]
             if not valid_indices:
                 continue
             output = _forward_model(model, batch, device)
             logits.append(output[valid_indices].detach().float().cpu().numpy())
-            targets.extend(lookup[str(raw_targets[index])] for index in valid_indices)
+            if targets_are_encoded:
+                encoded = [int(raw_targets[index]) for index in valid_indices]
+                if any(value < 0 or value >= len(class_order) for value in encoded):
+                    raise ValueError("Encoded evaluation target is outside the class-index range")
+                targets.extend(encoded)
+            elif target_encoding is not None:
+                targets.extend(target_encoding.encode(raw_targets[index]) for index in valid_indices)
+            else:
+                targets.extend(lookup[str(raw_targets[index])] for index in valid_indices)
             rows = batch.get("metadata", [{} for _ in raw_targets])
             metadata.extend(rows[index] for index in valid_indices)
     if not targets:

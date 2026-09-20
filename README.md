@@ -17,7 +17,8 @@ python -m pip install -r requirements.txt
 Then:
 
 1. Place approved ordinary clinical photographs in the dataset folders described below.
-2. Record provenance and build `data/processed/development_manifest.csv` from local files:
+2. Download/resume the official SCIN release, record provenance, and build
+   `data/processed/development_manifest.csv` from approved local files:
 
    ```powershell
    python prepare_data.py --all-development
@@ -52,16 +53,20 @@ Normal runs and single-photo inference never access DDI.
 
 ## Data rules
 
-Only ordinary clinical/macro photographs are allowed. Dermoscopic, microscopic, and pathology-slide inputs are rejected by manifest validation. Review every dataset's license and terms; this repository performs no automatic dataset downloads.
+Only ordinary clinical/macro photographs are allowed. Dermoscopic, microscopic, and pathology-slide inputs are rejected by manifest validation. Review every dataset's license and terms. SCIN is downloaded only from Google's official `dx-scin-public-data` bucket; other datasets remain manual/local acquisitions.
 
 Suggested development locations are:
 
 - `data/raw/PAD-UFES-20/`
 - `data/raw/MILK10k/` — use only the ordinary close-up clinical image, never paired dermoscopy
 - `data/raw/Fitzpatrick17k/`
-- `data/raw/SCIN/`
+- `data/raw/SCIN/dataset/` — official SCIN metadata and extensionless image objects; downloads are resumable and valid existing images are reused
 
 Sources: [PAD-UFES-20](https://data.mendeley.com/datasets/zr7vgbcyr2/1), [MILK10k](https://doi.org/10.1038/s41597-024-03501-y), [Fitzpatrick17k](https://github.com/mattgroh/fitzpatrick17k), and [SCIN](https://github.com/google-research-datasets/scin).
+
+To rebuild strictly from already-downloaded SCIN files, pass
+`--skip-scin-download`. Acquisition details, including Google's documented
+missing object, are written to `data/raw/SCIN/acquisition_report.json`.
 
 The manifest preserves null metadata and supports these independent tasks:
 

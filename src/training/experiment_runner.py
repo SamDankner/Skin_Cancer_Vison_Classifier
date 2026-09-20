@@ -247,7 +247,7 @@ def run_experiments(
         return {"status": "validated", **validated, "selected_strategies": selected}
 
     manifest_path = Path(config["manifest_path"])
-    manifest = validate_manifest(pd.read_csv(manifest_path))
+    manifest = validate_manifest(pd.read_csv(manifest_path, low_memory=False))
     if manifest.dataset.fillna("").str.upper().eq("DDI").any():
         raise PermissionError("Normal experiment runs cannot contain DDI")
     if not leakage_report(manifest).empty:

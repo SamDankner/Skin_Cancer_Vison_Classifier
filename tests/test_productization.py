@@ -112,6 +112,69 @@ def test_multimodal_training_runs_full_lightweight_lifecycle(tmp_path):
     assert (tmp_path / "run" / "training_history.png").is_file()
 
 
+def test_lesion_presence_one_batch_uses_canonical_indices(monkeypatch, tmp_path):
+    import src.strategies.cnn_common as cnn_common
+
+    rows = []
+    values = (False, True, 0.0, 1.0)
+    for split_index, split in enumerate(("train", "validation", "test")):
+        for index, target in enumerate(values):
+            image_path = tmp_path / f"lesion_{split}_{index}.png"
+            Image.new("RGB", (20, 20), color=(40 + index * 30, 80, 120)).save(image_path)
+            canonical = int(target)
+            row = {column: None for column in MANIFEST_COLUMNS}
+            row.update(
+                dataset="SYNTHETIC",
+                source_dataset="SYNTHETIC",
+                image_path=str(image_path),
+                image_id=f"{split}-{index}",
+                patient_id=f"patient-{split_index}-{index}",
+                lesion_id=f"lesion-{split_index}-{index}",
+                lesion_present=target,
+                normal_skin=not bool(canonical),
+                normal_label_strength="weak" if not canonical else None,
+                supported_for_lesion_detection=True,
+                supported_for_lesion_presence=True,
+                supported_for_diagnosis=False,
+                image_modality="clinical",
+                split=split,
+            )
+            rows.append(row)
+    manifest = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+    monkeypatch.setattr(
+        cnn_common,
+        "build_diagnostic_input_model",
+        lambda _input_mode, _architecture, num_classes, _dropout, _pretrained: TinyImageModel(num_classes),
+    )
+
+    result = cnn_common.train_cnn_strategy(
+        manifest,
+        {
+            "task": "lesion_presence",
+            "pretrained": False,
+            "image_size": 16,
+            "batch_size": 4,
+            "epochs": 1,
+            "head_epochs": 1,
+            "weighted_sampling": True,
+            "loss": "cross_entropy",
+            "early_stopping_patience": 1,
+            "inference_warmup": 0,
+            "inference_repeats": 1,
+            "models_root": str(tmp_path / "models"),
+            "run_directory": str(tmp_path / "run"),
+            "summary_path": str(tmp_path / "summary.csv"),
+        },
+        strategy_name="lesion_presence",
+        architecture="efficientnet_v2_s",
+        run_name="tiny_lesion_presence",
+    )
+
+    assert result.config["class_names"] == ["no_lesion", "lesion_present"]
+    assert result.best_epoch == 1
+    assert result.development_test_metrics["sample_count"] == 4
+
+
 def test_photo_only_inference_returns_probabilities_without_metadata(monkeypatch, tmp_path):
     import src.inference as inference
 
