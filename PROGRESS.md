@@ -162,3 +162,21 @@ approved sources contribute healthy negatives, and source label ratios remain
 near-deterministic. Serious gate training is not justified.
 
 NEEDS BOTH MORE HEALTHY NEGATIVES AND SOURCE-BALANCE IMPROVEMENT
+
+## Multimodal preprocessing and reporting audit (2026-09-21)
+
+- Fixed multimodal epoch metrics to pass the persisted `TargetEncoding` class names, so binary diagnostic reports retain numeric labels `0/1` while displaying `benign/malignant` in per-class metrics, confusion matrices, JSON, prediction exports, and run records.
+- Added `src/data/metadata.py`: explicit case/whitespace-aware sex mappings; conservative anatomical ontology (upper/lower extremity, hand/foot, head/neck, trunk); Fitzpatrick 1--6 normalization; and explicit `unmapped:<raw>` categories for nonempty values not covered by the audited rules. Missing values remain missing and use the existing ID 0; unseen held-out categories use ID 1.
+- Metadata preprocessing still fits age mean/std and categorical vocabularies exclusively on the training split. Raw manifest metadata is preserved; the normalization helper exposes raw, normalized, and source fields for audit use.
+- Generated `results/multimodal_metadata_audit.json` from the approved development manifest (6,606 diagnostic rows; MILK10k 5,038 and PAD-UFES-20 1,568). It records raw-to-canonical mappings, source availability, and source/label association without accessing DDI.
+- Added focused multimodal regression tests. `python -m compileall -q src tests` passed through `.venv\\Scripts\\python.exe`; no training, hyperparameter search, DDI access, checkpoint/result deletion, or gate changes were performed.
+
+## Final multimodal metadata readiness pass (2026-09-21)
+
+- Canonical metadata normalization is audited in `results/multimodal_metadata_audit.json`. Sex collapses case/whitespace variants to `female`/`male`; site mappings use the conservative upper/lower-extremity, hand/foot, head/neck, and trunk ontology; nonempty unrecognized values remain `unmapped:<value>`; and both numeric and string Fitzpatrick representations such as `1`, `1.0`, `"1"`, and `"1.0"` map to `fitzpatrick_1` (through 6). Raw manifest values are never rewritten.
+- Metadata fields are checkpoint-persisted and configurable, including image-only (`[]`), core (`age + sex + anatomical_site`), and experimental skin-tone-enabled subsets. Inference reconstructs the training-only preprocessor and accepts omitted optional fields as explicit missing values.
+- Serious multimodal tuning now defaults to `age + sex + anatomical_site`. Skin tone is supported only for controlled ablations because its availability is source-specific and can encode dataset identity; this is not a claim about clinical usefulness.
+- `run_multimodal_metadata_ablation.py` performs the bounded validation-only A/B/C comparison (and optional all-missing skin-tone D control): fixed seed 42, DINOv2 ViT-S/14, 196px, at most five epochs, identical base setup, no development-test scoring, no DDI, and a new non-overwriting `results/ablations/multimodal_metadata/` subdirectory. Its report includes overall/source/present-vs-missing validation metrics and availability associations.
+- Completed compact controlled screening run: `results/ablations/multimodal_metadata/screening_20260921/ablation_report.json`. It used a fixed seed-42 source/label-stratified cap of 64 records per split/source/label stratum (754 records total), not the full baseline dataset, so it is diagnostic evidence only. Validation macro-F1: image 0.698, core metadata 0.805, core + skin tone 0.823, and skin-tone architecture with every tone missing 0.774. C was much stronger on PAD-UFES-20 (macro-F1 0.937) than MILK10k (0.707); skin tone was present only for PAD rows (100% of present rows) and C's mean malignant probability was 0.716 with tone present versus 0.454 missing. This is source-shortcut evidence, so retain core metadata as the serious default.
+
+Current intended workflow: serious baseline comparison complete -> metadata pipeline corrected -> short multimodal metadata ablation -> ConvNeXt parameter search -> review -> potential multimodal parameter search -> ensemble experiments -> final untouched DDI external evaluation.

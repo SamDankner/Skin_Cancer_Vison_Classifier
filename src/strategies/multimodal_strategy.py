@@ -15,6 +15,7 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
+from src.data.metadata import normalize_metadata_value
 from src.data.splits import leakage_report, validate_split_class_coverage
 from src.data.targets import TargetEncoding, target_encoding_for_manifest
 from src.data.transforms import build_transforms
@@ -80,7 +81,11 @@ class MetadataPreprocessor:
         for field in self.fields:
             if field == "age":
                 continue
-            values = _column(train_frame, field).fillna("<MISSING>").astype(str).str.strip().replace("", "<MISSING>")
+            # Normalization happens before vocabulary fitting, but raw manifest
+            # values remain untouched for prediction export and provenance.
+            values = _column(train_frame, field).map(
+                lambda value: normalize_metadata_value(field, value) or "<MISSING>"
+            )
             observed = sorted(value for value in values.unique() if value != "<MISSING>")
             self.vocabularies[field] = {value: index + 2 for index, value in enumerate(observed)}
         return self
@@ -99,7 +104,9 @@ class MetadataPreprocessor:
         else:
             result["continuous"] = torch.empty((len(frame), 0), dtype=torch.float32)
         for field, vocabulary in self.vocabularies.items():
-            values = _column(frame, field).fillna("<MISSING>").astype(str).str.strip().replace("", "<MISSING>")
+            values = _column(frame, field).map(
+                lambda value: normalize_metadata_value(field, value) or "<MISSING>"
+            )
             result[field] = torch.tensor(
                 [0 if value == "<MISSING>" else vocabulary.get(value, 1) for value in values],
                 dtype=torch.long,
@@ -118,6 +125,7 @@ class MetadataPreprocessor:
                 "categorical": "dedicated_missing_id_0",
                 "unknown_category": "dedicated_unknown_id_1",
             },
+            "normalization": "src.data.metadata explicit canonical mappings; nonempty unmapped values retain an unmapped: prefix",
         }
 
     @classmethod
@@ -195,6 +203,22 @@ class MultimodalClassifier(nn.Module):
         """Return class logits for image and metadata batches."""
         fused = torch.cat((self.encode_image(image), self.metadata_encoder(metadata)), dim=1)
         return self.classifier(fused)
+
+
+class ImageOnlyMultimodalClassifier(nn.Module):
+    """DINOv2 image-only control with the same two-argument training interface."""
+
+    def __init__(self, backbone: nn.Module, num_classes: int, dropout: float = 0.2):
+        super().__init__()
+        self.backbone = backbone
+        self.image_dim = backbone_embedding_dim(backbone)
+        self.classifier = nn.Sequential(nn.Dropout(dropout), nn.Linear(self.image_dim, num_classes))
+
+    def forward(self, image: torch.Tensor, metadata: dict[str, torch.Tensor] | None = None) -> torch.Tensor:
+        embedding = self.backbone(image)
+        if isinstance(embedding, dict):
+            embedding = embedding.get("x_norm_clstoken", next(iter(embedding.values())))
+        return self.classifier(embedding)
 
 
 class _MultimodalDataset(Dataset):
@@ -306,6 +330,7 @@ def _run_epoch(model, loader, optimizer, scaler, device, config, weights, *, tra
         prediction_array,
         probability_array,
         labels=list(range(len(loader.dataset.class_to_index))),
+        class_names=list(loader.class_names),
     )
     metrics["loss"] = total_loss / max(len(targets), 1)
     return {
@@ -326,7 +351,7 @@ def make_metadata_tensors(manifest: pd.DataFrame, fields: Iterable[str] = SAFE_M
 
 def image_only_baseline(backbone, num_classes: int, dropout: float = 0.2):
     """Create a controlled image-only counterpart using the same encoder."""
-    return DinoV2Classifier(backbone, num_classes, dropout)
+    return ImageOnlyMultimodalClassifier(backbone, num_classes, dropout)
 
 
 def build_multimodal_model(
@@ -334,7 +359,7 @@ def build_multimodal_model(
     preprocessor: MetadataPreprocessor,
     num_classes: int,
     backbone_factory: Callable[..., nn.Module] | None = None,
-) -> MultimodalClassifier:
+) -> MultimodalClassifier | ImageOnlyMultimodalClassifier:
     """Construct a late-fusion classifier from a persisted preprocessing contract."""
     cfg = {
         "backbone": "dinov2_vits14",
@@ -350,6 +375,8 @@ def build_multimodal_model(
     factory = backbone_factory or load_dinov2_backbone
     backbone = factory(cfg["backbone"], pretrained=cfg["pretrained"])
     set_backbone_trainability(backbone, int(cfg["unfreeze_last_blocks"]))
+    if not preprocessor.fields:
+        return image_only_baseline(backbone, num_classes, float(cfg["dropout"]))
     return MultimodalClassifier(
         backbone,
         preprocessor,
@@ -381,7 +408,9 @@ def train(
         "head_learning_rate": 3e-4,
         "backbone_learning_rate": 1e-5,
         "weight_decay": 1e-4,
-        "metadata_fields": list(SAFE_METADATA_FIELDS),
+        # Conservative serious default. Skin tone remains supported for
+        # controlled ablations, but availability currently identifies source.
+        "metadata_fields": ["age", "sex", "anatomical_site"],
         "metadata_embedding_dim": 16,
         "metadata_width": 64,
         "fusion_width": 256,
@@ -402,8 +431,6 @@ def train(
     if str(cfg["backbone"]).startswith("dinov2") and int(cfg["image_size"]) % 14:
         raise ValueError("DINOv2 image_size must be divisible by its 14-pixel patch size")
     fields = tuple(cfg.get("metadata_fields") or ())
-    if not fields:
-        raise ValueError("Use the DINOv2 strategy for an image-only ablation")
     checked = select_task_manifest(validate_manifest(manifest), cfg["task"])
     if not {"train", "validation", "test"}.issubset(set(checked.split.dropna())):
         raise ValueError("Multimodal training requires independent train, validation, and development-test splits")
@@ -419,7 +446,9 @@ def train(
 
     device = get_device()
     model = build_multimodal_model(cfg, processor, len(class_names), backbone_factory).to(device)
-    head_parameters = list(model.metadata_encoder.parameters()) + list(model.classifier.parameters())
+    head_parameters = list(model.classifier.parameters())
+    if hasattr(model, "metadata_encoder"):
+        head_parameters = list(model.metadata_encoder.parameters()) + head_parameters
     groups = [{"params": head_parameters, "lr": float(cfg["head_learning_rate"])}]
     trainable_backbone = [parameter for parameter in model.backbone.parameters() if parameter.requires_grad]
     if trainable_backbone:
@@ -495,12 +524,15 @@ def train(
     model.load_state_dict(stopper.best_state)
     validation = _run_epoch(model, loaders["validation"], optimizer, scaler, device, cfg, weights, training=False)
     evaluation_started = perf_counter()
-    development_test = _run_epoch(model, loaders["test"], optimizer, scaler, device, cfg, weights, training=False)
+    development_test = (
+        _run_epoch(model, loaders["test"], optimizer, scaler, device, cfg, weights, training=False)
+        if cfg.get("evaluate_development_test", True) else None
+    )
     evaluation_seconds = perf_counter() - evaluation_started
     stop_summary = stopper.summary(len(history), int(cfg["epochs"]))
     update_checkpoint_metadata(checkpoint, early_stopping=stop_summary)
 
-    sample = loaders["test"].dataset[0]
+    sample = loaders["validation"].dataset[0]
     sample_metadata = processor.transform(pd.DataFrame([sample["metadata"]]))
     image = sample["image"].unsqueeze(0).to(device)
     encoded = {key: value.to(device) for key, value in sample_metadata.items()}
@@ -519,10 +551,11 @@ def train(
     }
     threshold = cfg.get("threshold")
     threshold_value = threshold.get("threshold") if isinstance(threshold, dict) else threshold
+    reported_split = development_test or validation
     predictions = prediction_frame(
-        development_test["targets"],
-        development_test["probabilities"],
-        development_test["metadata"],
+        reported_split["targets"],
+        reported_split["probabilities"],
+        reported_split["metadata"],
         class_order=class_names,
         task=cfg["task"],
         strategy="multimodal",
@@ -531,18 +564,19 @@ def train(
         calibrated=False,
     )
     run_directory.mkdir(parents=True, exist_ok=True)
-    export_predictions(predictions, run_directory / "development_test_predictions.csv")
+    export_predictions(predictions, run_directory / ("development_test_predictions.csv" if development_test else "validation_predictions.csv"))
     plot_training_history(pd.DataFrame(history), run_directory / "training_history.png")
-    plot_confusion_matrix(development_test["metrics"]["confusion_matrix"], class_names, run_directory / "confusion_matrix.png")
+    plot_confusion_matrix(reported_split["metrics"]["confusion_matrix"], class_names, run_directory / "confusion_matrix.png")
     if len(class_names) == 2:
         plot_binary_curves(
-            development_test["targets"],
-            development_test["probabilities"][:, 1],
+            reported_split["targets"],
+            reported_split["probabilities"][:, 1],
             run_directory / "roc_pr_calibration.png",
         )
-    (run_directory / "development_test_metrics.json").write_text(
-        json.dumps(development_test["metrics"], indent=2), encoding="utf-8"
-    )
+    if development_test:
+        (run_directory / "development_test_metrics.json").write_text(
+            json.dumps(development_test["metrics"], indent=2), encoding="utf-8"
+        )
     split_summary = checked.groupby(["split", target_column], dropna=False).size().rename("count").reset_index().to_dict("records")
     timing["total_experiment_seconds"] = perf_counter() - experiment_started
     payload = {
@@ -558,7 +592,7 @@ def train(
         "best_epoch": stopper.best_epoch,
         "best_checkpoint": str(checkpoint),
         "metrics": validation["metrics"],
-        "development_test_metrics": development_test["metrics"],
+        "development_test_metrics": development_test["metrics"] if development_test else None,
         "early_stopping": stop_summary,
         "timing": timing,
         "seed": cfg.get("seed", 42),
@@ -576,7 +610,7 @@ def train(
         config=payload["config"],
         timing=timing,
         metrics=validation["metrics"],
-        development_test_metrics=development_test["metrics"],
+        development_test_metrics=development_test["metrics"] if development_test else {},
         early_stopping=stop_summary,
         run_directory=str(run_directory),
     )
@@ -587,7 +621,7 @@ def load_multimodal_checkpoint(
     *,
     backbone_factory: Callable[..., nn.Module] | None = None,
     map_location: str | torch.device = "cpu",
-) -> tuple[MultimodalClassifier, dict]:
+) -> tuple[MultimodalClassifier | ImageOnlyMultimodalClassifier, dict]:
     """Reload a multimodal model and its fitted metadata processing contract."""
     payload = torch.load(path, map_location=map_location, weights_only=False)
     processor_config = payload.get("metadata_preprocessor")
@@ -611,7 +645,7 @@ def ablation_config(base_config: dict, fields: Iterable[str] | None = None, imag
 
 
 __all__ = [
-    "MetadataPreprocessor", "MultimodalClassifier", "SAFE_METADATA_FIELDS",
+    "MetadataPreprocessor", "MultimodalClassifier", "ImageOnlyMultimodalClassifier", "SAFE_METADATA_FIELDS",
     "ablation_config", "build_multimodal_model", "image_only_baseline",
     "load_multimodal_checkpoint", "make_metadata_tensors", "train",
 ]

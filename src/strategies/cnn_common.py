@@ -203,7 +203,7 @@ def _loss(logits, targets, method: str, class_weights, focal_gamma: float, sampl
     base = F.cross_entropy(logits, targets, weight=class_weights, reduction="none")
     if method == "focal":
         base = (1 - torch.exp(-base)).pow(focal_gamma) * base
-    if method not in {"cross_entropy", "weighted_cross_entropy"}:
+    elif method not in {"cross_entropy", "weighted_cross_entropy"}:
         raise ValueError("loss must be cross_entropy, weighted_cross_entropy, or focal")
     if sample_weights is None:
         return base.mean()

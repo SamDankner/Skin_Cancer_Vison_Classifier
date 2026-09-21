@@ -10,7 +10,9 @@ optimizer: adamw
 head_learning_rate: 0.0003
 backbone_learning_rate: 0.00001
 weight_decay: 0.0001
-metadata_fields: [age, sex, anatomical_site, skin_tone]
+# Skin tone remains available for controlled ablations, but is excluded here:
+# availability is source-specific and can encode dataset identity.
+metadata_fields: [age, sex, anatomical_site]
 metadata_embedding_dim: 16
 metadata_width: 64
 fusion_width: 256

@@ -1,0 +1,265 @@
+{
+  "run_name": "A_image_only",
+  "config": {
+    "strategy_name": "multimodal",
+    "task": "diagnosis_binary",
+    "backbone": "dinov2_vits14",
+    "pretrained": true,
+    "image_size": 196,
+    "batch_size": 8,
+    "epochs": 5,
+    "head_learning_rate": 0.0003,
+    "backbone_learning_rate": 1e-05,
+    "weight_decay": 0.0001,
+    "metadata_fields": [],
+    "metadata_embedding_dim": 16,
+    "metadata_width": 64,
+    "fusion_width": 256,
+    "dropout": 0.2,
+    "unfreeze_last_blocks": 0,
+    "loss": "weighted_cross_entropy",
+    "selection_metric": "macro_f1",
+    "early_stopping_patience": 5,
+    "early_stopping_min_delta": 0.001,
+    "scheduler_patience": 2,
+    "scheduler_factor": 0.5,
+    "num_workers": 0,
+    "optimizer": "adamw",
+    "metadata_dropout": 0.2,
+    "weighted_sampling": false,
+    "scheduler": "reduce_on_plateau",
+    "ablation": "image_only",
+    "augmentation": {
+      "crop_scale": [
+        0.75,
+        1.0
+      ],
+      "rotation_degrees": 20
+    },
+    "seed": 42,
+    "evaluate_development_test": false,
+    "models_root": "results\\ablations\\multimodal_metadata\\screening_20260921\\models",
+    "summary_path": "results\\ablations\\multimodal_metadata\\screening_20260921\\summary.csv",
+    "run_name": "A_image_only",
+    "run_directory": "results\\ablations\\multimodal_metadata\\screening_20260921\\A_image_only",
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "metadata_preprocessor": {
+      "fields": [],
+      "age_mean": 0.0,
+      "age_std": 1.0,
+      "vocabularies": {},
+      "missing_value_policy": {
+        "age": "training_mean_with_missing_indicator",
+        "categorical": "dedicated_missing_id_0",
+        "unknown_category": "dedicated_unknown_id_1"
+      },
+      "normalization": "src.data.metadata explicit canonical mappings; nonempty unmapped values retain an unmapped: prefix"
+    },
+    "checkpoint_path": "results\\ablations\\multimodal_metadata\\screening_20260921\\models\\multimodal\\multimodal_dinov2_vits14_A_image_only.pt",
+    "device": "cuda"
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.8569525927305222,
+      "validation_loss": 0.9340566396713257,
+      "train_macro_f1": 0.5973552002687557,
+      "validation_macro_f1": 0.520769036175057,
+      "train_accuracy": 0.59765625,
+      "validation_accuracy": 0.56640625,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 7.857103900008951
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.6494876220822334,
+      "validation_loss": 0.7795250415802002,
+      "train_macro_f1": 0.6436122202334511,
+      "validation_macro_f1": 0.604709515537541,
+      "train_accuracy": 0.64453125,
+      "validation_accuracy": 0.625,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.04500110000663
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.6344508156180382,
+      "validation_loss": 0.6812379062175751,
+      "train_macro_f1": 0.7148393987945373,
+      "validation_macro_f1": 0.669433683822173,
+      "train_accuracy": 0.71484375,
+      "validation_accuracy": 0.671875,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.168630400003167
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.5589188672602177,
+      "validation_loss": 0.6560898125171661,
+      "train_macro_f1": 0.7265458096807667,
+      "validation_macro_f1": 0.698182541991395,
+      "train_accuracy": 0.7265625,
+      "validation_accuracy": 0.69921875,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.02049999999872
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.527959369122982,
+      "validation_loss": 0.6647466197609901,
+      "train_macro_f1": 0.769246046902452,
+      "validation_macro_f1": 0.6855281367106716,
+      "train_accuracy": 0.76953125,
+      "validation_accuracy": 0.69140625,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.06813690000854
+    }
+  ],
+  "best_epoch": 4,
+  "best_checkpoint": "results\\ablations\\multimodal_metadata\\screening_20260921\\models\\multimodal\\multimodal_dinov2_vits14_A_image_only.pt",
+  "metrics": {
+    "loss": 0.6560898125171661,
+    "sample_count": 256,
+    "labels": [
+      0,
+      1
+    ],
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "class_coverage_complete": true,
+    "missing_classes": [],
+    "accuracy": 0.69921875,
+    "balanced_accuracy": 0.69921875,
+    "macro_precision": 0.7019926975679188,
+    "macro_recall": 0.69921875,
+    "macro_f1": 0.698182541991395,
+    "weighted_f1": 0.698182541991395,
+    "confusion_matrix": [
+      [
+        97,
+        31
+      ],
+      [
+        46,
+        82
+      ]
+    ],
+    "class_metrics": [
+      {
+        "class": 0,
+        "class_name": "benign",
+        "precision": 0.6783216783216783,
+        "recall": 0.7578125,
+        "f1": 0.7158671586715867,
+        "support": 128
+      },
+      {
+        "class": 1,
+        "class_name": "malignant",
+        "precision": 0.7256637168141593,
+        "recall": 0.640625,
+        "f1": 0.6804979253112033,
+        "support": 128
+      }
+    ],
+    "roc_auc": 0.756744384765625,
+    "pr_auc": 0.7185519308739858,
+    "sensitivity": 0.640625,
+    "specificity": 0.7578125,
+    "positive_predictive_value": 0.7256637168141593,
+    "negative_predictive_value": 0.6783216783216783,
+    "brier_score": 0.21355373073484127,
+    "calibration_error": 0.09427017671987412
+  },
+  "development_test_metrics": null,
+  "early_stopping": {
+    "monitor": "validation_macro_f1",
+    "mode": "max",
+    "patience": 5,
+    "min_delta": 0.001,
+    "best_epoch": 4,
+    "best_value": 0.698182541991395,
+    "epoch_stopped": 5,
+    "stopped_early": false,
+    "stop_reason": "maximum_epochs_reached"
+  },
+  "timing": {
+    "training_seconds": 45.913292899989756,
+    "epoch_seconds": [
+      7.857103900008951,
+      8.04500110000663,
+      8.168630400003167,
+      8.02049999999872,
+      8.06813690000854
+    ],
+    "validation_seconds": 18.135371799988206,
+    "evaluation_seconds": 1.8999999156221747e-06,
+    "inference_model_only_batch_size_1": {
+      "device": "cuda",
+      "warmup_runs": 3,
+      "timed_samples": 20,
+      "mean_ms": 7.430975000170292,
+      "median_ms": 7.411949998640921,
+      "p95_ms": 7.643714992445894
+    },
+    "total_experiment_seconds": 55.16866799999843
+  },
+  "seed": 42,
+  "dataset_split_summary": [
+    {
+      "split": "test",
+      "binary_target": 0.0,
+      "count": 114
+    },
+    {
+      "split": "test",
+      "binary_target": 1.0,
+      "count": 128
+    },
+    {
+      "split": "train",
+      "binary_target": 0.0,
+      "count": 128
+    },
+    {
+      "split": "train",
+      "binary_target": 1.0,
+      "count": 128
+    },
+    {
+      "split": "validation",
+      "binary_target": 0.0,
+      "count": 128
+    },
+    {
+      "split": "validation",
+      "binary_target": 1.0,
+      "count": 128
+    }
+  ],
+  "environment": {
+    "python_version": "3.12.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch_version": "2.14.0+cu130",
+    "torchvision_version": "0.29.0+cu130",
+    "cuda_available": true,
+    "cuda_version": "13.0",
+    "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "pandas": "3.0.6",
+      "scikit-learn": "1.9.1",
+      "Pillow": "12.3.0",
+      "matplotlib": "3.11.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "leakage_free": true,
+  "status": "complete",
+  "saved_at": 1790027890.8168573
+}

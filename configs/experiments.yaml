@@ -9,15 +9,15 @@ default_inference_strategy: efficientnet
 
 strategies:
   efficientnet:
-    enabled: false
+    enabled: true
     config: configs/efficientnet.yaml
     search: true
   convnext:
-    enabled: false
+    enabled: true
     config: configs/convnext.yaml
     search: true
   dinov2:
-    enabled: false
+    enabled: true
     config: configs/dinov2.yaml
     search: true
     screening_overrides:
@@ -42,7 +42,9 @@ strategies:
         early_stopping_patience: 5
         early_stopping_min_delta: 0.0005
   multimodal:
-    enabled: false
+    # Keep parameter search opt-in until the validation-only metadata ablation
+    # is reviewed. The serious default in configs/multimodal.yaml excludes skin tone.
+    enabled: true
     config: configs/multimodal.yaml
     search: true
     screening_overrides:
@@ -68,14 +70,14 @@ strategies:
         early_stopping_patience: 5
         early_stopping_min_delta: 0.0005
   lesion_presence:
-    enabled: true
+    enabled: false
     config: configs/lesion_presence.yaml
     search: false
 
 # Staged search is opt-in. Screening uses only validation results; development
 # test metrics are recorded but are never used to rank candidates.
 parameter_search:
-  enabled: false
+  enabled: true
   top_k: 2
   screening_overrides:
     image_size: 160

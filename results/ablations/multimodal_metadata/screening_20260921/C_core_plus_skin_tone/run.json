@@ -1,0 +1,295 @@
+{
+  "run_name": "C_core_plus_skin_tone",
+  "config": {
+    "strategy_name": "multimodal",
+    "task": "diagnosis_binary",
+    "backbone": "dinov2_vits14",
+    "pretrained": true,
+    "image_size": 196,
+    "batch_size": 8,
+    "epochs": 5,
+    "head_learning_rate": 0.0003,
+    "backbone_learning_rate": 1e-05,
+    "weight_decay": 0.0001,
+    "metadata_fields": [
+      "age",
+      "sex",
+      "anatomical_site",
+      "skin_tone"
+    ],
+    "metadata_embedding_dim": 16,
+    "metadata_width": 64,
+    "fusion_width": 256,
+    "dropout": 0.2,
+    "unfreeze_last_blocks": 0,
+    "loss": "weighted_cross_entropy",
+    "selection_metric": "macro_f1",
+    "early_stopping_patience": 5,
+    "early_stopping_min_delta": 0.001,
+    "scheduler_patience": 2,
+    "scheduler_factor": 0.5,
+    "num_workers": 0,
+    "optimizer": "adamw",
+    "metadata_dropout": 0.2,
+    "weighted_sampling": false,
+    "scheduler": "reduce_on_plateau",
+    "ablation": "image_plus_metadata",
+    "augmentation": {
+      "crop_scale": [
+        0.75,
+        1.0
+      ],
+      "rotation_degrees": 20
+    },
+    "seed": 42,
+    "evaluate_development_test": false,
+    "models_root": "results\\ablations\\multimodal_metadata\\screening_20260921\\models",
+    "summary_path": "results\\ablations\\multimodal_metadata\\screening_20260921\\summary.csv",
+    "run_name": "C_core_plus_skin_tone",
+    "run_directory": "results\\ablations\\multimodal_metadata\\screening_20260921\\C_core_plus_skin_tone",
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "metadata_preprocessor": {
+      "fields": [
+        "age",
+        "sex",
+        "anatomical_site",
+        "skin_tone"
+      ],
+      "age_mean": 57.515625,
+      "age_std": 19.102400783311886,
+      "vocabularies": {
+        "sex": {
+          "female": 2,
+          "male": 3
+        },
+        "anatomical_site": {
+          "hand_foot": 2,
+          "head_neck": 3,
+          "lower_extremity": 4,
+          "trunk": 5,
+          "unmapped:oral/genital": 6,
+          "upper_extremity": 7
+        },
+        "skin_tone": {
+          "fitzpatrick_1": 2,
+          "fitzpatrick_2": 3,
+          "fitzpatrick_3": 4,
+          "fitzpatrick_4": 5,
+          "fitzpatrick_5": 6
+        }
+      },
+      "missing_value_policy": {
+        "age": "training_mean_with_missing_indicator",
+        "categorical": "dedicated_missing_id_0",
+        "unknown_category": "dedicated_unknown_id_1"
+      },
+      "normalization": "src.data.metadata explicit canonical mappings; nonempty unmapped values retain an unmapped: prefix"
+    },
+    "checkpoint_path": "results\\ablations\\multimodal_metadata\\screening_20260921\\models\\multimodal\\multimodal_dinov2_vits14_C_core_plus_skin_tone.pt",
+    "device": "cuda"
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.5644675493240356,
+      "validation_loss": 0.5234062671661377,
+      "train_macro_f1": 0.738277256427863,
+      "validation_macro_f1": 0.7299701903233203,
+      "train_accuracy": 0.73828125,
+      "validation_accuracy": 0.73046875,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.184391899994807
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.43683356046676636,
+      "validation_loss": 0.502713143825531,
+      "train_macro_f1": 0.8159315862744199,
+      "validation_macro_f1": 0.7353372320891262,
+      "train_accuracy": 0.81640625,
+      "validation_accuracy": 0.73828125,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.758547500008717
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.38126257061958313,
+      "validation_loss": 0.5390349924564362,
+      "train_macro_f1": 0.8515262515262515,
+      "validation_macro_f1": 0.7039993664370001,
+      "train_accuracy": 0.8515625,
+      "validation_accuracy": 0.71484375,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.636458900000434
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.347996786236763,
+      "validation_loss": 0.47496335208415985,
+      "train_macro_f1": 0.8398413061722744,
+      "validation_macro_f1": 0.8234401581681916,
+      "train_accuracy": 0.83984375,
+      "validation_accuracy": 0.82421875,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 8.446201700004167
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.3196301683783531,
+      "validation_loss": 0.4878552705049515,
+      "train_macro_f1": 0.8828125,
+      "validation_macro_f1": 0.8032343356084364,
+      "train_accuracy": 0.8828125,
+      "validation_accuracy": 0.8046875,
+      "learning_rate": 0.0003,
+      "epoch_seconds": 9.085675299997092
+    }
+  ],
+  "best_epoch": 4,
+  "best_checkpoint": "results\\ablations\\multimodal_metadata\\screening_20260921\\models\\multimodal\\multimodal_dinov2_vits14_C_core_plus_skin_tone.pt",
+  "metrics": {
+    "loss": 0.47496335208415985,
+    "sample_count": 256,
+    "labels": [
+      0,
+      1
+    ],
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "class_coverage_complete": true,
+    "missing_classes": [],
+    "accuracy": 0.82421875,
+    "balanced_accuracy": 0.82421875,
+    "macro_precision": 0.830040385212799,
+    "macro_recall": 0.82421875,
+    "macro_f1": 0.8234401581681916,
+    "weighted_f1": 0.8234401581681916,
+    "confusion_matrix": [
+      [
+        97,
+        31
+      ],
+      [
+        14,
+        114
+      ]
+    ],
+    "class_metrics": [
+      {
+        "class": 0,
+        "class_name": "benign",
+        "precision": 0.8738738738738738,
+        "recall": 0.7578125,
+        "f1": 0.8117154811715481,
+        "support": 128
+      },
+      {
+        "class": 1,
+        "class_name": "malignant",
+        "precision": 0.7862068965517242,
+        "recall": 0.890625,
+        "f1": 0.8351648351648352,
+        "support": 128
+      }
+    ],
+    "roc_auc": 0.866180419921875,
+    "pr_auc": 0.8083863470691195,
+    "sensitivity": 0.890625,
+    "specificity": 0.7578125,
+    "positive_predictive_value": 0.7862068965517242,
+    "negative_predictive_value": 0.8738738738738738,
+    "brier_score": 0.1444855060927673,
+    "calibration_error": 0.08710741251707078
+  },
+  "development_test_metrics": null,
+  "early_stopping": {
+    "monitor": "validation_macro_f1",
+    "mode": "max",
+    "patience": 5,
+    "min_delta": 0.001,
+    "best_epoch": 4,
+    "best_value": 0.8234401581681916,
+    "epoch_stopped": 5,
+    "stopped_early": false,
+    "stop_reason": "maximum_epochs_reached"
+  },
+  "timing": {
+    "training_seconds": 48.27740950002044,
+    "epoch_seconds": [
+      8.184391899994807,
+      8.758547500008717,
+      8.636458900000434,
+      8.446201700004167,
+      9.085675299997092
+    ],
+    "validation_seconds": 19.97723939998832,
+    "evaluation_seconds": 6.999907782301307e-07,
+    "inference_model_only_batch_size_1": {
+      "device": "cuda",
+      "warmup_runs": 3,
+      "timed_samples": 20,
+      "mean_ms": 9.239765001984779,
+      "median_ms": 7.57214999612188,
+      "p95_ms": 14.837245002854615
+    },
+    "total_experiment_seconds": 53.13844629999949
+  },
+  "seed": 42,
+  "dataset_split_summary": [
+    {
+      "split": "test",
+      "binary_target": 0.0,
+      "count": 114
+    },
+    {
+      "split": "test",
+      "binary_target": 1.0,
+      "count": 128
+    },
+    {
+      "split": "train",
+      "binary_target": 0.0,
+      "count": 128
+    },
+    {
+      "split": "train",
+      "binary_target": 1.0,
+      "count": 128
+    },
+    {
+      "split": "validation",
+      "binary_target": 0.0,
+      "count": 128
+    },
+    {
+      "split": "validation",
+      "binary_target": 1.0,
+      "count": 128
+    }
+  ],
+  "environment": {
+    "python_version": "3.12.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch_version": "2.14.0+cu130",
+    "torchvision_version": "0.29.0+cu130",
+    "cuda_available": true,
+    "cuda_version": "13.0",
+    "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "package_versions": {
+      "numpy": "2.5.2",
+      "pandas": "3.0.6",
+      "scikit-learn": "1.9.1",
+      "Pillow": "12.3.0",
+      "matplotlib": "3.11.2",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "leakage_free": true,
+  "status": "complete",
+  "saved_at": 1790027995.746736
+}

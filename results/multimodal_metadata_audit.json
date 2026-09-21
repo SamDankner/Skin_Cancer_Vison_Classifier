@@ -1,0 +1,779 @@
+{
+  "task": "diagnosis_binary",
+  "eligible_examples": 6606,
+  "field_summary_overall": {
+    "age": {
+      "available": 6586,
+      "missing": 20,
+      "available_percent": 99.69724492885256,
+      "raw_unique_values": [
+        "10.0",
+        "12.0",
+        "13.0",
+        "14.0",
+        "15.0",
+        "16.0",
+        "17.0",
+        "18.0",
+        "20.0",
+        "21.0",
+        "22.0",
+        "23.0",
+        "24.0",
+        "25.0",
+        "26.0",
+        "27.0",
+        "28.0",
+        "29.0",
+        "30.0",
+        "31.0",
+        "32.0",
+        "33.0",
+        "34.0",
+        "35.0",
+        "36.0",
+        "37.0",
+        "38.0",
+        "39.0",
+        "40.0",
+        "41.0",
+        "42.0",
+        "43.0",
+        "44.0",
+        "45.0",
+        "46.0",
+        "47.0",
+        "48.0",
+        "49.0",
+        "5.0",
+        "50.0",
+        "51.0",
+        "52.0",
+        "53.0",
+        "54.0",
+        "55.0",
+        "56.0",
+        "57.0",
+        "58.0",
+        "59.0",
+        "6.0",
+        "60.0",
+        "61.0",
+        "62.0",
+        "63.0",
+        "64.0",
+        "65.0",
+        "66.0",
+        "67.0",
+        "68.0",
+        "69.0",
+        "70.0",
+        "71.0",
+        "72.0",
+        "73.0",
+        "74.0",
+        "75.0",
+        "76.0",
+        "77.0",
+        "78.0",
+        "79.0",
+        "8.0",
+        "80.0",
+        "81.0",
+        "82.0",
+        "83.0",
+        "84.0",
+        "85.0",
+        "86.0",
+        "87.0",
+        "88.0",
+        "89.0",
+        "9.0",
+        "90.0",
+        "91.0",
+        "92.0",
+        "94.0"
+      ],
+      "normalized_unique_values": [
+        "10.0",
+        "12.0",
+        "13.0",
+        "14.0",
+        "15.0",
+        "16.0",
+        "17.0",
+        "18.0",
+        "20.0",
+        "21.0",
+        "22.0",
+        "23.0",
+        "24.0",
+        "25.0",
+        "26.0",
+        "27.0",
+        "28.0",
+        "29.0",
+        "30.0",
+        "31.0",
+        "32.0",
+        "33.0",
+        "34.0",
+        "35.0",
+        "36.0",
+        "37.0",
+        "38.0",
+        "39.0",
+        "40.0",
+        "41.0",
+        "42.0",
+        "43.0",
+        "44.0",
+        "45.0",
+        "46.0",
+        "47.0",
+        "48.0",
+        "49.0",
+        "5.0",
+        "50.0",
+        "51.0",
+        "52.0",
+        "53.0",
+        "54.0",
+        "55.0",
+        "56.0",
+        "57.0",
+        "58.0",
+        "59.0",
+        "6.0",
+        "60.0",
+        "61.0",
+        "62.0",
+        "63.0",
+        "64.0",
+        "65.0",
+        "66.0",
+        "67.0",
+        "68.0",
+        "69.0",
+        "70.0",
+        "71.0",
+        "72.0",
+        "73.0",
+        "74.0",
+        "75.0",
+        "76.0",
+        "77.0",
+        "78.0",
+        "79.0",
+        "8.0",
+        "80.0",
+        "81.0",
+        "82.0",
+        "83.0",
+        "84.0",
+        "85.0",
+        "86.0",
+        "87.0",
+        "88.0",
+        "89.0",
+        "9.0",
+        "90.0",
+        "91.0",
+        "92.0",
+        "94.0"
+      ],
+      "unmapped_count": 0,
+      "unmapped_unique_values": [],
+      "unknown_count": 0,
+      "value_type": "numeric"
+    },
+    "sex": {
+      "available": 6249,
+      "missing": 357,
+      "available_percent": 94.59582198001817,
+      "raw_unique_values": [
+        "FEMALE",
+        "MALE",
+        "female",
+        "male"
+      ],
+      "normalized_unique_values": [
+        "female",
+        "male"
+      ],
+      "unmapped_count": 0,
+      "unmapped_unique_values": [],
+      "unknown_count": 0,
+      "value_type": "categorical"
+    },
+    "anatomical_site": {
+      "available": 4688,
+      "missing": 1918,
+      "available_percent": 70.96578867696034,
+      "raw_unique_values": [
+        "ABDOMEN",
+        "ARM",
+        "BACK",
+        "CHEST",
+        "EAR",
+        "FACE",
+        "FOOT",
+        "FOREARM",
+        "HAND",
+        "LIP",
+        "NECK",
+        "NOSE",
+        "SCALP",
+        "THIGH",
+        "head/neck",
+        "lower extremity",
+        "oral/genital",
+        "upper extremity"
+      ],
+      "normalized_unique_values": [
+        "hand_foot",
+        "head_neck",
+        "lower_extremity",
+        "trunk",
+        "unmapped:oral/genital",
+        "upper_extremity"
+      ],
+      "unmapped_count": 7,
+      "unmapped_unique_values": [
+        "unmapped:oral/genital"
+      ],
+      "unknown_count": 0,
+      "value_type": "categorical"
+    },
+    "skin_tone": {
+      "available": 1211,
+      "missing": 5395,
+      "available_percent": 18.331819557977596,
+      "raw_unique_values": [
+        "1.0",
+        "2.0",
+        "3.0",
+        "4.0",
+        "5.0",
+        "6.0"
+      ],
+      "normalized_unique_values": [
+        "fitzpatrick_1",
+        "fitzpatrick_2",
+        "fitzpatrick_3",
+        "fitzpatrick_4",
+        "fitzpatrick_5",
+        "fitzpatrick_6"
+      ],
+      "unmapped_count": 0,
+      "unmapped_unique_values": [],
+      "unknown_count": 0,
+      "value_type": "categorical"
+    }
+  },
+  "raw_to_normalized_mappings": {
+    "sex": [
+      {
+        "raw": "FEMALE",
+        "normalized": "female"
+      },
+      {
+        "raw": "female",
+        "normalized": "female"
+      },
+      {
+        "raw": "MALE",
+        "normalized": "male"
+      },
+      {
+        "raw": "male",
+        "normalized": "male"
+      }
+    ],
+    "anatomical_site": [
+      {
+        "raw": "FOOT",
+        "normalized": "hand_foot"
+      },
+      {
+        "raw": "HAND",
+        "normalized": "hand_foot"
+      },
+      {
+        "raw": "EAR",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "FACE",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "LIP",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "NECK",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "NOSE",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "SCALP",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "head/neck",
+        "normalized": "head_neck"
+      },
+      {
+        "raw": "THIGH",
+        "normalized": "lower_extremity"
+      },
+      {
+        "raw": "lower extremity",
+        "normalized": "lower_extremity"
+      },
+      {
+        "raw": "ABDOMEN",
+        "normalized": "trunk"
+      },
+      {
+        "raw": "BACK",
+        "normalized": "trunk"
+      },
+      {
+        "raw": "CHEST",
+        "normalized": "trunk"
+      },
+      {
+        "raw": "oral/genital",
+        "normalized": "unmapped:oral/genital"
+      },
+      {
+        "raw": "ARM",
+        "normalized": "upper_extremity"
+      },
+      {
+        "raw": "FOREARM",
+        "normalized": "upper_extremity"
+      },
+      {
+        "raw": "upper extremity",
+        "normalized": "upper_extremity"
+      }
+    ],
+    "skin_tone": [
+      {
+        "raw": "1.0",
+        "normalized": "fitzpatrick_1"
+      },
+      {
+        "raw": "2.0",
+        "normalized": "fitzpatrick_2"
+      },
+      {
+        "raw": "3.0",
+        "normalized": "fitzpatrick_3"
+      },
+      {
+        "raw": "4.0",
+        "normalized": "fitzpatrick_4"
+      },
+      {
+        "raw": "5.0",
+        "normalized": "fitzpatrick_5"
+      },
+      {
+        "raw": "6.0",
+        "normalized": "fitzpatrick_6"
+      }
+    ]
+  },
+  "availability_by_source": [
+    {
+      "source_dataset": "MILK10k",
+      "eligible_examples": 5038,
+      "fields": {
+        "age": {
+          "available": 5018,
+          "missing": 20,
+          "available_percent": 99.60301707026598,
+          "raw_unique_values": [
+            "10.0",
+            "15.0",
+            "20.0",
+            "25.0",
+            "30.0",
+            "35.0",
+            "40.0",
+            "45.0",
+            "5.0",
+            "50.0",
+            "55.0",
+            "60.0",
+            "65.0",
+            "70.0",
+            "75.0",
+            "80.0",
+            "85.0"
+          ],
+          "normalized_unique_values": [
+            "10.0",
+            "15.0",
+            "20.0",
+            "25.0",
+            "30.0",
+            "35.0",
+            "40.0",
+            "45.0",
+            "5.0",
+            "50.0",
+            "55.0",
+            "60.0",
+            "65.0",
+            "70.0",
+            "75.0",
+            "80.0",
+            "85.0"
+          ],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "numeric"
+        },
+        "sex": {
+          "available": 5038,
+          "missing": 0,
+          "available_percent": 100.0,
+          "raw_unique_values": [
+            "female",
+            "male"
+          ],
+          "normalized_unique_values": [
+            "female",
+            "male"
+          ],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "categorical"
+        },
+        "anatomical_site": {
+          "available": 3120,
+          "missing": 1918,
+          "available_percent": 61.92933703850735,
+          "raw_unique_values": [
+            "head/neck",
+            "lower extremity",
+            "oral/genital",
+            "upper extremity"
+          ],
+          "normalized_unique_values": [
+            "head_neck",
+            "lower_extremity",
+            "unmapped:oral/genital",
+            "upper_extremity"
+          ],
+          "unmapped_count": 7,
+          "unmapped_unique_values": [
+            "unmapped:oral/genital"
+          ],
+          "unknown_count": 0,
+          "value_type": "categorical"
+        },
+        "skin_tone": {
+          "available": 0,
+          "missing": 5038,
+          "available_percent": 0.0,
+          "raw_unique_values": [],
+          "normalized_unique_values": [],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "categorical"
+        }
+      }
+    },
+    {
+      "source_dataset": "PAD-UFES-20",
+      "eligible_examples": 1568,
+      "fields": {
+        "age": {
+          "available": 1568,
+          "missing": 0,
+          "available_percent": 100.0,
+          "raw_unique_values": [
+            "10.0",
+            "12.0",
+            "13.0",
+            "14.0",
+            "16.0",
+            "17.0",
+            "18.0",
+            "20.0",
+            "21.0",
+            "22.0",
+            "23.0",
+            "24.0",
+            "25.0",
+            "26.0",
+            "27.0",
+            "28.0",
+            "29.0",
+            "30.0",
+            "31.0",
+            "32.0",
+            "33.0",
+            "34.0",
+            "35.0",
+            "36.0",
+            "37.0",
+            "38.0",
+            "39.0",
+            "40.0",
+            "41.0",
+            "42.0",
+            "43.0",
+            "44.0",
+            "45.0",
+            "46.0",
+            "47.0",
+            "48.0",
+            "49.0",
+            "50.0",
+            "51.0",
+            "52.0",
+            "53.0",
+            "54.0",
+            "55.0",
+            "56.0",
+            "57.0",
+            "58.0",
+            "59.0",
+            "6.0",
+            "60.0",
+            "61.0",
+            "62.0",
+            "63.0",
+            "64.0",
+            "65.0",
+            "66.0",
+            "67.0",
+            "68.0",
+            "69.0",
+            "70.0",
+            "71.0",
+            "72.0",
+            "73.0",
+            "74.0",
+            "75.0",
+            "76.0",
+            "77.0",
+            "78.0",
+            "79.0",
+            "8.0",
+            "80.0",
+            "81.0",
+            "82.0",
+            "83.0",
+            "84.0",
+            "85.0",
+            "86.0",
+            "87.0",
+            "88.0",
+            "89.0",
+            "9.0",
+            "90.0",
+            "91.0",
+            "92.0",
+            "94.0"
+          ],
+          "normalized_unique_values": [
+            "10.0",
+            "12.0",
+            "13.0",
+            "14.0",
+            "16.0",
+            "17.0",
+            "18.0",
+            "20.0",
+            "21.0",
+            "22.0",
+            "23.0",
+            "24.0",
+            "25.0",
+            "26.0",
+            "27.0",
+            "28.0",
+            "29.0",
+            "30.0",
+            "31.0",
+            "32.0",
+            "33.0",
+            "34.0",
+            "35.0",
+            "36.0",
+            "37.0",
+            "38.0",
+            "39.0",
+            "40.0",
+            "41.0",
+            "42.0",
+            "43.0",
+            "44.0",
+            "45.0",
+            "46.0",
+            "47.0",
+            "48.0",
+            "49.0",
+            "50.0",
+            "51.0",
+            "52.0",
+            "53.0",
+            "54.0",
+            "55.0",
+            "56.0",
+            "57.0",
+            "58.0",
+            "59.0",
+            "6.0",
+            "60.0",
+            "61.0",
+            "62.0",
+            "63.0",
+            "64.0",
+            "65.0",
+            "66.0",
+            "67.0",
+            "68.0",
+            "69.0",
+            "70.0",
+            "71.0",
+            "72.0",
+            "73.0",
+            "74.0",
+            "75.0",
+            "76.0",
+            "77.0",
+            "78.0",
+            "79.0",
+            "8.0",
+            "80.0",
+            "81.0",
+            "82.0",
+            "83.0",
+            "84.0",
+            "85.0",
+            "86.0",
+            "87.0",
+            "88.0",
+            "89.0",
+            "9.0",
+            "90.0",
+            "91.0",
+            "92.0",
+            "94.0"
+          ],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "numeric"
+        },
+        "sex": {
+          "available": 1211,
+          "missing": 357,
+          "available_percent": 77.23214285714286,
+          "raw_unique_values": [
+            "FEMALE",
+            "MALE"
+          ],
+          "normalized_unique_values": [
+            "female",
+            "male"
+          ],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "categorical"
+        },
+        "anatomical_site": {
+          "available": 1568,
+          "missing": 0,
+          "available_percent": 100.0,
+          "raw_unique_values": [
+            "ABDOMEN",
+            "ARM",
+            "BACK",
+            "CHEST",
+            "EAR",
+            "FACE",
+            "FOOT",
+            "FOREARM",
+            "HAND",
+            "LIP",
+            "NECK",
+            "NOSE",
+            "SCALP",
+            "THIGH"
+          ],
+          "normalized_unique_values": [
+            "hand_foot",
+            "head_neck",
+            "lower_extremity",
+            "trunk",
+            "upper_extremity"
+          ],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "categorical"
+        },
+        "skin_tone": {
+          "available": 1211,
+          "missing": 357,
+          "available_percent": 77.23214285714286,
+          "raw_unique_values": [
+            "1.0",
+            "2.0",
+            "3.0",
+            "4.0",
+            "5.0",
+            "6.0"
+          ],
+          "normalized_unique_values": [
+            "fitzpatrick_1",
+            "fitzpatrick_2",
+            "fitzpatrick_3",
+            "fitzpatrick_4",
+            "fitzpatrick_5",
+            "fitzpatrick_6"
+          ],
+          "unmapped_count": 0,
+          "unmapped_unique_values": [],
+          "unknown_count": 0,
+          "value_type": "categorical"
+        }
+      }
+    }
+  ],
+  "source_label_association": [
+    {
+      "source_dataset": "MILK10k",
+      "examples": 5038,
+      "malignant_percent": 71.95315601429138
+    },
+    {
+      "source_dataset": "PAD-UFES-20",
+      "examples": 1568,
+      "malignant_percent": 69.4515306122449
+    }
+  ],
+  "state_definitions": {
+    "missing": "raw value absent or blank",
+    "unknown": "unseen nonmissing value at transform time; assigned vocabulary ID 1",
+    "unmapped": "nonempty raw value with no audited canonical mapping; retained as unmapped:<value>"
+  },
+  "note": "Associations are audit flags, not grounds to remove metadata fields."
+}
