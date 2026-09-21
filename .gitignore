@@ -26,3 +26,10 @@ results/latest_inference.yaml
 # OS
 .DS_Store
 Thumbs.db
+
+# Model checkpoints
+*.pt
+*.pth
+
+# Temporary pytest files
+.pytest-tmp/
