@@ -6,6 +6,7 @@ from io import BytesIO
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import unquote
+from zipfile import ZipFile
 
 import pandas as pd
 import numpy as np
@@ -428,6 +429,81 @@ def test_arsenic_uses_original_healthy_only_and_excludes_augmentations(tmp_path)
     assert healthy.gate_label_strength == "moderate"
     assert pd.isna(affected.lesion_present) and affected.other_skin_condition
     assert not affected.supported_for_lesion_presence
+
+
+def test_mcvsld_rejects_web_derived_originals_and_offline_copies(tmp_path):
+    root = tmp_path / "MCVSLD" / "Skin Lesion Dataset"
+    healthy = root / "train" / "Healthy"
+    viral = root / "train" / "Monkeypox"
+    healthy.mkdir(parents=True)
+    viral.mkdir(parents=True)
+    Image.new("RGB", (8, 8), color=(30, 40, 50)).save(
+        healthy / "HEALTHY_01_01_ORIGINAL.jpg"
+    )
+    Image.new("RGB", (8, 8), color=(35, 45, 55)).save(
+        healthy / "HEALTHY_01_01_1.jpg"
+    )
+    Image.new("RGB", (8, 8), color=(80, 20, 20)).save(
+        viral / "MKP_01_01_ORIGINAL.jpg"
+    )
+
+    manifest, report = build_dataset_manifest(tmp_path, "MCVSLD")
+
+    assert manifest.empty
+    assert report["status"] == "rejected_provenance_and_augmentation"
+    assert report["original_images"] == 2
+    assert report["original_healthy_images_excluded"] == 1
+    assert report["augmented_or_derived_images_excluded"] == 1
+    assert report["eligible_clinical_images"] == 0
+
+
+def test_monkeypox_aggregate_rejects_augments_and_resized_mcsi_copies(tmp_path):
+    mcsi = tmp_path / "MCSI" / "images"
+    normal = tmp_path / "MonkeyPox" / "Mpox-HSAM" / "normal"
+    mcsi.mkdir(parents=True)
+    normal.mkdir(parents=True)
+    source = Image.new("RGB", (16, 16), color=(90, 100, 110))
+    source.save(mcsi / "NORMAL_1.png")
+    source.resize((8, 8)).save(normal / "normal_original_000.png")
+    source.transpose(Image.Transpose.FLIP_LEFT_RIGHT).save(normal / "normal_aug_001.png")
+
+    manifest, report = build_dataset_manifest(tmp_path, "MonkeyPox")
+
+    assert manifest.empty
+    assert report["status"] == "rejected_duplicate_aggregate"
+    assert report["original_images"] == 1
+    assert report["original_normal_images_excluded"] == 1
+    assert report["augmented_images_excluded"] == 1
+    assert report["candidate_originals_matching_mcsi"] == 1
+
+
+def test_skin_disease_classification_rejects_dermoscopy_and_split_copies(tmp_path):
+    directory = tmp_path / "SkinDiseaseClassification"
+    directory.mkdir()
+    archive = directory / "archive.zip"
+    dermoscopy = BytesIO()
+    Image.new("RGB", (8, 8), color=(40, 50, 60)).save(dermoscopy, format="JPEG")
+    clinical = BytesIO()
+    Image.new("RGB", (8, 8), color=(70, 80, 90)).save(clinical, format="JPEG")
+    with ZipFile(archive, "w") as bundle:
+        bundle.writestr("Split_smol/train/Melanoma/ISIC_0000001.jpg", dermoscopy.getvalue())
+        bundle.writestr("Split_smol/train/Atopic Dermatitis/1_1.jpg", clinical.getvalue())
+        bundle.writestr("Split_smol/val/Atopic Dermatitis/1_1.jpg", clinical.getvalue())
+        bundle.writestr(
+            "Split_smol/train/Tinea Ringworm Candidiasis/aug_0_Screenshot.png",
+            clinical.getvalue(),
+        )
+
+    manifest, report = build_dataset_manifest(tmp_path, "SkinDiseaseClassification")
+
+    assert manifest.empty
+    assert report["status"] == "rejected_provenance_and_modality"
+    assert report["reported_healthy_images"] == 0
+    assert report["dermoscopy_isic_images_excluded"] == 1
+    assert report["offline_augmented_images_detected"] == 1
+    assert report["screenshot_files_detected"] == 1
+    assert report["exact_duplicate_images"] == 3
+    assert report["eligible_clinical_images"] == 0
 
 
 def test_hard_negatives_are_opt_in_for_lesion_task_selection():

@@ -6,6 +6,7 @@ or explicitly downloaded from a documented first-party URL.
 """
 from __future__ import annotations
 
+from collections import Counter, defaultdict
 from collections.abc import Mapping
 from datetime import date, datetime
 import ast
@@ -15,6 +16,7 @@ from pathlib import Path
 from typing import Iterable
 from hashlib import sha256
 import re
+from zipfile import BadZipFile, ZipFile
 
 import numpy as np
 import pandas as pd
@@ -778,6 +780,232 @@ def _build_arsenic_skin_image_bd(raw_root: Path) -> tuple[pd.DataFrame, dict]:
         "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
     }
 
+
+def _exact_duplicate_summary(images: Iterable[Path]) -> dict:
+    """Return exact-copy counts for a quarantined candidate collection."""
+    groups: dict[str, list[str]] = defaultdict(list)
+    for image in images:
+        digest = sha256()
+        with image.open("rb") as handle:
+            for block in iter(lambda: handle.read(1_048_576), b""):
+                digest.update(block)
+        groups[digest.hexdigest()].append(str(image))
+    duplicates = [members for members in groups.values() if len(members) > 1]
+    return {
+        "exact_duplicate_images": sum(len(members) for members in duplicates),
+        "exact_duplicate_groups": len(duplicates),
+        "unique_exact_files": len(groups),
+    }
+
+
+def _perceptual_overlap_with_mcsi(raw_root: Path, candidates: list[Path]) -> dict:
+    """Count candidate originals that are resized/compressed MCSI copies."""
+    mcsi_directory = raw_root / "MCSI"
+    if not candidates or not mcsi_directory.exists():
+        return {
+            "perceptual_pairs_with_mcsi": 0,
+            "candidate_originals_matching_mcsi": 0,
+        }
+    mcsi_images, _ = _valid_images(mcsi_directory)
+    if not mcsi_images:
+        return {
+            "perceptual_pairs_with_mcsi": 0,
+            "candidate_originals_matching_mcsi": 0,
+        }
+    records = [
+        {"image_path": str(path), "image_id": path.stem, "audit_source": "candidate"}
+        for path in candidates
+    ] + [
+        {"image_path": str(path), "image_id": path.stem, "audit_source": "MCSI"}
+        for path in mcsi_images
+    ]
+    audit = pd.DataFrame(records)
+    _, pairs = add_perceptual_duplicate_groups(audit)
+    cross_pairs = []
+    matched_candidates: set[int] = set()
+    for pair in pairs.itertuples(index=False):
+        left, right = int(pair.left_index), int(pair.right_index)
+        left_source = audit.loc[left, "audit_source"]
+        right_source = audit.loc[right, "audit_source"]
+        if {left_source, right_source} != {"candidate", "MCSI"}:
+            continue
+        cross_pairs.append(pair)
+        matched_candidates.add(left if left_source == "candidate" else right)
+    return {
+        "perceptual_pairs_with_mcsi": len(cross_pairs),
+        "candidate_originals_matching_mcsi": len(matched_candidates),
+    }
+
+
+def _candidate_class_counts(images: Iterable[Path]) -> list[dict]:
+    counts = Counter(image.parent.name for image in images)
+    return [
+        {"source_category": label, "count": int(count)}
+        for label, count in sorted(counts.items())
+    ]
+
+
+def _build_mcvsld_audit(raw_root: Path) -> tuple[pd.DataFrame, dict]:
+    """Audit MCVSLD while rejecting web-derived and offline-augmented labels."""
+    dataset = "MCVSLD"
+    directory = raw_root / dataset
+    if not directory.exists():
+        return empty_manifest(), {
+            "dataset": dataset, "status": "not_present", "valid_images": 0,
+            "eligible_clinical_images": 0, "invalid_images": [],
+        }
+    images, invalid = _valid_images(directory)
+    originals = [image for image in images if image.stem.upper().endswith("_ORIGINAL")]
+    original_set = set(originals)
+    derived = [image for image in images if image not in original_set]
+    healthy = [image for image in originals if image.parent.name.lower() == "healthy"]
+    report = {
+        "dataset": dataset,
+        "status": "rejected_provenance_and_augmentation",
+        "valid_images": len(images),
+        "original_images": len(originals),
+        "original_healthy_images_excluded": len(healthy),
+        "augmented_or_derived_images_excluded": len(derived),
+        "original_by_source_category": _candidate_class_counts(originals),
+        "all_files_by_source_category": _candidate_class_counts(images),
+        "eligible_clinical_images": 0,
+        "invalid_images": invalid,
+        "patient_grouping_available": False,
+        "label_strength_if_used": "weak",
+        "reason": (
+            "Rejected: Google/web-assembled aggregate has no per-image provenance or patient IDs; "
+            "published class counts include offline-derived copies, and the Healthy originals are "
+            "not defensible no-target-lesion ground truth."
+        ),
+        "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
+    }
+    report.update(_exact_duplicate_summary(images))
+    report.update(_perceptual_overlap_with_mcsi(raw_root, originals))
+    return empty_manifest(), report
+
+
+def _build_monkeypox_aggregate_audit(raw_root: Path) -> tuple[pd.DataFrame, dict]:
+    """Reject the derived MonkeyPox aggregate after original-copy auditing."""
+    dataset = "MonkeyPox"
+    directory = raw_root / dataset
+    if not directory.exists():
+        return empty_manifest(), {
+            "dataset": dataset, "status": "not_present", "valid_images": 0,
+            "eligible_clinical_images": 0, "invalid_images": [],
+        }
+    images, invalid = _valid_images(directory)
+    originals = [image for image in images if "aug" not in image.stem.lower()]
+    derived = [image for image in images if "aug" in image.stem.lower()]
+    healthy = [image for image in originals if image.parent.name.lower() == "normal"]
+    overlap = _perceptual_overlap_with_mcsi(raw_root, originals)
+    report = {
+        "dataset": dataset,
+        "status": "rejected_duplicate_aggregate",
+        "valid_images": len(images),
+        "original_images": len(originals),
+        "original_normal_images_excluded": len(healthy),
+        "augmented_images_excluded": len(derived),
+        "original_by_source_category": _candidate_class_counts(originals),
+        "all_files_by_source_category": _candidate_class_counts(images),
+        "eligible_clinical_images": 0,
+        "invalid_images": invalid,
+        "patient_grouping_available": False,
+        "label_strength_if_used": "weak",
+        "reason": (
+            "Rejected: curated/extended aggregate contains offline augmentations and its alleged "
+            "originals are reused MCSI images after resizing/recompression."
+        ),
+        "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
+        **overlap,
+    }
+    report.update(_exact_duplicate_summary(images))
+    return empty_manifest(), report
+
+
+def _skin_disease_archive_members(directory: Path) -> tuple[list[tuple[str, bytes]], list[dict]]:
+    """Read image members from nested official ZIPs without admitting/extracting them."""
+    members: list[tuple[str, bytes]] = []
+    invalid: list[dict] = []
+    archives = sorted(directory.rglob("*.zip"), key=lambda path: path.stat().st_size)
+    for archive in archives:
+        try:
+            with ZipFile(archive) as bundle:
+                corrupt = bundle.testzip()
+                if corrupt:
+                    invalid.append({"archive": str(archive), "reason": f"CRC failure: {corrupt}"})
+                    continue
+                image_infos = [
+                    info for info in bundle.infolist()
+                    if Path(info.filename).suffix.lower() in IMAGE_SUFFIXES
+                ]
+                if image_infos:
+                    members.extend((info.filename, bundle.read(info)) for info in image_infos)
+        except (BadZipFile, OSError) as exc:
+            invalid.append({"archive": str(archive), "reason": str(exc)})
+    return members, invalid
+
+
+def _build_skin_disease_classification_audit(raw_root: Path) -> tuple[pd.DataFrame, dict]:
+    """Reject the misleading mixed-modality SkinDiseaseClassification bundle."""
+    dataset = "SkinDiseaseClassification"
+    directory = raw_root / dataset
+    if not directory.exists():
+        return empty_manifest(), {
+            "dataset": dataset, "status": "not_present", "valid_images": 0,
+            "eligible_clinical_images": 0, "invalid_images": [],
+        }
+    members, invalid = _skin_disease_archive_members(directory)
+    # Prefer archive inventory because Windows path limits can prevent full
+    # extraction of this package; do not silently audit only a partial tree.
+    if not members:
+        images, image_invalid = _valid_images(directory)
+        invalid.extend(image_invalid)
+        member_names = [str(image.relative_to(directory)) for image in images]
+        payloads = [image.read_bytes() for image in images]
+    else:
+        member_names = [name for name, _ in members]
+        payloads = [payload for _, payload in members]
+    labels = Counter(
+        Path(name).parts[-2] if len(Path(name).parts) >= 2 else "<unknown>"
+        for name in member_names
+    )
+    isic = [name for name in member_names if Path(name).stem.upper().startswith("ISIC_")]
+    augmented = [name for name in member_names if Path(name).stem.lower().startswith("aug_")]
+    screenshots = [name for name in member_names if "screenshot" in Path(name).stem.lower()]
+    hashes: dict[str, int] = defaultdict(int)
+    for payload in payloads:
+        hashes[sha256(payload).hexdigest()] += 1
+    duplicate_sizes = [count for count in hashes.values() if count > 1]
+    healthy_count = sum(
+        count for label, count in labels.items() if label.strip().lower() in {"healthy", "normal"}
+    )
+    return empty_manifest(), {
+        "dataset": dataset,
+        "status": "rejected_provenance_and_modality",
+        "valid_images": len(member_names),
+        "eligible_clinical_images": 0,
+        "reported_healthy_images": healthy_count,
+        "dermoscopy_isic_images_excluded": len(isic),
+        "non_isic_images_excluded": len(member_names) - len(isic),
+        "offline_augmented_images_detected": len(augmented),
+        "screenshot_files_detected": len(screenshots),
+        "source_category_counts": [
+            {"source_category": label, "count": int(count)}
+            for label, count in sorted(labels.items())
+        ],
+        "exact_duplicate_images": sum(duplicate_sizes),
+        "exact_duplicate_groups": len(duplicate_sizes),
+        "unique_exact_files": len(hashes),
+        "patient_grouping_available": False,
+        "invalid_images": invalid,
+        "reason": (
+            "Rejected: official archive contains no Healthy class, most files are ISIC-named "
+            "dermoscopy, and the remaining web images include supplied augmentations, screenshots, "
+            "and exact train/validation copies without patient provenance."
+        ),
+        "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
+    }
+
 def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, dict]:
     """Build one conservative dataset manifest and an ingestion report."""
     if dataset == "SCIN":
@@ -789,12 +1017,12 @@ def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, 
         return _build_public_hard_negative_dataset(raw_root, dataset)
     if dataset == "ArsenicSkinImageBD":
         return _build_arsenic_skin_image_bd(raw_root)
+    if dataset == "MCVSLD":
+        return _build_mcvsld_audit(raw_root)
     if dataset == "MonkeyPox":
-        return empty_manifest(), {
-            "dataset": dataset, "status": "provenance_audit_required",
-            "valid_images": 0, "eligible_clinical_images": 0, "invalid_images": [],
-            "reason": "Curated/extended aggregate with no reliable patient grouping; not admitted automatically.",
-        }
+        return _build_monkeypox_aggregate_audit(raw_root)
+    if dataset == "SkinDiseaseClassification":
+        return _build_skin_disease_classification_audit(raw_root)
     if dataset == "ENCoDE":
         directory = raw_root / dataset
         status = "manual_access_required" if dataset in {"ImageQX", "Muhaba"} else "credentialed_access_required"

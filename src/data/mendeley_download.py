@@ -67,7 +67,30 @@ def download_mendeley_dataset(
     directory.mkdir(parents=True, exist_ok=True)
     existing = _images(directory)
     if existing:
-        return {"dataset": dataset, "status": "downloaded_unreviewed", "valid_images": len(existing), "downloaded_bytes": 0, "official_source_url": record["record_url"]}
+        # A prior successful call CRC-checked the official outer archive before
+        # extraction.  Reuse extracted files instead of repeating a large
+        # download or multi-gigabyte validation pass on every preparation run.
+        previous_path = directory / "acquisition_report.json"
+        previous = {}
+        if previous_path.is_file():
+            try:
+                previous = json.loads(previous_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                previous = {}
+        report = {
+            "dataset": dataset,
+            "status": "downloaded_unreviewed",
+            "valid_images": len(existing),
+            "downloaded_bytes": 0,
+            "archive": previous.get("archive"),
+            "archive_crc_validated": previous.get("status") == "downloaded_unreviewed",
+            "official_source_url": record["record_url"],
+            "official_download_url": previous.get("official_download_url"),
+            "download_date": previous.get("download_date"),
+            "reused_existing_files": True,
+        }
+        previous_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        return report
 
     archive = directory / (archive_name or f"{dataset}.zip")
     partial = archive.with_suffix(".zip.part")
@@ -98,13 +121,15 @@ def download_mendeley_dataset(
         report = {
             "dataset": dataset, "status": "downloaded_unreviewed", "valid_images": len(_images(directory)),
             "downloaded_bytes": archive.stat().st_size, "archive": str(archive),
+            "archive_crc_validated": True,
             "official_source_url": record["record_url"], "official_download_url": download_url,
-            "download_date": date.today().isoformat(),
+            "download_date": date.today().isoformat(), "reused_existing_files": False,
         }
     except (HTTPError, URLError, OSError, ValueError) as exc:
         report = {
             "dataset": dataset, "status": "official_download_failed", "valid_images": len(_images(directory)),
             "downloaded_bytes": partial.stat().st_size if partial.is_file() else 0,
+            "archive_crc_validated": False,
             "official_source_url": record["record_url"], "official_download_url": download_url,
             "reason": str(exc), "download_date": date.today().isoformat(),
         }

@@ -37,7 +37,7 @@ def create_gate_prediction_audit(
     seed: int = 42,
     device: str | None = None,
 ) -> pd.DataFrame:
-    """Pick one deterministic sample per available audit category and predict it."""
+    """Pick deterministic clinically useful examples and record gate decisions."""
     checked = validate_manifest(manifest)
     if checked.dataset.fillna("").str.upper().eq("DDI").any():
         raise PermissionError("DDI cannot be used for a development gate audit")
@@ -47,15 +47,20 @@ def create_gate_prediction_audit(
     # Unsupported rows can lack a split when their modality is invalid/no-skin;
     # they remain development data and are selected only if no split row exists.
     rows = []
-    for category in (
-        "no_visible_target_lesion", "benign_focal_lesion",
-        "malignant_focal_lesion", "other_skin_condition",
-        "poor_quality_unsupported", "focal_lesion_diagnosis_unmapped",
-        "unsupported",
-    ):
-        pool = test_rows.loc[test_rows.audit_category.eq(category)]
-        if pool.empty and category in {"poor_quality_unsupported", "unsupported"}:
-            pool = candidates.loc[candidates.audit_category.eq(category)]
+    related = test_rows.self_reported_related_category.fillna("").astype(str).str.upper()
+    original = test_rows.original_label.fillna("").astype(str).str.upper()
+    selectors = (
+        ("healthy_skin", test_rows.supported_for_lesion_presence.fillna(False) & test_rows.lesion_present.eq(0) & test_rows.normal_skin.fillna(False)),
+        ("mole_or_nevus", related.eq("GROWTH_OR_MOLE")),
+        ("benign_focal_lesion", test_rows.supported_for_lesion_presence.fillna(False) & test_rows.lesion_present.eq(1) & test_rows.binary_target.eq(0)),
+        ("malignant_focal_lesion", test_rows.supported_for_lesion_presence.fillna(False) & test_rows.lesion_present.eq(1) & test_rows.binary_target.eq(1)),
+        ("acne", original.eq("ACNE") | related.eq("ACNE")),
+        ("rash", related.eq("RASH")),
+        ("pox_like_condition", original.isin(["MPOX", "MONKEYPOX"])),
+        ("other_difficult_hard_negative", original.eq("CHICKENPOX")),
+    )
+    for category, selector in selectors:
+        pool = test_rows.loc[selector]
         if pool.empty:
             continue
         chosen_index = min(
