@@ -123,7 +123,7 @@ def _interpret(
     }
     if task == "lesion_presence":
         result["lesion_presence_result"] = (
-            "lesion_present" if predicted_index == 1 else "normal_skin"
+            "target_lesion_present" if predicted_index == 1 else "no_target_lesion"
         ) if class_order == ["0", "1"] else class_order[predicted_index]
         if len(class_order) == 2:
             result["lesion_probability"] = float(probabilities[1])
@@ -346,19 +346,22 @@ def predict_with_lesion_routing(
     )
     if presence.get("task") != "lesion_presence":
         raise ValueError("lesion_presence_checkpoint must contain a lesion_presence model")
-    if presence.get("lesion_presence_result") in {"normal_skin", "0"}:
+    if presence.get("lesion_presence_result") in {
+        "no_target_lesion", "no_lesion", "normal_skin", "0"
+    }:
         # Do not run a diagnosis model after the lesion-presence gate rejects
         # the image; the result remains a model output, not healthy-skin proof.
         return {
-            "routing": "no_lesion_detected",
+            "routing": "no_target_lesion",
             "lesion_presence": presence,
             "message": (
-                "No lesion was detected by the model; this is not a clinical "
-                "confirmation of healthy skin."
+                "No target focal lesion was detected by the binary gate, so "
+                "tumor diagnosis was not run. This is not confirmation that "
+                "the skin is medically normal."
             ),
         }
     return {
-        "routing": "lesion_detected",
+        "routing": "target_lesion_present",
         "lesion_presence": presence,
         "diagnosis": predict_image(
             image,

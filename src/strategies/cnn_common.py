@@ -15,16 +15,28 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
-from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
+from src.data.datasets import (
+    ManifestImageDataset,
+    TASK_TARGETS,
+    build_lesion_presence_manifest,
+    select_task_manifest,
+    validate_manifest,
+)
 from src.data.splits import leakage_report, validate_split_class_coverage
 from src.data.targets import TargetEncoding, canonical_target, target_encoding_for_manifest
 from src.data.transforms import build_transforms
 from src.evaluation.evaluator import export_predictions, prediction_frame
-from src.evaluation.metrics import classification_metrics, lesion_presence_metrics
+from src.evaluation.metrics import (
+    classification_metrics,
+    gate_partition_metrics,
+    lesion_presence_metrics,
+    source_stratified_metrics,
+)
 from src.evaluation.reporting import plot_binary_curves, plot_confusion_matrix, plot_training_history
 from src.training.checkpointing import checkpoint_path, save_checkpoint, update_checkpoint_metadata
 from src.training.early_stopping import EarlyStopping
 from src.training.experiment_runner import persist_run
+from src.training.gate_sampling import gate_sampling_weights, label_confidence_weights
 from src.training.optimization import build_optimizer, build_scheduler, step_scheduler
 from src.training.trainer import TrainingResult
 from src.utils.device import get_device
@@ -187,13 +199,16 @@ def set_backbone_trainable(model: nn.Module, trainable: bool) -> None:
         parameter.requires_grad = True
 
 
-def _loss(logits, targets, method: str, class_weights, focal_gamma: float) -> torch.Tensor:
+def _loss(logits, targets, method: str, class_weights, focal_gamma: float, sample_weights=None) -> torch.Tensor:
     base = F.cross_entropy(logits, targets, weight=class_weights, reduction="none")
     if method == "focal":
-        return ((1 - torch.exp(-base)).pow(focal_gamma) * base).mean()
+        base = (1 - torch.exp(-base)).pow(focal_gamma) * base
     if method not in {"cross_entropy", "weighted_cross_entropy"}:
         raise ValueError("loss must be cross_entropy, weighted_cross_entropy, or focal")
-    return base.mean()
+    if sample_weights is None:
+        return base.mean()
+    weight = sample_weights.to(device=base.device, dtype=base.dtype).clamp_min(0)
+    return (base * weight).sum() / weight.sum().clamp_min(torch.finfo(base.dtype).eps)
 
 
 def _forward(model, batch, device):
@@ -220,7 +235,13 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
             # below protects small gradients during the backward pass.
             with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
                 logits = _forward(model, batch, device)
-                loss = _loss(logits, targets, config["loss"], weights, float(config.get("focal_gamma", 2.0)))
+                sample_weight = None
+                if training and config["task"] == "lesion_presence" and config.get("confidence_loss_weighting", False):
+                    sample_weight = torch.as_tensor(label_confidence_weights(
+                        [item.get("gate_label_strength") for item in batch["metadata"]],
+                        config.get("label_strength_weights"),
+                    ), device=device)
+                loss = _loss(logits, targets, config["loss"], weights, float(config.get("focal_gamma", 2.0)), sample_weight)
             if training:
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
@@ -256,13 +277,28 @@ def _epoch(model, loader, optimizer, scaler, device, config, weights, *, trainin
 def _loader(dataset, config: dict, target_encoding: TargetEncoding, *, training: bool) -> DataLoader:
     sampler = None
     if training and config.get("weighted_sampling", False):
-        encoded = _targets(
-            dataset.frame[dataset.target_column].tolist(), target_encoding
-        ).tolist()
-        counts = Counter(encoded)
-        sampler = WeightedRandomSampler(
-            [1.0 / counts[target] for target in encoded], len(encoded), replacement=True
-        )
+        if config.get("task") == "lesion_presence" and config.get("gate_sampling", True):
+            values = gate_sampling_weights(
+                dataset.frame,
+                confidence_weights=config.get("label_strength_weights"),
+                hard_negative_fraction=float(config.get("hard_negative_fraction", .30)),
+                source_balance=bool(config.get("source_balanced_sampling", False)),
+            )
+            # A verification configuration may explicitly bound one epoch.  It
+            # does not change the sampling distribution or expand the dataset;
+            # it only avoids treating every replacement draw as a new epoch.
+            requested = int(config.get("sampler_num_samples", len(values)))
+            if requested < 1:
+                raise ValueError("sampler_num_samples must be positive")
+            sampler = WeightedRandomSampler(values.tolist(), min(requested, len(values)), replacement=True)
+        else:
+            encoded = _targets(
+                dataset.frame[dataset.target_column].tolist(), target_encoding
+            ).tolist()
+            counts = Counter(encoded)
+            sampler = WeightedRandomSampler(
+                [1.0 / counts[target] for target in encoded], len(encoded), replacement=True
+            )
     loader = DataLoader(
         dataset,
         batch_size=int(config["batch_size"]),
@@ -285,7 +321,10 @@ def _datasets(selected, config, box_provider):
     for split in ("train", "validation", "test"):
         transform = train_transform if split == "train" else evaluation_transform
         if input_mode == "full_image":
-            datasets[split] = ManifestImageDataset(selected, split, transform, config["task"])
+            datasets[split] = ManifestImageDataset(
+                selected, split, transform, config["task"],
+                include_hard_negatives=bool(config.get("include_hard_negatives", False)),
+            )
         else:
             datasets[split] = CropAssistedManifestDataset(
                 selected,
@@ -337,7 +376,16 @@ def train_cnn_strategy(
     task = cfg["task"]
     if task not in {"diagnosis_binary", "diagnosis_multiclass", "lesion_presence"}:
         raise ValueError("CNN strategies support diagnosis and lesion-presence tasks")
-    selected = select_task_manifest(validate_manifest(manifest), task)
+    checked = validate_manifest(manifest)
+    selected = (
+        build_lesion_presence_manifest(
+            checked,
+            tuple(cfg.get("normal_label_strengths", ("strong", "moderate", "weak"))),
+            include_hard_negatives=bool(cfg.get("include_hard_negatives", False)),
+        )
+        if task == "lesion_presence"
+        else select_task_manifest(checked, task)
+    )
     required_splits = {"train", "validation", "test"}
     if not required_splits.issubset(set(selected.split.dropna())):
         raise ValueError("Training requires independent train, validation, and development-test splits")
@@ -445,6 +493,26 @@ def train_cnn_strategy(
     validation = _epoch(model, loaders["validation"], optimizer, scaler, device, cfg, weights, training=False)
     evaluation_started = perf_counter()
     development_test = _epoch(model, loaders["test"], optimizer, scaler, device, cfg, weights, training=False)
+    if task == "lesion_presence" and cfg.get("report_source_metrics", True):
+        sources = [
+            str(item.get("source_dataset") or item.get("dataset") or "<missing>")
+            for item in development_test["metadata"]
+        ]
+        development_test["metrics"]["source_specific_metrics"] = source_stratified_metrics(
+            development_test["targets"],
+            development_test["probabilities"].argmax(axis=1),
+            development_test["probabilities"],
+            sources,
+            metric_function=lesion_presence_metrics,
+            labels=list(range(len(class_names))),
+            class_names=class_names,
+        )
+        development_test["metrics"]["gate_partition_metrics"] = gate_partition_metrics(
+            development_test["targets"],
+            development_test["probabilities"].argmax(axis=1),
+            development_test["probabilities"],
+            [str(item.get("gate_negative_subtype") or "") for item in development_test["metadata"]],
+        )
     evaluation_seconds = perf_counter() - evaluation_started
     stop_summary = stopper.summary(len(history), int(cfg["epochs"]))
     update_checkpoint_metadata(checkpoint, early_stopping=stop_summary)

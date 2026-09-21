@@ -170,7 +170,7 @@ def test_lesion_presence_one_batch_uses_canonical_indices(monkeypatch, tmp_path)
         run_name="tiny_lesion_presence",
     )
 
-    assert result.config["class_names"] == ["no_lesion", "lesion_present"]
+    assert result.config["class_names"] == ["no_target_lesion", "target_lesion_present"]
     assert result.best_epoch == 1
     assert result.development_test_metrics["sample_count"] == 4
 
@@ -191,6 +191,43 @@ def test_photo_only_inference_returns_probabilities_without_metadata(monkeypatch
     assert sum(result["probabilities"].values()) == pytest.approx(1.0)
     assert result["model"] == "efficientnet"
     assert model.training is False
+
+
+def test_target_lesion_gate_stops_or_allows_diagnosis(monkeypatch):
+    import src.inference as inference
+
+    calls = []
+
+    def negative_then_unused(*_args, **kwargs):
+        calls.append(kwargs["checkpoint"])
+        return {
+            "task": "lesion_presence",
+            "lesion_presence_result": "no_target_lesion",
+        }
+
+    monkeypatch.setattr(inference, "predict_image", negative_then_unused)
+    negative = inference.predict_with_lesion_routing(
+        "photo.jpg", lesion_presence_checkpoint="gate.pt",
+        diagnosis_checkpoint="diagnosis.pt",
+    )
+    assert negative["routing"] == "no_target_lesion"
+    assert calls == ["gate.pt"]
+
+    calls.clear()
+    outputs = iter([
+        {"task": "lesion_presence", "lesion_presence_result": "target_lesion_present"},
+        {"task": "diagnosis_binary", "predicted_diagnostic_class": "benign"},
+    ])
+    monkeypatch.setattr(
+        inference, "predict_image",
+        lambda *_args, **kwargs: calls.append(kwargs["checkpoint"]) or next(outputs),
+    )
+    positive = inference.predict_with_lesion_routing(
+        "photo.jpg", lesion_presence_checkpoint="gate.pt",
+        diagnosis_checkpoint="diagnosis.pt",
+    )
+    assert positive["routing"] == "target_lesion_present"
+    assert calls == ["gate.pt", "diagnosis.pt"]
 
 
 def test_top_level_config_validation_and_run_directory(tmp_path):

@@ -4,20 +4,34 @@ backbone: efficientnet_v2_s
 pretrained: true
 image_size: 224
 batch_size: 16
-num_workers: 0
+num_workers: 2
 optimizer: adamw
 learning_rate: 0.0003
 fine_tuning_learning_rate: 0.00003
 weight_decay: 0.00001
-epochs: 20
-head_epochs: 3
+epochs: 1
+head_epochs: 1
 dropout: 0.2
 loss: cross_entropy
 weighted_sampling: true
-# Eligible normal labels: strong, moderate, weak.  `auxiliary` ENCoDE-style
-# nonlesional candidates are excluded from lesion-presence training/evaluation.
+# Bounded one-epoch verification on CPU: replacement sampling remains
+# class/subtype/source-aware but never silently expands an epoch.
+sampler_num_samples: 1024
+# Includes controlled non-target skin-condition hard negatives. These fields
+# shape sampling/loss only and are never model inputs.
+include_hard_negatives: true
+gate_sampling: true
+source_balanced_sampling: true
+hard_negative_fraction: 0.30
+confidence_loss_weighting: true
+label_strength_weights:
+  strong: 1.0
+  moderate: 0.75
+  weak: 0.40
+  auxiliary: 0.25
+  ambiguous: 0.0
+# Eligible normal labels: strong, moderate, weak. `auxiliary` rows remain out.
 normal_label_strengths: [strong, moderate, weak]
-source_balanced_sampling: false
 report_source_metrics: true
 selection_metric: macro_f1
 early_stopping_patience: 5

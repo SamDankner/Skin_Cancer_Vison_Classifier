@@ -46,7 +46,7 @@ def test_task_class_names_and_multiclass_values_are_canonical():
     )
 
     assert lesion.class_values == (0, 1)
-    assert lesion.class_names == ("no_lesion", "lesion_present")
+    assert lesion.class_names == ("no_target_lesion", "target_lesion_present")
     assert binary.class_values == (0, 1)
     assert binary.class_names == ("benign", "malignant")
     assert multiclass.class_values == ("melanoma", "nevus")

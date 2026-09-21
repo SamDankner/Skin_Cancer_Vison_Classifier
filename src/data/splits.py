@@ -37,6 +37,10 @@ def group_key(manifest: pd.DataFrame) -> pd.Series:
         tokens = [primary_key]
         if digest:
             tokens.append(f"sha256:{digest}")
+        if "duplicate_group_id" in manifest:
+            duplicate_group = manifest.iloc[position].duplicate_group_id
+            if pd.notna(duplicate_group) and str(duplicate_group).strip():
+                tokens.append(str(duplicate_group).strip())
         for token in tokens:
             if token in owners:
                 union(position, owners[token])

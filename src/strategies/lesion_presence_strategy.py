@@ -1,10 +1,10 @@
-"""Separate lesion-present versus normal-skin CNN strategy for macro photographs."""
+"""Binary target-focal-lesion gate for ordinary clinical photographs."""
 from __future__ import annotations
 from src.data.datasets import build_lesion_presence_manifest
 from .cnn_common import build_cnn_model, load_cnn_checkpoint, train_cnn_strategy
 
 def build_model(num_classes: int = 2, dropout: float = .2, pretrained: bool = True, architecture: str = "efficientnet_v2_s"):
-    """Build a lesion-present versus normal-skin classifier."""
+    """Build a no-target versus target-focal-lesion classifier."""
     return build_cnn_model(architecture, num_classes, dropout, pretrained)
 
 def train(manifest, config: dict, run_name: str | None = None):
@@ -14,7 +14,11 @@ def train(manifest, config: dict, run_name: str | None = None):
     if task != "lesion_presence":
         raise ValueError("lesion_presence_strategy only supports the lesion_presence task")
     strengths = tuple(config.get("normal_label_strengths", ("strong", "moderate", "weak")))
-    manifest = build_lesion_presence_manifest(manifest, strengths)
+    manifest = build_lesion_presence_manifest(
+        manifest,
+        strengths,
+        include_hard_negatives=bool(config.get("include_hard_negatives", False)),
+    )
     architecture = config.get("backbone", "efficientnet_v2_s")
     return train_cnn_strategy(manifest, config, "lesion_presence", architecture, run_name)
 

@@ -19,7 +19,7 @@ TASK_TARGETS = {
 
 
 BINARY_CLASS_NAMES = {
-    "lesion_presence": ("no_lesion", "lesion_present"),
+    "lesion_presence": ("no_target_lesion", "target_lesion_present"),
     "diagnosis_binary": ("benign", "malignant"),
 }
 

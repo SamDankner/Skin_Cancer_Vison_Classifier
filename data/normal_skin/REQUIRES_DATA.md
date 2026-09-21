@@ -1,1 +1,1 @@
-No approved normal-skin macro-photo dataset is configured. Do not relabel benign lesions as normal skin. Obtain an explicitly licensed clinical normal-skin source before enabling lesion-presence negatives.
+The current core negative source is conservative SCIN LOOKS_HEALTHY, which is weak/self-reported. ImageQX and Muhaba require manual access. Do not relabel benign lesions or diffuse skin conditions as normal skin.

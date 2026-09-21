@@ -58,8 +58,14 @@ def test_corrupt_images_are_reported(tmp_path):
 def test_development_report_grouped_counts_are_json_records(tmp_path):
     directory = tmp_path / "data" / "raw" / "PAD-UFES-20"
     directory.mkdir(parents=True)
+    metadata = []
     for index in range(10):
         Image.new("RGB", (4, 4), color=(index * 20, 0, 0)).save(directory / f"image-{index}.png")
+        metadata.append({
+            "img_id": f"image-{index}", "patient_id": f"patient-{index}",
+            "lesion_id": f"lesion-{index}", "diagnostic": "NEV",
+        })
+    pd.DataFrame(metadata).to_csv(directory / "metadata.csv", index=False)
 
     report = build_development_manifest(tmp_path, datasets=["PAD-UFES-20"])
     report_path = tmp_path / "data" / "processed" / "preparation_report.json"
@@ -134,6 +140,12 @@ def test_zero_image_datasets_are_not_ready(tmp_path):
     _, fitzpatrick_report = build_dataset_manifest(tmp_path, "Fitzpatrick17k")
     assert fitzpatrick_report["status"] == "metadata_only"
 
+    encode = tmp_path / "ENCoDE"
+    encode.mkdir()
+    (encode / "REQUIRES_PHYSIONET_ACCESS.md").write_text("credentialed", encoding="utf-8")
+    _, encode_report = build_dataset_manifest(tmp_path, "ENCoDE")
+    assert encode_report["status"] == "credentialed_access_required"
+
 
 def test_scin_metadata_only_and_known_missing_image_handling(tmp_path):
     directory = tmp_path / "SCIN"
@@ -197,7 +209,7 @@ def test_official_scin_download_is_idempotent_and_tolerates_known_missing(tmp_pa
     assert calls.count(valid_object) == 1
 
 
-def test_scin_case_grouping_and_condition_side_of_lesion_presence(tmp_path):
+def test_scin_case_grouping_and_other_conditions_are_excluded_from_core_gate(tmp_path):
     directory = tmp_path / "data" / "raw" / "SCIN"
     image_directory = directory / "dataset" / "images"
     image_directory.mkdir(parents=True)
@@ -222,7 +234,11 @@ def test_scin_case_grouping_and_condition_side_of_lesion_presence(tmp_path):
 
     assert manifest.groupby("case_id").split.nunique().max() == 1
     assert manifest.loc[manifest.self_reported_related_category.eq("LOOKS_HEALTHY"), "lesion_present"].eq(0).all()
-    assert manifest.loc[manifest.self_reported_related_category.eq("RASH"), "lesion_present"].eq(1).all()
+    rash = manifest.loc[manifest.self_reported_related_category.eq("RASH")]
+    assert rash.lesion_present.eq(0).all()
+    assert rash.other_skin_condition.eq(True).all()
+    assert rash.supported_for_lesion_presence.eq(True).all()
+    assert rash.gate_negative_subtype.eq("other_skin_condition").all()
     assert not manifest.supported_for_diagnosis.fillna(False).any()
 
 
@@ -268,3 +284,171 @@ def test_nullable_boolean_accepts_serialized_binary_numbers_and_rejects_fraction
     invalid = pd.DataFrame(rows[:1]); invalid.loc[0, "lesion_present"] = 0.5
     with pytest.raises(ValueError, match="invalid boolean"):
         validate_manifest(invalid)
+
+
+def test_scin_growth_is_eligible_positive_but_acne_is_other(tmp_path):
+    directory = tmp_path / "SCIN"
+    directory.mkdir()
+    for name in ("growth", "acne"):
+        Image.new("RGB", (4, 4)).save(directory / f"{name}.jpg")
+    pd.DataFrame([
+        {"case_id": "growth", "related_category": "GROWTH_OR_MOLE", "image_1_path": "growth.jpg"},
+        {"case_id": "acne", "related_category": "ACNE", "image_1_path": "acne.jpg"},
+    ]).to_csv(directory / "scin_cases.csv", index=False)
+    pd.DataFrame([{"case_id": "growth"}, {"case_id": "acne"}]).to_csv(
+        directory / "scin_labels.csv", index=False
+    )
+    manifest, _ = build_dataset_manifest(tmp_path, "SCIN")
+    growth = manifest.loc[manifest.case_id.eq("growth")].iloc[0]
+    acne = manifest.loc[manifest.case_id.eq("acne")].iloc[0]
+    assert growth.lesion_present == 1 and growth.supported_for_lesion_presence
+    assert acne.lesion_present == 0 and acne.other_skin_condition
+    assert acne.supported_for_lesion_presence
+    assert acne.gate_negative_subtype == "other_skin_condition"
+
+
+def test_pad_lesion_is_strong_gate_positive_and_preserves_groups(tmp_path):
+    directory = tmp_path / "PAD-UFES-20"
+    directory.mkdir()
+    Image.new("RGB", (4, 4)).save(directory / "img-1.png")
+    pd.DataFrame([{
+        "img_id": "img-1", "patient_id": "PAT-1", "lesion_id": "LES-1",
+        "diagnostic": "NEV", "age": 44, "region": "ARM", "fitspatrick": 3,
+        "diameter_1": 7.0,
+    }]).to_csv(directory / "metadata.csv", index=False)
+    manifest, _ = build_dataset_manifest(tmp_path, "PAD-UFES-20")
+    row = manifest.iloc[0]
+    assert row.lesion_present == 1 and row.supported_for_lesion_presence
+    assert row.gate_label_strength == "strong"
+    assert row.patient_id == "PAT-1" and row.lesion_id == "LES-1"
+    assert row.lesion_diameter_mm == 7.0
+
+
+def test_imageqx_explicit_gate_mapping_and_unsupported_classes(tmp_path):
+    directory = tmp_path / "ImageQX"
+    directory.mkdir()
+    labels = ["lesion", "healthy skin", "poor quality", "no skin"]
+    for index in range(4):
+        Image.new("RGB", (4, 4), color=(index * 30, 0, 0)).save(directory / f"img-{index}.png")
+    pd.DataFrame([
+        {"image_id": f"img-{index}", "label": label, "user_id": f"user-{index}"}
+        for index, label in enumerate(labels)
+    ]).to_csv(directory / "metadata.csv", index=False)
+    manifest, report = build_dataset_manifest(tmp_path, "ImageQX")
+    assert report["status"] == "ready"
+    assert manifest.loc[manifest.original_label.eq("lesion"), "lesion_present"].item() == 1
+    healthy = manifest.loc[manifest.original_label.eq("healthy skin")].iloc[0]
+    assert healthy.lesion_present == 0 and healthy.normal_skin
+    unsupported = manifest.loc[manifest.original_label.isin(["poor quality", "no skin"])]
+    assert unsupported.lesion_present.isna().all()
+    assert not unsupported.supported_for_lesion_presence.any()
+    assert manifest.loc[manifest.original_label.eq("no skin"), "image_modality"].item() == "non_skin"
+
+
+def test_muhaba_healthy_is_negative_and_diseases_remain_other(tmp_path):
+    directory = tmp_path / "Muhaba"
+    directory.mkdir()
+    for index in range(2):
+        Image.new("RGB", (4, 4), color=(index * 30, 0, 0)).save(directory / f"img-{index}.png")
+    pd.DataFrame([
+        {"image_id": "img-0", "diagnosis": "Healthy skin", "patient_id": "P1"},
+        {"image_id": "img-1", "diagnosis": "Atopic dermatitis", "patient_id": "P2"},
+    ]).to_csv(directory / "metadata.csv", index=False)
+    manifest, _ = build_dataset_manifest(tmp_path, "Muhaba")
+    healthy, disease = manifest.iloc[0], manifest.iloc[1]
+    assert healthy.lesion_present == 0 and healthy.normal_skin
+    assert disease.other_skin_condition and pd.isna(disease.lesion_present)
+    assert not disease.supported_for_lesion_presence
+
+
+def test_mcsi_metadata_maps_healthy_and_hard_negatives(tmp_path):
+    directory = tmp_path / "MCSI" / "images"
+    directory.mkdir(parents=True)
+    for image_id in ("normal_1", "acne_1", "monkeypox_1", "chickenpox_1"):
+        Image.new("RGB", (4, 4)).save(directory / f"{image_id}.png")
+    pd.DataFrame([
+        {"img_id": "normal_1.png", "diagnostic": "normal"},
+        {"img_id": "acne_1.png", "diagnostic": "acne"},
+        {"img_id": "monkeypox_1.png", "diagnostic": "monkeypox"},
+        {"img_id": "chickenpox_1.png", "diagnostic": "chickenpox"},
+    ]).to_csv(directory.parent / "metadata.csv", index=False)
+    manifest, report = build_dataset_manifest(tmp_path, "MCSI")
+    assert report["status"] == "ready" and len(manifest) == 4
+    healthy = manifest.loc[manifest.original_label.eq("Healthy")].iloc[0]
+    assert healthy.lesion_present == 0 and healthy.normal_skin
+    assert healthy.gate_negative_subtype == "healthy_no_visible_lesion"
+    hard = manifest.loc[manifest.original_label.ne("Healthy")]
+    assert hard.lesion_present.eq(0).all() and hard.other_skin_condition.all()
+    assert hard.gate_negative_subtype.eq("other_skin_condition").all()
+
+
+def test_msld_uses_only_original_images_and_preserves_filename_patient_group(tmp_path):
+    original = tmp_path / "MSLD_v2" / "Original Images" / "FOLDS" / "fold_1"
+    augmented = tmp_path / "MSLD_v2" / "Augmented Images" / "FOLDS_AUG" / "fold_1"
+    original.mkdir(parents=True)
+    augmented.mkdir(parents=True)
+    Image.new("RGB", (4, 4)).save(original / "HEALTHY_17_001.jpg")
+    Image.new("RGB", (4, 4)).save(original / "MKP_18_001.jpg")
+    Image.new("RGB", (4, 4)).save(augmented / "MKP_18_001_AUG.jpg")
+
+    manifest, report = build_dataset_manifest(tmp_path, "MSLD_v2")
+
+    assert report["status"] == "ready"
+    assert len(manifest) == 2
+    healthy = manifest.loc[manifest.original_label.eq("Healthy")].iloc[0]
+    mpox = manifest.loc[manifest.original_label.eq("Mpox")].iloc[0]
+    assert healthy.patient_id == "MSLD:17"
+    assert healthy.lesion_present == 0
+    assert healthy.gate_negative_subtype == "healthy_no_visible_lesion"
+    assert mpox.patient_id == "MSLD:18"
+    assert mpox.lesion_present == 0
+    assert mpox.gate_negative_subtype == "other_skin_condition"
+
+
+def test_arsenic_uses_original_healthy_only_and_excludes_augmentations(tmp_path):
+    original_healthy = tmp_path / "ArsenicSkinImageBD" / "Original" / "not_infacted"
+    original_affected = tmp_path / "ArsenicSkinImageBD" / "Original" / "infacted"
+    augmented = tmp_path / "ArsenicSkinImageBD" / "Augmented" / "not_infected"
+    for directory in (original_healthy, original_affected, augmented):
+        directory.mkdir(parents=True)
+    Image.new("RGB", (4, 4)).save(original_healthy / "healthy.png")
+    Image.new("RGB", (4, 4)).save(original_affected / "affected.png")
+    Image.new("RGB", (4, 4)).save(augmented / "healthy_augmented_1.png")
+
+    manifest, report = build_dataset_manifest(tmp_path, "ArsenicSkinImageBD")
+
+    assert report["original_healthy_images"] == 1
+    assert report["original_affected_images_excluded"] == 1
+    assert report["augmented_images_excluded"] == 1
+    assert len(manifest) == 2
+    healthy = manifest.loc[manifest.original_label.eq("not_infacted")].iloc[0]
+    affected = manifest.loc[manifest.original_label.eq("infacted")].iloc[0]
+    assert healthy.lesion_present == 0 and healthy.normal_skin
+    assert healthy.gate_negative_subtype == "healthy_no_visible_lesion"
+    assert healthy.gate_label_strength == "moderate"
+    assert pd.isna(affected.lesion_present) and affected.other_skin_condition
+    assert not affected.supported_for_lesion_presence
+
+
+def test_hard_negatives_are_opt_in_for_lesion_task_selection():
+    rows = []
+    for index, subtype in enumerate(("healthy_no_visible_lesion", "other_skin_condition")):
+        row = {column: None for column in MANIFEST_COLUMNS}
+        row.update({
+            "dataset": "SYNTHETIC", "image_path": f"{index}.jpg", "image_id": str(index),
+            "image_modality": "clinical", "lesion_present": False,
+            "normal_skin": subtype == "healthy_no_visible_lesion",
+            "other_skin_condition": subtype == "other_skin_condition",
+            "supported_for_lesion_presence": True,
+            "gate_negative_subtype": subtype,
+        })
+        rows.append(row)
+    manifest = validate_manifest(pd.DataFrame(rows))
+    default = select_task_manifest(manifest, "lesion_presence")
+    with_hard_negatives = select_task_manifest(
+        manifest, "lesion_presence", include_hard_negatives=True
+    )
+    assert default.gate_negative_subtype.tolist() == ["healthy_no_visible_lesion"]
+    assert set(with_hard_negatives.gate_negative_subtype) == {
+        "healthy_no_visible_lesion", "other_skin_condition"
+    }

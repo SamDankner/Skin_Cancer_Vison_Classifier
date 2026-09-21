@@ -133,3 +133,11 @@ def test_evaluator_detects_ddi_from_a_manifest_backed_loader(manifest_frame):
 
 def test_manifest_columns_are_complete_for_synthetic_fixture(manifest_frame):
     assert list(manifest_frame.columns) == MANIFEST_COLUMNS
+
+
+def test_source_and_label_provenance_cannot_be_predictive_metadata():
+    from src.strategies.multimodal_strategy import MetadataPreprocessor
+
+    for field in ("dataset", "source_dataset", "original_label", "gate_label_strength", "gate_mapping_reason"):
+        with pytest.raises(ValueError, match="not allow-listed"):
+            MetadataPreprocessor((field,)).fit(pd.DataFrame({field: ["value"]}))

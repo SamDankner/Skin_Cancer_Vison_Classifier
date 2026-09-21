@@ -157,14 +157,15 @@ def classification_metrics(
 
 
 def lesion_presence_metrics(targets, predictions=None, probabilities=None, **kwargs) -> dict:
-    """Metrics for lesion=1 versus true normal skin=0; both classes are explicit."""
+    """Metrics for target focal lesion=1 versus no target focal lesion=0."""
     kwargs.setdefault("labels", [0, 1])
-    kwargs.setdefault("class_names", ["normal_skin", "lesion_present"])
+    kwargs.setdefault("class_names", ["no_target_lesion", "target_lesion_present"])
     result = classification_metrics(targets, predictions, probabilities, **kwargs)
     result.update({
         "lesion_sensitivity": result["sensitivity"],
-        "normal_skin_specificity": result["specificity"],
-        "normal_skin_false_positive_rate": None if result["specificity"] is None else 1.0 - result["specificity"],
+        "no_target_lesion_specificity": result["specificity"],
+        "false_positive_rate": None if result["specificity"] is None else 1.0 - result["specificity"],
+        "false_negative_rate": None if result["sensitivity"] is None else 1.0 - result["sensitivity"],
         "precision": result["positive_predictive_value"],
         "recall": result["sensitivity"],
         "f1": result["class_metrics"][1]["f1"],
@@ -183,6 +184,34 @@ def source_stratified_metrics(targets, predictions, probabilities, sources, *, m
         for name in sorted(set(source))
         for index in [np.flatnonzero(source == name)]
     }
+
+
+def gate_partition_metrics(targets, predictions, probabilities, negative_subtypes) -> dict:
+    """Report positives, healthy negatives, and hard negatives separately."""
+    target = np.asarray(targets)
+    prediction = np.asarray(predictions)
+    probability = np.asarray(probabilities)
+    subtype = np.asarray(negative_subtypes, dtype=str)
+    partitions = {
+        "target_lesion_positive": target == 1,
+        "healthy_no_visible_lesion": (target == 0) & (subtype == "healthy_no_visible_lesion"),
+        "other_skin_condition": (target == 0) & (subtype == "other_skin_condition"),
+    }
+    output = {}
+    for name, mask in partitions.items():
+        if not mask.any():
+            output[name] = {"sample_count": 0, "correct_rejection_rate": None, "metrics": None}
+            continue
+        metrics = lesion_presence_metrics(target[mask], prediction[mask], probability[mask])
+        output[name] = {
+            "sample_count": int(mask.sum()),
+            "correct_rejection_rate": (
+                float((prediction[mask] == 0).mean()) if name != "target_lesion_positive"
+                else float((prediction[mask] == 1).mean())
+            ),
+            "metrics": metrics,
+        }
+    return output
 
 
 def bootstrap_confidence_intervals(

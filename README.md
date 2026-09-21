@@ -17,7 +17,7 @@ python -m pip install -r requirements.txt
 Then:
 
 1. Place approved ordinary clinical photographs in the dataset folders described below.
-2. Download/resume the official SCIN release, record provenance, and build
+2. Download/resume the official PAD-UFES-20 and SCIN releases, record provenance, and build
    `data/processed/development_manifest.csv` from approved local files:
 
    ```powershell
@@ -53,7 +53,7 @@ Normal runs and single-photo inference never access DDI.
 
 ## Data rules
 
-Only ordinary clinical/macro photographs are allowed. Dermoscopic, microscopic, and pathology-slide inputs are rejected by manifest validation. Review every dataset's license and terms. SCIN is downloaded only from Google's official `dx-scin-public-data` bucket; other datasets remain manual/local acquisitions.
+Only ordinary clinical/macro photographs are allowed. Dermoscopic, microscopic, and pathology-slide inputs are rejected by manifest validation. Review every dataset's license and terms. SCIN is downloaded only from Google's official `dx-scin-public-data` bucket and PAD-UFES-20 from the official Mendeley record; gated sources remain manual/local acquisitions.
 
 Suggested development locations are:
 
@@ -70,12 +70,12 @@ missing object, are written to `data/raw/SCIN/acquisition_report.json`.
 
 The manifest preserves null metadata and supports these independent tasks:
 
-- `lesion_presence`: true normal skin versus lesion present
+- `lesion_presence`: target focal-lesion gate; internally `0 = no target focal lesion`, `1 = target focal lesion present`
 - `diagnosis_binary`: benign versus malignant lesion
 - `diagnosis_multiclass`: harmonized lesion diagnosis
 - `image_quality`: only when appropriate labels and trained components exist
 
-Normal skin is not a benign lesion. Ambiguous diagnoses remain unmapped rather than being forced into a binary target. Patient, lesion, or image groups must never cross train, validation, and development-test splits. Normalization statistics and metadata vocabularies are fit on training rows only. Validation and test transforms are deterministic.
+Normal skin is not a benign lesion. Acne, rash, dermatitis, tinea, and diffuse pigmentary conditions are preserved as OTHER and excluded from the default binary gate; the binary model does not have a third class. Ambiguous diagnoses remain unmapped rather than being forced into a binary target. Patient, lesion, duplicate, or image groups must never cross train, validation, and development-test splits. Normalization statistics and metadata vocabularies are fit on training rows only. Validation and test transforms are deterministic.
 
 ## Repository layout
 
@@ -172,7 +172,7 @@ The CLI validates file existence, supported extension, readability, corruption, 
 Current data-dependent limitations are intentional:
 
 - no serialized automatic lesion-localization provider is bundled;
-- lesion-presence training/evaluation needs genuine normal-skin negatives;
+- the current normal-skin negatives are weak SCIN self-reports; expert-labelled same-source ImageQX/Muhaba negatives still require access;
 - image-quality and OOD behavior needs suitable labelled datasets and trained components;
 - no performance metrics are included until real experiments are run.
 

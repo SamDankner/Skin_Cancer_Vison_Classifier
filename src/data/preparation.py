@@ -14,6 +14,7 @@ import math
 from pathlib import Path
 from typing import Iterable
 from hashlib import sha256
+import re
 
 import numpy as np
 import pandas as pd
@@ -23,11 +24,17 @@ from PIL import Image, UnidentifiedImageError
 # project interfaces, but retain an equivalent schema-only fallback so that
 # data acquisition can happen before the training stack is installed.
 try:
-    from src.data.datasets import MANIFEST_COLUMNS, add_exact_hashes, empty_manifest, write_manifest
+    from src.data.datasets import (
+        MANIFEST_COLUMNS,
+        add_exact_hashes,
+        add_perceptual_duplicate_groups,
+        empty_manifest,
+        write_manifest,
+    )
 except ModuleNotFoundError as exc:
     if exc.name != "torch":
         raise
-    MANIFEST_COLUMNS = ["dataset", "source_dataset", "image_path", "image_id", "patient_id", "case_id", "lesion_id", "original_label", "harmonized_diagnosis", "binary_target", "lesion_present", "normal_skin", "normal_label_strength", "normal_label_method", "other_skin_condition", "image_quality_label", "localization_available", "bounding_box", "segmentation_mask_path", "supported_for_lesion_detection", "supported_for_lesion_presence", "supported_for_diagnosis", "age", "age_group", "sex", "anatomical_site", "skin_tone", "monk_skin_tone", "image_modality", "label_source", "ground_truth_method", "self_reported_related_category", "dermatologist_skin_condition_label", "weighted_skin_condition_label", "dermatologist_fitzpatrick_skin_type", "split"]
+    MANIFEST_COLUMNS = ["dataset", "source_dataset", "image_path", "image_id", "patient_id", "case_id", "lesion_id", "original_label", "harmonized_diagnosis", "binary_target", "lesion_present", "normal_skin", "normal_label_strength", "normal_label_method", "gate_mapping_reason", "gate_label_strength", "gate_label_source", "gate_negative_subtype", "other_skin_condition", "image_quality_label", "localization_available", "bounding_box", "segmentation_mask_path", "supported_for_lesion_detection", "supported_for_lesion_presence", "supported_for_diagnosis", "age", "age_group", "sex", "anatomical_site", "skin_tone", "monk_skin_tone", "image_modality", "label_source", "ground_truth_method", "self_reported_related_category", "dermatologist_skin_condition_label", "weighted_skin_condition_label", "dermatologist_fitzpatrick_skin_type", "symptoms", "lesion_diameter_mm", "perceptual_hash", "duplicate_group_id", "split"]
     def empty_manifest():
         return pd.DataFrame(columns=MANIFEST_COLUMNS)
     def add_exact_hashes(manifest):
@@ -41,6 +48,17 @@ except ModuleNotFoundError as exc:
         result["file_sha256"] = result.image_path.map(digest)
         result["exact_duplicate_flag"] = result.file_sha256.duplicated(keep=False)
         return result
+    def add_perceptual_duplicate_groups(manifest, max_distance=4):
+        # Lightweight preparation-only fallback when the training stack is not
+        # installed.  Exact byte duplicates remain grouped by SHA-256.
+        result = manifest.copy()
+        result["perceptual_hash"] = pd.NA
+        result["duplicate_group_id"] = result.file_sha256.map(
+            lambda value: f"sha256:{value}" if pd.notna(value) else None
+        )
+        return result, pd.DataFrame(
+            columns=["left_index", "right_index", "distance", "possible_duplicate"]
+        )
     def write_manifest(manifest, path, allow_final_test=False):
         path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
         manifest[MANIFEST_COLUMNS].to_csv(path, index=False)
@@ -80,15 +98,39 @@ except ModuleNotFoundError as exc:
         return pd.DataFrame([{"split": split, "present_classes": sorted(set(frame.loc[frame.split.eq(split), target_column].dropna()), key=str), "missing_classes": sorted(classes - set(frame.loc[frame.split.eq(split), target_column].dropna()), key=str), "complete": classes == set(frame.loc[frame.split.eq(split), target_column].dropna())} for split in required_splits])
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
-DEVELOPMENT_DATASETS = ("PAD-UFES-20", "MILK10k", "SCIN", "Fitzpatrick17k", "ImageQX", "Muhaba", "ENCoDE")
+SCIN_CORE_NEGATIVE = {"LOOKS_HEALTHY"}
+SCIN_CORE_POSITIVE = {"GROWTH_OR_MOLE"}
+SCIN_OTHER_CATEGORIES = {
+    "ACNE", "RASH", "PIGMENTARY_PROBLEM", "NAIL_PROBLEM",
+    "OTHER_HAIR_PROBLEM", "HAIR_LOSS", "OTHER_ISSUE_DESCRIPTION",
+}
+IMAGEQX_LABELS = {
+    "lesion": "positive",
+    "healthy skin": "negative",
+    "healthy": "negative",
+    "poor quality": "unsupported_quality",
+    "no skin": "unsupported_no_skin",
+}
+MUHABA_HEALTHY_LABELS = {"healthy", "healthy skin", "normal", "normal skin"}
+MUHABA_OTHER_LABELS = {
+    "acne vulgaris", "acne", "atopic dermatitis", "dermatitis",
+    "lichen planus", "onychomycosis", "tinea capitis", "tinea", "unknown",
+}
+DEVELOPMENT_DATASETS = ("PAD-UFES-20", "MILK10k", "SCIN", "MSLD_v2", "MCSI", "ArsenicSkinImageBD", "MCVSLD", "MonkeyPox", "SkinDiseaseClassification", "Fitzpatrick17k", "ImageQX", "Muhaba", "ENCoDE")
 SOURCES = {
     "PAD-UFES-20": {"url": "https://data.mendeley.com/datasets/zr7vgbcyr2/1", "doi": "10.17632/zr7vgbcyr2.1", "terms": "CC BY 4.0"},
     "MILK10k": {"url": "https://api.isic-archive.com/doi/milk10k/", "doi": "10.34970/648456", "terms": "CC-BY-NC"},
     "SCIN": {"url": "https://github.com/google-research-datasets/scin", "doi": "10.1001/jamanetworkopen.2024.46615", "terms": "SCIN Data Use License"},
     "Fitzpatrick17k": {"url": "https://github.com/mattgroh/fitzpatrick17k", "doi": "Groh et al., CVPR 2021", "terms": "Images remain subject to their original-source terms"},
     "ImageQX": {"url": "https://doi.org/10.1089/tmj.2022.0405", "doi": "10.1089/tmj.2022.0405", "terms": "Manual permission required; do not download from mirrors"},
-    "Muhaba": {"url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9060152/", "doi": "10.1002/ski2.120", "terms": "Available from corresponding author on reasonable request"},
+    "Muhaba": {"url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9060152/", "doi": "10.1002/ski2.81", "terms": "Available from corresponding author on reasonable request"},
     "ENCoDE": {"url": "https://physionet.org/content/encode-skin-color/1.0.0/", "doi": "10.13026/mcgk-1s42", "terms": "PhysioNet credentialed access and data-use agreement required"},
+    "MSLD_v2": {"url": "https://www.kaggle.com/datasets/joydippaul/mpox-skin-lesion-dataset-version-20-msld-v20", "doi": "MSLD v2.0", "terms": "CC BY-NC 4.0; requires normal Kaggle authentication"},
+    "MCSI": {"url": "https://zenodo.org/records/8360076", "doi": "10.5281/zenodo.8360076", "terms": "Open Zenodo record; curated/cropped source images"},
+    "ArsenicSkinImageBD": {"url": "https://data.mendeley.com/datasets/x4hgnjj5gv/2", "doi": "10.17632/x4hgnjj5gv.2", "terms": "CC BY-NC 3.0; original smartphone photos only; augmented files excluded"},
+    "MCVSLD": {"url": "https://data.mendeley.com/datasets/dfztdtfsxz/1", "doi": "10.17632/dfztdtfsxz.1", "terms": "CC BY 4.0; aggregate provenance and duplicate audit required before admission"},
+    "MonkeyPox": {"url": "https://data.mendeley.com/datasets/st6kggjr23/1", "doi": "10.17632/st6kggjr23.1", "terms": "CC BY 4.0; provenance/augmentation audit required before admission"},
+    "SkinDiseaseClassification": {"url": "https://data.mendeley.com/datasets/schhndjbjp/1", "doi": "10.17632/schhndjbjp.1", "terms": "CC BY 4.0; clinical/modality, provenance, and duplicate audit required before admission"},
 }
 
 
@@ -246,27 +288,60 @@ def build_scin_manifests(raw_root: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd
         )
         weighted_label = _field(label, "weighted_skin_condition_label")
         has_dermatologist_condition = _nonempty(dermatologist_label) or _nonempty(weighted_label)
-        # LOOKS_HEALTHY is user-reported.  A negative/absent gradability flag
-        # never changes that fact, because it also covers quality and ambiguity.
-        weak_normal = related == "LOOKS_HEALTHY" and not has_dermatologist_condition
-        growth = related == "GROWTH_OR_MOLE"
+        # SCIN's related_category is structured but self-reported.  It supports
+        # a weak core negative (LOOKS_HEALTHY), focal-growth positive
+        # (GROWTH_OR_MOLE), or a controlled hard negative for only clear,
+        # structured diffuse categories.  A false/absent dermatologist
+        # gradability flag is never interpreted as healthy.
+        weak_normal = related in SCIN_CORE_NEGATIVE and not has_dermatologist_condition
+        growth = related in SCIN_CORE_POSITIVE
+        hard_negative = related in {"ACNE", "RASH", "PIGMENTARY_PROBLEM"}
         other_condition = bool(
-            (related and related not in {"LOOKS_HEALTHY", "GROWTH_OR_MOLE"})
+            related in SCIN_OTHER_CATEGORIES
+            or (related in SCIN_CORE_NEGATIVE and has_dermatologist_condition)
             or (has_dermatologist_condition and not growth)
         )
-        condition_positive = growth or other_condition or has_dermatologist_condition
+        gate_target = 0 if (weak_normal or hard_negative) else (1 if growth else None)
+        gate_eligible = weak_normal or growth or hard_negative
+        gate_strength = (
+            "moderate" if growth and has_dermatologist_condition
+            else "weak" if gate_eligible
+            else None
+        )
+        gate_reason = (
+            "SCIN structured related_category=LOOKS_HEALTHY; self-reported and no dermatologist condition label"
+            if weak_normal else
+            "SCIN structured related_category=GROWTH_OR_MOLE"
+            if growth else
+            f"SCIN structured related_category={related} as non-target hard negative"
+            if hard_negative else
+            "SCIN non-target/diffuse or ambiguous category preserved as OTHER and excluded from core binary gate"
+            if other_condition else
+            "SCIN has no structured category that justifies a binary gate target"
+        )
         for image_field, image, shot_type in _scin_image_paths(directory, case):
             item = {column: None for column in MANIFEST_COLUMNS}
             item.update({
                 "dataset": "SCIN", "source_dataset": "SCIN", "image_path": str(image.resolve()),
                 "image_id": image.stem, "case_id": case_id or None, "patient_id": case_id or None,
                 "original_label": dermatologist_label or related or None,
-                "lesion_present": 0 if weak_normal else (1 if condition_positive else None),
+                "lesion_present": gate_target,
                 "normal_skin": weak_normal, "normal_label_strength": "weak" if weak_normal else None,
                 "normal_label_method": "user_reported_related_category_LOOKS_HEALTHY" if weak_normal else None,
+                "gate_negative_subtype": (
+                    "healthy_no_visible_lesion" if weak_normal else
+                    "other_skin_condition" if hard_negative else None
+                ),
+                "gate_mapping_reason": gate_reason,
+                "gate_label_strength": gate_strength,
+                "gate_label_source": (
+                    "SCIN related_category plus dermatologist condition label"
+                    if growth and has_dermatologist_condition else "SCIN self-reported related_category"
+                    if gate_eligible else "SCIN structured categories"
+                ),
                 "other_skin_condition": other_condition,
-                "supported_for_lesion_detection": weak_normal or condition_positive,
-                "supported_for_lesion_presence": weak_normal or condition_positive,
+                "supported_for_lesion_detection": gate_eligible,
+                "supported_for_lesion_presence": gate_eligible,
                 "supported_for_diagnosis": False,
                 "age_group": _field(case, "age_group"), "sex": _field(case, "sex_at_birth"),
                 "anatomical_site": _scin_body_site(case),
@@ -284,7 +359,10 @@ def build_scin_manifests(raw_root: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd
             rows.append(item)
     broad = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
     normal = broad.loc[broad.normal_skin.fillna(False)].copy()
-    conditions = broad.loc[(broad.lesion_present.fillna(-1).eq(1)) | broad.other_skin_condition.fillna(False)].copy()
+    conditions = broad.loc[
+        broad.lesion_present.fillna(-1).eq(1)
+        | broad.other_skin_condition.fillna(False)
+    ].copy()
     unexpected_missing = sorted(set(missing) - SCIN_KNOWN_MISSING_OBJECTS)
     usable_images = len(expected_objects) - len(missing) - len(corrupt)
     status = "metadata_only" if usable_images == 0 else (
@@ -319,8 +397,12 @@ def _clinical_from_metadata(dataset: str, row: pd.Series | None) -> bool:
     files are retained for provenance but excluded until the user supplies an
     official clinical-only bundle or review.
     """
-    if dataset in {"PAD-UFES-20", "SCIN"}:
+    if dataset == "SCIN":
         return True
+    if dataset == "PAD-UFES-20":
+        # The release is clinical-only, but a local file is eligible only when
+        # it joins to the official metadata rather than merely sharing a folder.
+        return row is not None
     if dataset == "Fitzpatrick17k" or row is None:
         return False
     modality = next((row[c] for c in row.index if str(c).lower() in {"modality", "image_modality", "image type", "image_type"}), None)
@@ -357,19 +439,373 @@ def _field(row: pd.Series | None, *names):
     col = _column(pd.DataFrame([row]), names)
     return None if col is None else (None if not _norm(row[col]) else row[col])
 
+
+def _pad_symptoms(row: pd.Series | None) -> str | None:
+    if row is None:
+        return None
+    present = [
+        name for name in ("itch", "grew", "hurt", "changed", "bleed", "elevation")
+        if name in row.index and _bool(row[name])
+    ]
+    return "; ".join(present) if present else None
+
+
+def _build_manual_gate_dataset(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, dict]:
+    """Ingest an approved local ImageQX or Muhaba bundle by explicit labels only.
+
+    The importer intentionally requires a metadata table with a recognized
+    image identifier and source-label column.  It never infers labels from
+    directory names or image content.
+    """
+    directory = raw_root / dataset
+    manual_status = "manual_access_required"
+    if not directory.exists():
+        return empty_manifest(), {
+            "dataset": dataset, "status": manual_status, "valid_images": 0,
+            "eligible_clinical_images": 0, "invalid_images": [],
+        }
+    metadata_path = _metadata_file(directory)
+    images, invalid = _valid_images(directory)
+    if metadata_path is None:
+        substantive = any(
+            path.is_file() and path.name not in {"PROVENANCE.json", "REQUIRES_MANUAL_ACCESS.md"}
+            for path in directory.rglob("*")
+        )
+        return empty_manifest(), {
+            "dataset": dataset,
+            "status": "local_files_require_schema_review" if substantive else manual_status,
+            "valid_images": len(images), "eligible_clinical_images": 0,
+            "invalid_images": invalid,
+        }
+
+    metadata = pd.read_csv(metadata_path, low_memory=False)
+    id_col = _column(
+        metadata,
+        ("image_id", "image", "image_name", "filename", "file_name", "img_id"),
+    )
+    label_col = _column(
+        metadata,
+        ("label", "class", "category", "diagnosis", "diagnostic", "skin_condition"),
+    )
+    if id_col is None or label_col is None:
+        return empty_manifest(), {
+            "dataset": dataset, "status": "local_files_require_schema_review",
+            "metadata_file": str(metadata_path), "valid_images": len(images),
+            "eligible_clinical_images": 0, "invalid_images": invalid,
+            "schema_error": "recognized image-id and source-label columns are required",
+        }
+    metadata_by_id = {
+        Path(_norm(row[id_col])).stem: row for _, row in metadata.iterrows()
+        if _norm(row[id_col])
+    }
+    rows = []
+    recognized = 0
+    for image in images:
+        source = metadata_by_id.get(image.stem)
+        if source is None:
+            continue
+        original = _norm(source[label_col])
+        normalized = original.lower().replace("_", "-").replace("-", " ")
+        item = {column: None for column in MANIFEST_COLUMNS}
+        item.update({
+            "dataset": dataset, "source_dataset": dataset,
+            "image_path": str(image.resolve()), "image_id": image.stem,
+            "patient_id": _field(source, "patient_id", "patient", "participant_id", "user_id"),
+            "case_id": _field(source, "case_id", "case", "consultation_id"),
+            "lesion_id": _field(source, "lesion_id", "lesion"),
+            "original_label": original or None,
+            "supported_for_diagnosis": False,
+            "age": _field(source, "age", "patient_age", "user_age"),
+            "sex": _field(source, "sex", "gender", "patient_sex"),
+            "anatomical_site": _field(source, "anatomical_site", "site", "body_part", "location"),
+            "skin_tone": _field(source, "skin_tone", "fitzpatrick", "fitzpatrick_skin_type"),
+            "symptoms": _field(source, "symptoms", "symptom_list", "clinical_features"),
+            "image_modality": "clinical",
+        })
+        if dataset == "ImageQX":
+            decision = IMAGEQX_LABELS.get(normalized)
+            if decision == "positive":
+                item.update({
+                    "lesion_present": 1, "normal_skin": False,
+                    "other_skin_condition": False,
+                    "supported_for_lesion_detection": True,
+                    "supported_for_lesion_presence": True,
+                    "gate_label_strength": "strong",
+                    "gate_label_source": "ImageQX dermatologist plurality label",
+                    "gate_mapping_reason": "ImageQX lesion class (ICD-10 lesion labels merged by the study)",
+                    "label_source": "up to 12 board-certified dermatologists",
+                    "ground_truth_method": "plurality label fusion",
+                })
+                recognized += 1
+            elif decision == "negative":
+                item.update({
+                    "lesion_present": 0, "normal_skin": True,
+                    "normal_label_strength": "moderate",
+                    "normal_label_method": "ImageQX dermatologist plurality: no lesion visible",
+                    "other_skin_condition": False,
+                    "supported_for_lesion_detection": True,
+                    "supported_for_lesion_presence": True,
+                    "gate_label_strength": "moderate",
+                    "gate_label_source": "ImageQX dermatologist plurality label",
+                    "gate_mapping_reason": "ImageQX healthy-skin class explicitly means no visible lesion",
+                    "label_source": "up to 12 board-certified dermatologists",
+                    "ground_truth_method": "plurality label fusion",
+                })
+                recognized += 1
+            elif decision == "unsupported_quality":
+                item.update({
+                    "image_quality_label": "poor_quality",
+                    "supported_for_lesion_detection": False,
+                    "supported_for_lesion_presence": False,
+                    "gate_mapping_reason": "ImageQX poor-quality class has no gate target",
+                    "gate_label_source": "ImageQX dermatologist plurality label",
+                })
+                recognized += 1
+            elif decision == "unsupported_no_skin":
+                item.update({
+                    "image_modality": "non_skin",
+                    "image_quality_label": "no_skin",
+                    "supported_for_lesion_detection": False,
+                    "supported_for_lesion_presence": False,
+                    "gate_mapping_reason": "ImageQX no-skin class is invalid input, not a healthy-skin negative",
+                    "gate_label_source": "ImageQX dermatologist plurality label",
+                })
+                recognized += 1
+        else:
+            if normalized in MUHABA_HEALTHY_LABELS:
+                item.update({
+                    "lesion_present": 0, "normal_skin": True,
+                    "normal_label_strength": "strong",
+                    "normal_label_method": "Muhaba expert-confirmed healthy class",
+                    "other_skin_condition": False,
+                    "supported_for_lesion_detection": True,
+                    "supported_for_lesion_presence": True,
+                    "gate_label_strength": "strong",
+                    "gate_label_source": "Muhaba expert study label",
+                    "gate_mapping_reason": "Muhaba expert-confirmed healthy-skin class",
+                    "label_source": "clinical study experts",
+                    "ground_truth_method": "expert-confirmed study category",
+                })
+                recognized += 1
+            elif normalized in MUHABA_OTHER_LABELS:
+                item.update({
+                    "lesion_present": None, "normal_skin": False,
+                    "other_skin_condition": True,
+                    "supported_for_lesion_detection": False,
+                    "supported_for_lesion_presence": False,
+                    "gate_label_source": "Muhaba expert study label",
+                    "gate_mapping_reason": "Muhaba disease category preserved as OTHER; not a focal-lesion target",
+                    "label_source": "clinical study experts",
+                    "ground_truth_method": "expert-confirmed study category",
+                })
+                recognized += 1
+        rows.append(item)
+    frame = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+    eligible_count = int(frame.supported_for_lesion_presence.fillna(False).sum()) if not frame.empty else 0
+    return frame, {
+        "dataset": dataset,
+        "status": "ready" if recognized and len(images) else "local_files_require_schema_review",
+        "metadata_file": str(metadata_path), "valid_images": len(images),
+        "matched_metadata_images": len(frame), "recognized_source_labels": recognized,
+        "eligible_clinical_images": eligible_count, "invalid_images": invalid,
+    }
+
+
+def _hard_negative_label(dataset: str, image: Path) -> tuple[str | None, str | None]:
+    """Derive only documented source labels from MSLD/MCSI path conventions."""
+    stem = image.stem.upper()
+    parts = [part.upper().replace("-", "_").replace(" ", "_") for part in image.parts]
+    if dataset == "MSLD_v2":
+        code = stem.split("_")[0]
+        labels = {"MKP": "Mpox", "CHP": "Chickenpox", "CWP": "Cowpox", "MSL": "Measles", "HFMD": "HFMD", "HEALTHY": "Healthy"}
+        return labels.get(code), code
+    labels = {"MPOX": "Mpox", "MONKEYPOX": "Mpox", "CHICKENPOX": "Chickenpox", "ACNE": "Acne", "HEALTHY": "Healthy", "NORMAL": "Healthy"}
+    for part in reversed(parts):
+        for token, label in labels.items():
+            if token in part:
+                return label, token
+    return None, None
+
+
+def _build_public_hard_negative_dataset(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, dict]:
+    """Ingest documented MSLD original files or MCSI, never offline augmentations."""
+    directory = raw_root / dataset
+    if not directory.exists():
+        status = "kaggle_authentication_required" if dataset == "MSLD_v2" else "not_present"
+        return empty_manifest(), {"dataset": dataset, "status": status, "valid_images": 0, "eligible_clinical_images": 0, "invalid_images": []}
+    images, invalid = _valid_images(directory)
+    if dataset == "MSLD_v2":
+        images = [
+            image for image in images
+            if not any("AUG" in part.upper() for part in image.parts)
+        ]
+    # MSLD files appear in five published folds; retain a single canonical
+    # source file per coded original image rather than treating fold copies as
+    # independent patients/images.
+    unique: dict[str, Path] = {}
+    for image in images:
+        key = image.stem.upper()
+        unique.setdefault(key, image)
+    metadata_labels: dict[str, str] = {}
+    if dataset == "MCSI":
+        metadata_path = directory / "metadata.csv"
+        if not metadata_path.is_file():
+            return empty_manifest(), {"dataset": dataset, "status": "incomplete", "valid_images": len(images), "eligible_clinical_images": 0, "invalid_images": invalid, "reason": "MCSI metadata.csv is required for source labels"}
+        metadata = pd.read_csv(metadata_path)
+        for _, row in metadata.iterrows():
+            identifier = _norm(row.get("img_id")).removesuffix(Path(_norm(row.get("img_id"))).suffix).upper()
+            diagnostic = _norm(row.get("diagnostic")).lower()
+            metadata_labels[identifier] = {
+                "normal": "Healthy", "healthy": "Healthy", "acne": "Acne",
+                "chickenpox": "Chickenpox", "monkeypox": "Mpox", "mpox": "Mpox",
+            }.get(diagnostic, "")
+    rows = []
+    unrecognized = 0
+    for image_id, image in sorted(unique.items()):
+        label = metadata_labels.get(image_id) if dataset == "MCSI" else None
+        label, code = (label, None) if label else _hard_negative_label(dataset, image)
+        if label is None:
+            unrecognized += 1
+            continue
+        healthy = label.lower() == "healthy"
+        patient_id = None
+        if dataset == "MSLD_v2":
+            match = re.match(r"^[A-Z]+_(\d+)_", image_id)
+            patient_id = f"MSLD:{match.group(1)}" if match else None
+        item = {column: None for column in MANIFEST_COLUMNS}
+        item.update({
+            "dataset": dataset, "source_dataset": dataset,
+            "image_path": str(image.resolve()), "image_id": image_id,
+            "patient_id": patient_id, "case_id": patient_id,
+            "original_label": label, "lesion_present": 0,
+            "normal_skin": healthy,
+            "normal_label_strength": "moderate" if healthy else None,
+            "normal_label_method": "published healthy/no-evident-symptoms class" if healthy else None,
+            "gate_negative_subtype": "healthy_no_visible_lesion" if healthy else "other_skin_condition",
+            "other_skin_condition": not healthy,
+            "gate_mapping_reason": (
+                f"{dataset} published Healthy class" if healthy else
+                f"{dataset} published {label} class is a non-target hard negative"
+            ),
+            "gate_label_strength": "moderate",
+            "gate_label_source": f"{dataset} published class label",
+            "supported_for_lesion_detection": True,
+            "supported_for_lesion_presence": True,
+            "supported_for_diagnosis": False,
+            "image_modality": "clinical",
+            "label_source": f"{dataset} release",
+            "ground_truth_method": "published dataset label",
+            "skin_tone": None,
+        })
+        rows.append(item)
+    frame = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+    return frame, {
+        "dataset": dataset,
+        "status": "ready" if len(frame) else "incomplete",
+        "valid_images": len(images), "unique_original_images": len(frame),
+        "discarded_fold_or_duplicate_files": len(images) - len(unique),
+        "unrecognized_label_files": unrecognized, "eligible_clinical_images": len(frame),
+        "invalid_images": invalid,
+        "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
+    }
+
+
+def _build_arsenic_skin_image_bd(raw_root: Path) -> tuple[pd.DataFrame, dict]:
+    """Ingest only documented *original* ArsenicSkinImageBD photographs.
+
+    The release's folder spelling is retained rather than silently corrected:
+    ``not_infacted`` is its published healthy class and ``infacted`` is the
+    arsenicosis-affected class.  The latter is preserved as an excluded OTHER
+    record because its relationship to a focal-lesion target is not established.
+    """
+    dataset = "ArsenicSkinImageBD"
+    directory = raw_root / dataset
+    if not directory.exists():
+        return empty_manifest(), {"dataset": dataset, "status": "not_present", "valid_images": 0, "eligible_clinical_images": 0, "invalid_images": []}
+    images, invalid = _valid_images(directory)
+    original, augmented, unknown = [], [], []
+    for image in images:
+        parts = {part.lower() for part in image.parts}
+        if "augmented" in parts:
+            augmented.append(image)
+        elif "original" in parts:
+            original.append(image)
+        else:
+            unknown.append(image)
+    rows, healthy_count, affected_count = [], 0, 0
+    for image in sorted(original):
+        classes = {part.lower() for part in image.parts}
+        is_healthy = "not_infacted" in classes
+        is_affected = "infacted" in classes
+        if not (is_healthy or is_affected):
+            unknown.append(image)
+            continue
+        item = {column: None for column in MANIFEST_COLUMNS}
+        item.update({
+            "dataset": dataset, "source_dataset": dataset,
+            "image_path": str(image.resolve()), "image_id": _image_id(image),
+            "original_label": "not_infacted" if is_healthy else "infacted",
+            "image_modality": "clinical", "label_source": "ArsenicSkinImageBD published folder class",
+            "ground_truth_method": "published dataset class", "supported_for_diagnosis": False,
+        })
+        if is_healthy:
+            healthy_count += 1
+            item.update({
+                "lesion_present": 0, "normal_skin": True, "other_skin_condition": False,
+                "normal_label_strength": "moderate",
+                "normal_label_method": "ArsenicSkinImageBD original not_infacted class",
+                "gate_negative_subtype": "healthy_no_visible_lesion",
+                "gate_mapping_reason": "Original ArsenicSkinImageBD not_infacted smartphone-photo class",
+                "gate_label_strength": "moderate", "gate_label_source": "ArsenicSkinImageBD published original class",
+                "supported_for_lesion_detection": True, "supported_for_lesion_presence": True,
+            })
+        else:
+            affected_count += 1
+            item.update({
+                "lesion_present": None, "normal_skin": False, "other_skin_condition": True,
+                "gate_mapping_reason": "Original arsenicosis-affected class retained as OTHER; not defensibly mapped to focal-lesion gate",
+                "gate_label_source": "ArsenicSkinImageBD published original class",
+                "supported_for_lesion_detection": False, "supported_for_lesion_presence": False,
+            })
+        rows.append(item)
+    frame = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
+    return frame, {
+        "dataset": dataset, "status": "ready" if len(frame) else "incomplete",
+        "valid_images": len(images), "original_images": len(original),
+        "original_healthy_images": healthy_count, "original_affected_images_excluded": affected_count,
+        "augmented_images_excluded": len(augmented), "unknown_layout_images_excluded": len(unknown),
+        "eligible_clinical_images": healthy_count, "invalid_images": invalid,
+        "disk_bytes": sum(path.stat().st_size for path in directory.rglob("*") if path.is_file()),
+    }
+
 def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, dict]:
     """Build one conservative dataset manifest and an ingestion report."""
     if dataset == "SCIN":
         broad, _, _, report = build_scin_manifests(raw_root)
         return broad, report
-    if dataset in {"ImageQX", "Muhaba", "ENCoDE"}:
+    if dataset in {"ImageQX", "Muhaba"}:
+        return _build_manual_gate_dataset(raw_root, dataset)
+    if dataset in {"MSLD_v2", "MCSI"}:
+        return _build_public_hard_negative_dataset(raw_root, dataset)
+    if dataset == "ArsenicSkinImageBD":
+        return _build_arsenic_skin_image_bd(raw_root)
+    if dataset == "MonkeyPox":
+        return empty_manifest(), {
+            "dataset": dataset, "status": "provenance_audit_required",
+            "valid_images": 0, "eligible_clinical_images": 0, "invalid_images": [],
+            "reason": "Curated/extended aggregate with no reliable patient grouping; not admitted automatically.",
+        }
+    if dataset == "ENCoDE":
         directory = raw_root / dataset
         status = "manual_access_required" if dataset in {"ImageQX", "Muhaba"} else "credentialed_access_required"
         # A locally supplied approved bundle is intentionally not guessed from
         # arbitrary CSVs.  Add a dataset-specific importer after access terms
         # and the official schema accompany the files.
         substantive_files = directory.exists() and any(
-            path.is_file() and path.name != "PROVENANCE.json" for path in directory.rglob("*")
+            path.is_file()
+            and path.name != "PROVENANCE.json"
+            and path.suffix.lower() not in {".md", ".txt"}
+            for path in directory.rglob("*")
         )
         return empty_manifest(), {
             "dataset": dataset,
@@ -395,6 +831,10 @@ def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, 
         excluded_dermoscopy += int(_declared_modality(row) == "dermoscopic")
         original = _field(row, "diagnosis_3", "diagnostic", "diagnosis", "dx", "label", "three_partition_label")
         item = {column: None for column in MANIFEST_COLUMNS}
+        gate_reason = (
+            f"{dataset} publisher-defined clinical lesion image"
+            if clinical and dataset in {"PAD-UFES-20", "MILK10k"} else None
+        )
         item.update({
             "dataset": dataset, "source_dataset": dataset, "image_path": str(image.resolve()), "image_id": image_id,
             "patient_id": _field(row, "patient_id", "patient", "case_id", "case"),
@@ -402,19 +842,37 @@ def build_dataset_manifest(raw_root: Path, dataset: str) -> tuple[pd.DataFrame, 
             "lesion_id": _field(row, "lesion_id", "lesion"), "original_label": original,
             "lesion_present": True if clinical else None, "normal_skin": False if clinical else None,
             "normal_label_strength": None, "normal_label_method": None, "other_skin_condition": False if clinical else None,
+            "gate_mapping_reason": gate_reason,
+            "gate_label_strength": "strong" if gate_reason else None,
+            "gate_label_source": f"{dataset} official dataset annotation" if gate_reason else None,
             "supported_for_lesion_detection": clinical, "supported_for_diagnosis": clinical and original is not None,
             "supported_for_lesion_presence": clinical,
             "age": _field(row, "age", "age_approx"), "sex": _field(row, "sex", "gender"),
-            "anatomical_site": _field(row, "anatomical_site", "anatom_site_general", "location"),
-            "skin_tone": _field(row, "skin_tone", "fitzpatrick", "fitzpatrick_skin_type", "mst"),
+            "anatomical_site": _field(row, "anatomical_site", "anatom_site_general", "location", "region"),
+            "skin_tone": _field(row, "skin_tone", "fitzpatrick", "fitspatrick", "fitzpatrick_skin_type", "mst"),
+            "symptoms": _pad_symptoms(row) if dataset == "PAD-UFES-20" else _field(row, "symptoms", "symptom", "clinical_features"),
+            "lesion_diameter_mm": _field(row, "lesion_diameter_mm", "diameter", "diameter_1"),
             "image_modality": "clinical" if clinical else "unknown",
-            "label_source": "dermatologist" if dataset == "SCIN" else "dataset annotation",
-            "ground_truth_method": _field(row, "ground_truth_method", "diagnosis_method", "diagnosis_confirm_type", "benign_malignant"),
+            "label_source": f"{dataset} official dataset annotation",
+            "ground_truth_method": (
+                "biopsy" if dataset == "PAD-UFES-20" and _bool(_field(row, "biopsed"))
+                else "dermatologist consensus/clinical diagnosis" if dataset == "PAD-UFES-20" and clinical
+                else _field(row, "ground_truth_method", "diagnosis_method", "diagnosis_confirm_type", "benign_malignant")
+            ),
         })
         rows.append(item)
     frame = pd.DataFrame(rows, columns=MANIFEST_COLUMNS)
     if not frame.empty:
-        frame = harmonize_manifest(frame)
+        pad_mapping = {
+            "nev": {"harmonized_diagnosis": "nevus", "binary_target": 0},
+            "sek": {"harmonized_diagnosis": "seborrheic keratosis", "binary_target": 0},
+            # Actinic keratosis is a premalignant precursor and is therefore
+            # kept multiclass-only rather than silently called benign/malignant.
+            "ack": {"harmonized_diagnosis": "actinic keratosis", "binary_target": None},
+        }
+        frame = harmonize_manifest(
+            frame, custom_mapping=pad_mapping if dataset == "PAD-UFES-20" else None
+        )
         # MILK10k's first diagnosis tier is the publisher's explicit benign /
         # malignant classification.  It is not inferred from image content.
         if dataset == "MILK10k" and "diagnosis_1" in metadata:
@@ -461,8 +919,12 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
         raise FileNotFoundError(
             f"Eligible manifest contains {len(missing_eligible_paths)} missing image paths"
         )
+    perceptual_duplicates = pd.DataFrame(
+        columns=["left_index", "right_index", "distance", "possible_duplicate"]
+    )
     if not eligible.empty:
         eligible = add_exact_hashes(eligible)
+        eligible, perceptual_duplicates = add_perceptual_duplicate_groups(eligible)
     if len(eligible) >= 3:
         eligible = make_group_splits(eligible)
     manifest.loc[eligible.index, MANIFEST_COLUMNS] = eligible[MANIFEST_COLUMNS]
@@ -482,6 +944,8 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
         write_manifest(scin_conditions, root / "data" / "processed" / "scin_lesion_skin_condition_manifest.csv")
     duplicate_path = root / "data" / "processed" / "exact_duplicates.csv"
     (eligible.loc[eligible.exact_duplicate_flag] if "exact_duplicate_flag" in eligible else pd.DataFrame()).to_csv(duplicate_path, index=False)
+    perceptual_path = root / "data" / "processed" / "perceptual_duplicates.csv"
+    perceptual_duplicates.to_csv(perceptual_path, index=False)
     leakage = leakage_report(eligible) if not eligible.empty else pd.DataFrame()
     if not leakage.empty:
         raise RuntimeError("Patient/case/lesion or exact-duplicate groups cross development splits")
@@ -504,6 +968,42 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
     lesion_presence_rows["lesion_present"] = (
         lesion_presence_rows.lesion_present.astype(bool).astype(int)
     )
+    audit_rows = eligible.copy()
+    audit_rows["gate_state"] = "excluded"
+    audit_rows.loc[
+        audit_rows.other_skin_condition.fillna(False).astype(bool), "gate_state"
+    ] = "other"
+    audit_rows.loc[
+        audit_rows.index.isin(lesion_presence_rows.index)
+        & audit_rows.lesion_present.fillna(False).astype(bool),
+        "gate_state",
+    ] = "positive"
+    audit_rows.loc[
+        audit_rows.index.isin(lesion_presence_rows.index)
+        & audit_rows.lesion_present.fillna(True).astype(bool).eq(False),
+        "gate_state",
+    ] = "negative"
+    positive_rows = lesion_presence_rows.loc[lesion_presence_rows.lesion_present.eq(1)].copy()
+    negative_rows = lesion_presence_rows.loc[lesion_presence_rows.lesion_present.eq(0)].copy()
+    healthy_negative_rows = negative_rows.loc[
+        negative_rows.gate_negative_subtype.eq("healthy_no_visible_lesion")
+    ].copy()
+    hard_negative_rows = negative_rows.loc[
+        negative_rows.gate_negative_subtype.eq("other_skin_condition")
+    ].copy()
+    positive_rows["source_category"] = positive_rows.original_label.fillna("<missing>")
+    scin_positive = positive_rows.source_dataset.eq("SCIN")
+    positive_rows.loc[scin_positive, "source_category"] = positive_rows.loc[
+        scin_positive, "self_reported_related_category"
+    ].fillna("<unstructured>")
+    other_rows = audit_rows.loc[audit_rows.gate_state.eq("other")].copy()
+    other_rows["source_category"] = other_rows.original_label.fillna(
+        other_rows.self_reported_related_category
+    ).fillna("<missing>")
+    scin_other = other_rows.source_dataset.eq("SCIN")
+    other_rows.loc[scin_other, "source_category"] = other_rows.loc[
+        scin_other, "self_reported_related_category"
+    ].fillna("<unstructured>")
     report = {
         "generated": date.today().isoformat(),
         "datasets": reports,
@@ -529,6 +1029,40 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
             "present": int(lesion_presence_rows.lesion_present.fillna(False).astype(bool).sum()),
             "absent": int((~lesion_presence_rows.lesion_present.fillna(False).astype(bool)).sum()),
         },
+        "eligible_gate_images": int(len(lesion_presence_rows)),
+        "gate_class_by_source": _grouped_count_records(
+            audit_rows, ("source_dataset", "gate_state")
+        ),
+        "negative_by_source_and_strength": _grouped_count_records(
+            negative_rows, ("source_dataset", "gate_label_strength")
+        ),
+        "healthy_negative_by_source": _grouped_count_records(
+            healthy_negative_rows, ("source_dataset", "gate_label_strength")
+        ),
+        "hard_negative_by_source_and_category": _grouped_count_records(
+            hard_negative_rows.assign(source_category=hard_negative_rows.original_label.fillna("<missing>")),
+            ("source_dataset", "source_category", "gate_label_strength")
+        ),
+        "positive_by_source_and_category": _grouped_count_records(
+            positive_rows, ("source_dataset", "source_category")
+        ),
+        "other_by_source_and_category": _grouped_count_records(
+            other_rows, ("source_dataset", "source_category")
+        ),
+        "gate_distribution_by_split": _grouped_count_records(
+            audit_rows, ("split", "gate_state")
+        ),
+        "gate_class_ratio_positive_to_negative": (
+            float(len(positive_rows) / len(negative_rows)) if len(negative_rows) else None
+        ),
+        "source_target_correlation": [
+            {
+                "source_dataset": source,
+                "gate_samples": int(len(group)),
+                "p_target_lesion_present": float(group.lesion_present.mean()),
+            }
+            for source, group in lesion_presence_rows.groupby("source_dataset", dropna=False)
+        ],
         "split_counts": eligible.split.value_counts().to_dict() if "split" in eligible else {},
         "source_distribution": counts(eligible, "source_dataset"),
         "source_distribution_by_split": _grouped_count_records(
@@ -545,6 +1079,10 @@ def build_development_manifest(project_root: str | Path = ".", datasets: Iterabl
         ),
         "exact_duplicate_images": len(duplicate_rows),
         "exact_duplicate_groups": int(duplicate_rows.file_sha256.nunique()) if not duplicate_rows.empty else 0,
+        "perceptual_duplicate_pairs": int(len(perceptual_duplicates)),
+        "perceptual_duplicate_groups": int(
+            eligible.duplicate_group_id.dropna().nunique()
+        ) if "duplicate_group_id" in eligible else 0,
         "leakage": leakage.to_dict("records") if not leakage.empty else [],
         "integrity": {
             "eligible_paths_exist": not missing_eligible_paths,
@@ -577,7 +1115,11 @@ def write_provenance(
         "license_or_terms": source["terms"],
         "download_date": date.today().isoformat(),
         "downloaded_files": downloaded_files or [],
-        "extraction_method": "official dx-scin-public-data GCS objects" if acquisition_report else "not performed by default",
+        "extraction_method": (
+            "official dx-scin-public-data GCS objects" if dataset == "SCIN" and acquisition_report
+            else "official Mendeley Data archive" if dataset == "PAD-UFES-20" and acquisition_report
+            else "not performed by default"
+        ),
         "exclusions": "MILK10k dermoscopy excluded; unknown modality is never eligible",
         "known_missing_files": acquisition_report.get("known_missing_images", []) if acquisition_report else [],
         "manual_access_required": manual_required,
@@ -587,7 +1129,9 @@ def write_provenance(
             key: acquisition_report[key]
             for key in (
                 "cases", "expected_image_objects", "reused_valid_images",
-                "downloaded_images", "usable_images",
+                "downloaded_images", "usable_images", "valid_images",
+                "downloaded_bytes",
             )
+            if key in acquisition_report
         }
     path = folder / "PROVENANCE.json"; path.write_text(json.dumps(payload, indent=2), encoding="utf-8"); return path

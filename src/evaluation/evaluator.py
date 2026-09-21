@@ -353,15 +353,21 @@ def stratified_metrics(
 
 
 def lesion_presence_readiness(manifest: pd.DataFrame) -> dict:
-    """State whether a real lesion-versus-normal evaluation is possible."""
+    """State whether target-focal-lesion gate evaluation is possible."""
     checked = validate_manifest(manifest)
     selected = select_task_manifest(checked, "lesion_presence")
     counts = selected.lesion_present.value_counts().to_dict()
     ready = 0 in counts and 1 in counts and bool(selected.loc[selected.lesion_present.eq(0), "normal_skin"].fillna(False).all())
     return {
         "ready": ready,
-        "support": {"normal_skin": int(counts.get(0, 0)), "lesion_present": int(counts.get(1, 0))},
-        "reason": None if ready else "Real lesion-presence evaluation requires both lesion photographs and true normal-skin negatives; none are fabricated.",
+        "support": {
+            "no_target_lesion": int(counts.get(0, 0)),
+            "target_lesion_present": int(counts.get(1, 0)),
+        },
+        "reason": None if ready else (
+            "Gate evaluation requires both justified no-target photographs and "
+            "target focal lesions; none are fabricated."
+        ),
     }
 
 
