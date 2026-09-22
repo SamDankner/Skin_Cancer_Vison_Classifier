@@ -30,12 +30,19 @@ CLINICAL_COBALT_CSS = """
  [data-testid="stFileUploader"] label, [data-testid="stFileUploader"] small, [data-testid="stFileUploader"] p { color:#17212B !important; }
  [data-testid="stFileUploader"] button { background:#FFF; border-color:#005396; color:#17212B !important; }
  [data-testid="stFileUploader"] button:hover { background:#EDF4FA; color:#17212B !important; }
- [data-testid="stNumberInput"] label, [data-testid="stSelectbox"] label, [data-testid="stSelectbox"] input, [data-testid="stSelectbox"] [data-baseweb="select"] { color:#17212B !important; }
+ [data-testid="stNumberInput"] label, [data-testid="stSelectbox"] label { color:#17212B !important; }
  [data-testid="stNumberInput"] [data-baseweb="input"], [data-testid="stNumberInput"] input { background:transparent; }
  [data-testid="stNumberInput"] input { color:#FFF !important; }
  [data-testid="stNumberInput"] input::placeholder { color:#D9E2EC; opacity:1; }
  [data-testid="stNumberInput"] [data-baseweb="input"]:focus-within { border-color:#005396; box-shadow:0 0 0 1px #005396; }
- [data-testid="stSelectbox"] [data-baseweb="select"] > div { background:#FFF; }
+ /* Scope the select treatment to metadata BaseWeb controls; do not affect other menus. */
+ [data-testid="stSelectbox"] [data-baseweb="select"] > div { background:transparent; border-color:#9AB4CE; }
+ [data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"], [data-testid="stSelectbox"] [data-baseweb="select"] input { color:#FFF !important; }
+ [data-testid="stSelectbox"] [data-baseweb="select"] input::placeholder { color:#D9E2EC; opacity:1; }
+ [data-testid="stSelectbox"] [data-baseweb="select"] > div:hover { border-color:#005396; }
+ [data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within, [data-testid="stSelectbox"] [data-baseweb="select"] > div[aria-expanded="true"] { border-color:#005396; box-shadow:0 0 0 1px #005396; }
+ [data-baseweb="popover"] [role="listbox"] [role="option"] { background:#FFF; color:#17212B !important; }
+ [data-baseweb="popover"] [role="listbox"] [role="option"]:hover, [data-baseweb="popover"] [role="listbox"] [role="option"][aria-selected="true"] { background:#EDF4FA; color:#17212B !important; }
  [data-testid="stExpander"] summary, [data-testid="stExpander"] summary *, [data-testid="stExpander"] summary:hover, [data-testid="stExpander"] summary:focus, [data-testid="stExpander"] summary:focus-visible { color:#17212B !important; }
  [data-testid="stExpander"] details[open] > summary { background:transparent !important; }
  [data-testid="stExpander"] [data-testid="stExpanderDetails"], [data-testid="stExpander"] [data-testid="stExpanderDetails"] * { color:#17212B !important; }

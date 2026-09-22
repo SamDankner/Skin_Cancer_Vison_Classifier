@@ -75,6 +75,47 @@ def test_v2_skips_multimodal_only_when_metadata_is_absent(monkeypatch):
     assert "multimodal" in with_metadata.individual_models
 
 
+def test_saved_v1_and_v2_deployments_execute_distinct_policies(monkeypatch):
+    import src.inference as inference
+
+    def deployment(variant):
+        return yaml.safe_load((ROOT / "configs" / "deployments" / variant / "ensemble.yaml").read_text(encoding="utf-8"))
+
+    def bundles_for(config):
+        probabilities = {"convnext": .2, "efficientnet": .4, "multimodal": .8}
+        return {
+            definition["name"]: CheckpointBundle(
+                _FixedModel(probabilities[definition["name"]]), definition["strategy"], "diagnosis_binary",
+                ["benign", "malignant"], {"image_size": 16, "input_mode": "full_image"},
+                f'{definition["name"]}.pt', {},
+            )
+            for definition in config["models"]
+        }
+
+    monkeypatch.setattr(inference, "_bundle_input", lambda *_args: ((torch.zeros((1, 3, 1, 1)),), False, []))
+    v1_config, v2_config = deployment("v1_frozen"), deployment("v2_adaptive")
+    v1 = SkinCancerPredictor(v1_config, bundles_for(v1_config), torch.device("cpu"))
+    v2 = SkinCancerPredictor(v2_config, bundles_for(v2_config), torch.device("cpu"))
+
+    v1_without_metadata = v1.predict(Image.new("RGB", (8, 8)))
+    v2_without_metadata = v2.predict(Image.new("RGB", (8, 8)))
+    v2_with_metadata = v2.predict(Image.new("RGB", (8, 8)), age=42)
+
+    assert v1_without_metadata.active_models == ("convnext", "efficientnet", "multimodal")
+    assert v1_without_metadata.inactive_models == ()
+    assert v1_without_metadata.strategy_name == "equal_probability_average"
+    assert v1_without_metadata.model_weights == pytest.approx({"convnext": 1 / 3, "efficientnet": 1 / 3, "multimodal": 1 / 3})
+    assert v1_without_metadata.threshold == .51
+    assert v2_without_metadata.active_models == ("convnext", "efficientnet")
+    assert v2_without_metadata.inactive_models == ("multimodal",)
+    assert v2_without_metadata.strategy_name == "equal_probability_average"
+    assert v2_without_metadata.threshold == .51
+    assert v2_with_metadata.active_models == ("convnext", "efficientnet", "multimodal")
+    assert v2_with_metadata.inactive_models == ()
+    assert v2_with_metadata.strategy_name == "closest_pair_consensus"
+    assert v2_with_metadata.model_weights == pytest.approx(v2_config["ensemble"]["metadata_available_policy"]["weights"])
+
+
 @pytest.mark.parametrize("mode", ["RGB", "RGBA", "L"])
 def test_upload_validation_normalizes_supported_color_modes(mode):
     color = 128 if mode == "L" else (100, 120, 140, 200) if mode == "RGBA" else (100, 120, 140)

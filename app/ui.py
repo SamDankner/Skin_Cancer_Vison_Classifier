@@ -11,7 +11,12 @@ VERSION_LABELS = {"v1_frozen": "V1", "v2_adaptive": "V2"}
 VERSION_DISPLAY_NAMES = {"v1_frozen": "V1 Frozen", "v2_adaptive": "V2 Adaptive"}
 DDI_URL = "https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images"
 DDI_LINK = f'<a href="{DDI_URL}" target="_blank" rel="noopener noreferrer">DDI</a>'
-PROJECT_METRICS = {"development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"), "v1_ddi_images": f"656 images from an independent external dataset not used in training or validation ({DDI_LINK})", "v2_ddi": "57.3% → 68.4% malignant sensitivity · +11.1 percentage points · 19 additional malignant lesions detected"}
+PROJECT_METRICS = {
+    "development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"),
+    "architecture": "Three-model CNN + transformer ensemble with optional structured metadata",
+    "methodology": "Leakage-aware patient, lesion, and image grouping with validation-only model and threshold selection",
+    "v2_ddi": "+19.4% relative increase in malignant-lesion sensitivity in the post-hoc V2 comparison on previously inspected DDI · 19 additional malignant lesions detected",
+}
 VERSION_COMPARISON = """#### V1 — Frozen
 - Original frozen research ensemble
 - ConvNeXt-Tiny + EfficientNetV2-S + Multimodal DINOv2
@@ -54,8 +59,11 @@ It is not designed for normal or blank skin, acne without a focal lesion, diffus
 #### Important distinction
 **The classifier assumes that an appropriate focal skin lesion is already present in the image. It does not first determine whether a lesion exists; it classifies an uploaded focal lesion as benign or malignant.**
 
+#### Best photo inputs
+Use one clearly visible focal skin lesion, reasonably centered and relatively close-up so it occupies a meaningful part of a well-lit, sharp image. Where practical, minimize obstruction from hair, clothing, fingers, rulers, and glare. Avoid extremely distant images, many unrelated lesions without a clear target, blank or normal skin, and unrelated dermatologic conditions. These characteristics do not guarantee a correct prediction.
+
 #### Optional metadata
-You may provide age, sex, and anatomical site. For v2, at least one supplied field activates the multimodal DINOv2 component. Providing all available supported metadata gives the multimodal model the most complete input, but does not guarantee accuracy. v1 always passes metadata through its historical persisted missing-value preprocessing.
+You may provide age, sex, and anatomical site. For V2, at least one supplied field activates the multimodal DINOv2 component. Providing all available supported metadata gives the multimodal model the most complete input, but does not guarantee accuracy. V1 always passes metadata through its historical persisted missing-value preprocessing.
 
 Research and educational demonstration only. This system is not a medical device and is not intended for diagnosis or treatment decisions.""")
 
@@ -84,21 +92,26 @@ def render_model_outputs(st, result: PredictionResult, variant: str) -> None:
 
 def render_about(st) -> None:
     with st.expander("About This Model", expanded=False):
-        st.markdown(f'''<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · original v1 evaluation on an independent external dataset not used in training or validation ({DDI_LINK}) · adaptive v2 deployment policy · Streamlit interface · Docker-ready deployment</p></section>''', unsafe_allow_html=True)
+        st.markdown(f'''<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · original V1 evaluation on an independent external dataset not used in training or validation ({DDI_LINK}) · adaptive V2 deployment policy · Streamlit interface · Docker-ready deployment</p><p><strong>Training &amp; development datasets</strong></p><p class="muted">MILK10k · PAD-UFES-20</p></section>''', unsafe_allow_html=True)
 
     with st.expander("Project Highlights", expanded=False):
-        cards = [*PROJECT_METRICS["development"], f"v1: {PROJECT_METRICS['v1_ddi_images']}", f"v2 post-hoc comparison on the same independent external dataset: {PROJECT_METRICS['v2_ddi']}"]
+        cards = [
+            *PROJECT_METRICS["development"],
+            PROJECT_METRICS["architecture"],
+            PROJECT_METRICS["methodology"],
+            PROJECT_METRICS["v2_ddi"],
+        ]
         columns = st.columns(2)
         for index, text in enumerate(cards):
             with columns[index % 2]: st.markdown(f'<section class="highlight-card">{text}</section>', unsafe_allow_html=True)
-        st.caption("v1 is the independent external evaluation; the v2 comparison on the same external dataset is post-hoc.")
+        st.caption("The V1 evaluation is independent and external; the V2 comparison on the same external dataset is post-hoc.")
         with st.expander("Research & evaluation details", expanded=False):
-            st.markdown("v1 was frozen before its original evaluation on an independent external dataset not used in training or validation ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images)). v2 was developed later; its comparison on the same external dataset is post-hoc, and its weighting search used validation data only.")
+            st.markdown("V1 was frozen before its original evaluation on an independent external dataset not used in training or validation ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images)). V2 was developed later; its comparison on the same external dataset is post-hoc, and its weighting search used validation data only.")
 
 
 def render_next_steps(st) -> None:
     with st.expander("Next Steps", expanded=False):
-        items = (("New external validation", "Evaluate v2 on a new untouched external dataset."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Metadata robustness", "Improve multimodal behavior with partial metadata."), ("Prospective testing", "Validate the full workflow on newly collected data."))
+        items = (("New external validation", "Evaluate V2 on a new untouched external dataset."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Metadata robustness", "Improve multimodal behavior with partial metadata."), ("Prospective testing", "Validate the full workflow on newly collected data."))
         columns = st.columns(2)
         for index, (title, body) in enumerate(items):
             with columns[index % 2]: st.markdown(f'<section class="next-card"><strong>{title}</strong><p>{body}</p></section>', unsafe_allow_html=True)

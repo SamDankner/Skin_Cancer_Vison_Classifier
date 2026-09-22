@@ -72,7 +72,7 @@ def main() -> None:
         site = st.selectbox("Anatomical Site", SITE_OPTIONS)
         st.caption("Body location of the lesion")
     metadata = _metadata(age, sex, site)
-    st.caption("All metadata is optional. Providing at least one supported metadata field activates the multimodal DINOv2 component for v2; v1 retains its historical missing-value preprocessing.")
+    st.caption("All metadata is optional. Providing at least one supported metadata field activates the multimodal DINOv2 component for V2; V1 retains its historical missing-value preprocessing.")
     _invalidate_if_inputs_changed(_input_signature(uploaded, metadata, variant))
     analyze = st.button("Analyze image", type="primary", disabled=uploaded is None)
     st.markdown("</section>", unsafe_allow_html=True)
@@ -100,7 +100,7 @@ def main() -> None:
     result = st.session_state.get("prediction")
     if result:
         if "multimodal" in result.inactive_models: st.info("No metadata provided. Multimodal DINOv2 was not used.")
-        elif variant == "v1_frozen": st.info("v1 uses the multimodal model with its persisted missing-value preprocessing.")
+        elif variant == "v1_frozen": st.info("V1 uses the multimodal model with its persisted missing-value preprocessing.")
         else: st.info("Multimodal inference is active. Missing metadata fields are handled by the saved preprocessing pipeline.")
         render_model_outputs(st, result, variant)
     render_about(st)
