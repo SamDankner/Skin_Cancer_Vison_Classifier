@@ -64,6 +64,7 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert '[data-testid="stNumberInput"] [data-baseweb="input"], [data-testid="stNumberInput"] input { background:transparent; }' in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stNumberInput"] input { color:#FFF !important; }' in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stExpander"] summary, [data-testid="stExpander"] summary *' in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stExpander"] details[open] > summary { background:transparent !important; }' in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stExpander"] [data-testid="stExpanderDetails"], [data-testid="stExpander"] [data-testid="stExpanderDetails"] *' in styles.CLINICAL_COBALT_CSS
 
     field_copy = " ".join(value for value in source if isinstance(value, str))
