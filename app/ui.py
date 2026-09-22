@@ -1,11 +1,20 @@
 """Rendering helpers for the Clinical Cobalt Streamlit presentation."""
 from __future__ import annotations
 
+import logging
 from html import escape
 from pathlib import Path
 from typing import Mapping
 
 from src.inference import PredictionResult
+
+LOGGER = logging.getLogger(__name__)
+
+ATTRIBUTION_MODELS = {
+    "ConvNeXt-Tiny": "convnext",
+    "EfficientNetV2-S": "efficientnet",
+    "DINOv2": "multimodal",
+}
 
 MODEL_LABELS = {"convnext": "ConvNeXt-Tiny", "efficientnet": "EfficientNetV2-S", "multimodal": "Multimodal DINOv2"}
 VERSION_LABELS = {"v1_frozen": "V1", "v2_adaptive": "V2"}
@@ -91,6 +100,50 @@ def render_model_outputs(st, result: PredictionResult, variant: str) -> None:
             value = float(values[name])
             st.markdown(f'<div class="model-row"><span>{labels[name]}</span><span>{value:.1%}</span></div>', unsafe_allow_html=True)
             st.progress(value)
+    st.markdown("</section>", unsafe_allow_html=True)
+
+
+def render_attribution(st, uploaded, result: PredictionResult | None, variant: str, metadata: dict) -> None:
+    """Render the optional, on-demand attribution controls below model outputs."""
+    from src.explainability import overlay_heatmap
+    from src.inference import validate_uploaded_image
+    from app.streamlit_app import load_predictor
+
+    st.markdown('<section class="clinical-card"><div class="eyebrow">Model Attribution</div><p class="muted">Model attribution highlights image regions that had greater influence on an individual model\'s malignant output. It is an interpretability tool, not a medical explanation of why a lesion is benign or malignant.</p>', unsafe_allow_html=True)
+    st.caption("Choose an individual model to visualize which image regions most influenced its output.")
+    label = st.selectbox("Model", tuple(ATTRIBUTION_MODELS), key="attribution_model")
+    model_name = ATTRIBUTION_MODELS[label]
+    active = bool(result and model_name in result.active_models)
+    if result and model_name == "multimodal" and model_name in result.inactive_models:
+        st.info("DINOv2 was not active for this prediction because no metadata was provided.")
+    if not result:
+        st.caption("Analyze an image first to generate model attribution.")
+    if st.button("Generate Attribution", type="primary", disabled=not active, key="generate_attribution"):
+        try:
+            image = validate_uploaded_image(uploaded.getvalue(), uploaded.name)
+            with st.spinner("Generating model attribution..."):
+                attribution = load_predictor(variant).attribute(image, model_name, **metadata)
+            st.session_state["attribution"] = {"model": model_name, "method": attribution.method, "heatmap": attribution.heatmap}
+        except (FileNotFoundError, ValueError, RuntimeError) as exc:
+            LOGGER.exception("Streamlit attribution failed")
+            st.error(f"Unable to generate attribution: {exc}")
+    saved = st.session_state.get("attribution")
+    if saved and saved.get("model") == model_name and uploaded:
+        opacity = st.slider("Overlay opacity", min_value=0.1, max_value=0.9, value=0.45, step=0.05, key="attribution_opacity")
+        st.caption("Overlay opacity controls how strongly the attribution heatmap is drawn over the original image. Lower values show more of the original photo; higher values emphasize the highlighted attribution regions.")
+        image = validate_uploaded_image(uploaded.getvalue(), uploaded.name)
+        original_col, map_col = st.columns(2)
+        with original_col:
+            st.markdown("**Original Image**")
+            st.image(image, use_container_width=True)
+        with map_col:
+            st.markdown("**Attribution**")
+            st.image(overlay_heatmap(image, saved["heatmap"], opacity), use_container_width=True)
+        st.caption(f"Method: {saved['method']}")
+        st.caption("Highlighted regions had greater influence on this model's malignant output.")
+        st.caption("Attribution visualizations are interpretability tools and do not establish why a lesion is benign or malignant.")
+        if saved["model"] == "multimodal":
+            st.caption("This visualization reflects image-based attribution only; optional metadata contributions are not represented.")
     st.markdown("</section>", unsafe_allow_html=True)
 
 

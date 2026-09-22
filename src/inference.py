@@ -226,6 +226,37 @@ class SkinCancerPredictor:
         finally:
             photo.close()
 
+    def attribute(
+        self,
+        image: Image.Image,
+        model_name: str,
+        *,
+        age: float | int | None = None,
+        sex: str | None = None,
+        anatomical_site: str | None = None,
+    ):
+        """Explain one active deployment member using its persisted input contract.
+
+        This deliberately has a separate gradient-enabled path from ``predict``.
+        The caller is responsible for ensuring the requested member participated
+        in the current deployment result.
+        """
+        from src.explainability import generate_attribution
+
+        if model_name not in FINAL_ENSEMBLE_MEMBERS:
+            raise ValueError(f"Unknown deployment model: {model_name!r}")
+        photo = _load_rgb_image(image)
+        metadata = {"age": age, "sex": sex, "anatomical_site": anatomical_site}
+        try:
+            bundle = self.bundles[model_name]
+            args, _, _ = _bundle_input(bundle, photo, metadata, self.device)
+            malignant_index = bundle.class_order.index("malignant")
+            return generate_attribution(
+                bundle.model.to(self.device), args, model_name=model_name, malignant_index=malignant_index
+            )
+        finally:
+            photo.close()
+
 
 def _bundle_input(
     bundle: CheckpointBundle,

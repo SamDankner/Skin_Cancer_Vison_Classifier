@@ -124,6 +124,7 @@ def test_input_signature_change_invalidates_stale_prediction(monkeypatch):
     assert fake_streamlit.session_state["analysis_signature"] == ("new",)
     assert "prediction" not in fake_streamlit.session_state
     assert "prediction_variant" not in fake_streamlit.session_state
+    assert "attribution" not in fake_streamlit.session_state
 
 
 def test_version_switches_invalidate_stale_results_in_both_directions(monkeypatch):
@@ -159,3 +160,21 @@ def test_predictor_cache_is_keyed_by_the_selected_deployment_variant(monkeypatch
     assert loaded_variants == ["v1_frozen", "v2_adaptive"]
     if hasattr(streamlit_app.load_predictor, "clear"):
         streamlit_app.load_predictor.clear()
+
+
+def test_attribution_section_is_between_model_outputs_and_information_sections():
+    import inspect
+    from app import streamlit_app, ui
+
+    page = inspect.getsource(streamlit_app.main)
+    assert page.index("render_model_outputs") < page.index("render_attribution") < page.index("render_about")
+    source = inspect.getsource(ui.render_attribution)
+    assert "Model Attribution" in source
+    assert "Generate Attribution" in source
+    assert 'type="primary"' in source
+    assert "Model attribution highlights image regions" in source
+    assert "Choose an individual model" in source
+    assert "Overlay opacity controls how strongly" in source
+    assert tuple(ui.ATTRIBUTION_MODELS) == ("ConvNeXt-Tiny", "EfficientNetV2-S", "DINOv2")
+    assert "DINOv2 was not active for this prediction because no metadata was provided." in source
+    assert "image-based attribution only" in source

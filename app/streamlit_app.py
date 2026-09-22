@@ -5,7 +5,7 @@ import hashlib
 import logging
 
 from app.styles import CLINICAL_COBALT_CSS
-from app.ui import VERSION_LABELS, render_about, render_disclaimer, render_hero, render_model_outputs, render_next_steps, render_result, render_usage_guide, render_version_comparison
+from app.ui import VERSION_LABELS, render_about, render_attribution, render_disclaimer, render_hero, render_model_outputs, render_next_steps, render_result, render_usage_guide, render_version_comparison
 from src.inference import DEPLOYMENT_VARIANTS, SkinCancerPredictor, validate_uploaded_image
 
 LOGGER = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ def _invalidate_if_inputs_changed(signature) -> None:
         st.session_state["analysis_signature"] = signature
         st.session_state.pop("prediction", None)
         st.session_state.pop("prediction_variant", None)
+        st.session_state.pop("attribution", None)
 
 
 def main() -> None:
@@ -103,6 +104,7 @@ def main() -> None:
         elif variant == "v1_frozen": st.info("V1 uses the multimodal model with its persisted missing-value preprocessing.")
         else: st.info("Multimodal inference is active. Missing optional information is handled by the saved preprocessing pipeline.")
         render_model_outputs(st, result, variant)
+    render_attribution(st, uploaded, result, variant, metadata)
     render_about(st)
     render_next_steps(st)
     render_disclaimer(st)
