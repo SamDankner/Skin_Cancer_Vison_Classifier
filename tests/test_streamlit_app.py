@@ -48,6 +48,21 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert "post-hoc" in ui.VERSION_COMPARISON
     assert "better overall" not in ui.VERSION_COMPARISON
     assert "more accurate overall" not in ui.VERSION_COMPARISON
+    assert ui.VERSION_LABELS == {"v1_frozen": "v1 Frozen", "v2_adaptive": "v2 Adaptive"}
+    assert "Original frozen research ensemble" in ui.VERSION_SUMMARIES["v1_frozen"]
+    assert "Equal weighting · all three models · original external DDI evaluation" in ui.VERSION_SUMMARIES["v1_frozen"]
+    assert "Newer metadata-aware deployment version" in ui.VERSION_SUMMARIES["v2_adaptive"]
+    assert "Adaptive three-model behavior with metadata · two-model behavior without metadata" in ui.VERSION_SUMMARIES["v2_adaptive"]
+    assert "v1: Original externally evaluated three-model ensemble" in ui.VERSION_TRADEOFF
+    assert "v2: Newer metadata-aware version" in ui.VERSION_TRADEOFF
+    assert "better overall" not in ui.VERSION_TRADEOFF
+    assert "more accurate overall" not in ui.VERSION_TRADEOFF
+
+    field_copy = " ".join(value for value in source if isinstance(value, str))
+    assert "Age in years" in field_copy
+    assert "Enter age in years" in field_copy
+    assert "Select the available sex value" in field_copy
+    assert "Body location of the lesion" in field_copy
 
     class FakeStreamlit:
         def __init__(self): self.expanders = []
@@ -68,6 +83,28 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert ("About This Model", False) in fake.expanders
     assert ("Project Highlights", False) in fake.expanders
     assert ("Next Steps", False) in fake.expanders
+
+
+def test_version_overview_renders_visible_summaries_and_tradeoff():
+    from app import ui
+
+    class FakeStreamlit:
+        def __init__(self): self.markdowns = []
+        def columns(self, count): return [_NullContext(self) for _ in range(count)]
+        def markdown(self, text, **_kwargs): self.markdowns.append(text)
+    class _NullContext:
+        def __init__(self, parent): self.parent = parent
+        def __enter__(self): return self.parent
+        def __exit__(self, *_args): return False
+
+    fake = FakeStreamlit()
+    ui.render_version_overview(fake)
+    rendered = " ".join(fake.markdowns)
+    assert "v1 Frozen" in rendered
+    assert "v2 Adaptive" in rendered
+    assert "Original frozen research ensemble" in rendered
+    assert "Newer metadata-aware deployment version" in rendered
+    assert "later post-hoc no-metadata comparison" in rendered
 
 
 def test_input_signature_change_invalidates_stale_prediction(monkeypatch):
