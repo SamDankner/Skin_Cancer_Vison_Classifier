@@ -1,0 +1,5250 @@
+{
+  "selection_split": "validation",
+  "objective": "macro_f1",
+  "selected": {
+    "threshold": 0.51,
+    "loss": null,
+    "sample_count": 1011,
+    "labels": [
+      0,
+      1
+    ],
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "class_coverage_complete": true,
+    "missing_classes": [],
+    "accuracy": 0.8911968348170128,
+    "balanced_accuracy": 0.8479980528173299,
+    "macro_precision": 0.8646739996811732,
+    "macro_recall": 0.8479980528173299,
+    "macro_f1": 0.8557812013694366,
+    "weighted_f1": 0.8899244168488364,
+    "confusion_matrix": [
+      [
+        200,
+        64
+      ],
+      [
+        46,
+        701
+      ]
+    ],
+    "class_metrics": [
+      {
+        "class": 0,
+        "class_name": "benign",
+        "precision": 0.8130081300813008,
+        "recall": 0.7575757575757576,
+        "f1": 0.7843137254901961,
+        "support": 264
+      },
+      {
+        "class": 1,
+        "class_name": "malignant",
+        "precision": 0.9163398692810457,
+        "recall": 0.9384203480589023,
+        "f1": 0.9272486772486772,
+        "support": 747
+      }
+    ],
+    "roc_auc": 0.9073972658310008,
+    "pr_auc": 0.9552103790145295,
+    "sensitivity": 0.9384203480589023,
+    "specificity": 0.7575757575757576,
+    "positive_predictive_value": 0.9163398692810457,
+    "negative_predictive_value": 0.8130081300813008,
+    "brier_score": 0.09200099398405014,
+    "calibration_error": 0.027125194205287903
+  },
+  "rows": [
+    {
+      "threshold": 0.05,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7784371909000989,
+      "balanced_accuracy": 0.5769821711086771,
+      "macro_precision": 0.8730281586318738,
+      "macro_recall": 0.5769821711086771,
+      "macro_f1": 0.5687188628365099,
+      "weighted_f1": 0.7123982280205007,
+      "confusion_matrix": [
+        [
+          41,
+          223
+        ],
+        [
+          1,
+          746
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9761904761904762,
+          "recall": 0.1553030303030303,
+          "f1": 0.2679738562091503,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.7698658410732714,
+          "recall": 0.998661311914324,
+          "f1": 0.8694638694638694,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.998661311914324,
+      "specificity": 0.1553030303030303,
+      "positive_predictive_value": 0.7698658410732714,
+      "negative_predictive_value": 0.9761904761904762,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.06,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7922848664688428,
+      "balanced_accuracy": 0.6034973226238286,
+      "macro_precision": 0.881647344801795,
+      "macro_recall": 0.6034973226238286,
+      "macro_f1": 0.6101828730904818,
+      "weighted_f1": 0.7374697946559642,
+      "confusion_matrix": [
+        [
+          55,
+          209
+        ],
+        [
+          1,
+          746
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9821428571428571,
+          "recall": 0.20833333333333334,
+          "f1": 0.34375,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.7811518324607329,
+          "recall": 0.998661311914324,
+          "f1": 0.8766157461809636,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.998661311914324,
+      "specificity": 0.20833333333333334,
+      "positive_predictive_value": 0.7811518324607329,
+      "negative_predictive_value": 0.9821428571428571,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.07,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.798219584569733,
+      "balanced_accuracy": 0.614860958987465,
+      "macro_precision": 0.8849807947244978,
+      "macro_recall": 0.614860958987465,
+      "macro_f1": 0.6269750549832157,
+      "weighted_f1": 0.7477211977427599,
+      "confusion_matrix": [
+        [
+          61,
+          203
+        ],
+        [
+          1,
+          746
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9838709677419355,
+          "recall": 0.23106060606060605,
+          "f1": 0.37423312883435583,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.78609062170706,
+          "recall": 0.998661311914324,
+          "f1": 0.8797169811320755,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.998661311914324,
+      "specificity": 0.23106060606060605,
+      "positive_predictive_value": 0.78609062170706,
+      "negative_predictive_value": 0.9838709677419355,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.08,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8041543026706232,
+      "balanced_accuracy": 0.6262245953511014,
+      "macro_precision": 0.8881931881978666,
+      "macro_recall": 0.6262245953511014,
+      "macro_f1": 0.6432273472588579,
+      "weighted_f1": 0.7577011609022786,
+      "confusion_matrix": [
+        [
+          67,
+          197
+        ],
+        [
+          1,
+          746
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9852941176470589,
+          "recall": 0.2537878787878788,
+          "f1": 0.4036144578313253,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.7910922587486744,
+          "recall": 0.998661311914324,
+          "f1": 0.8828402366863906,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.998661311914324,
+      "specificity": 0.2537878787878788,
+      "positive_predictive_value": 0.7910922587486744,
+      "negative_predictive_value": 0.9852941176470589,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.09,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8090999010880316,
+      "balanced_accuracy": 0.6369188876718996,
+      "macro_precision": 0.8846367521367522,
+      "macro_recall": 0.6369188876718996,
+      "macro_f1": 0.6580011462884966,
+      "weighted_f1": 0.7666033763006626,
+      "confusion_matrix": [
+        [
+          73,
+          191
+        ],
+        [
+          2,
+          745
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9733333333333334,
+          "recall": 0.2765151515151515,
+          "f1": 0.4306784660766962,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.7959401709401709,
+          "recall": 0.9973226238286479,
+          "f1": 0.8853238265002971,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9973226238286479,
+      "specificity": 0.2765151515151515,
+      "positive_predictive_value": 0.7959401709401709,
+      "negative_predictive_value": 0.9733333333333334,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.1,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8130563798219584,
+      "balanced_accuracy": 0.6457192405987586,
+      "macro_precision": 0.8814814814814815,
+      "macro_recall": 0.6457192405987586,
+      "macro_f1": 0.6697363304036712,
+      "weighted_f1": 0.773675645522339,
+      "confusion_matrix": [
+        [
+          78,
+          186
+        ],
+        [
+          3,
+          744
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9629629629629629,
+          "recall": 0.29545454545454547,
+          "f1": 0.45217391304347826,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8,
+          "recall": 0.9959839357429718,
+          "f1": 0.8872987477638641,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9959839357429718,
+      "specificity": 0.29545454545454547,
+      "positive_predictive_value": 0.8,
+      "negative_predictive_value": 0.9629629629629629,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.11,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8219584569732937,
+      "balanced_accuracy": 0.6639892904953146,
+      "macro_precision": 0.8825046127643469,
+      "macro_recall": 0.6639892904953146,
+      "macro_f1": 0.6931694025924977,
+      "weighted_f1": 0.7881390411664282,
+      "confusion_matrix": [
+        [
+          88,
+          176
+        ],
+        [
+          4,
+          743
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9565217391304348,
+          "recall": 0.3333333333333333,
+          "f1": 0.4943820224719101,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.808487486398259,
+          "recall": 0.9946452476572959,
+          "f1": 0.8919567827130852,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9946452476572959,
+      "specificity": 0.3333333333333333,
+      "positive_predictive_value": 0.808487486398259,
+      "negative_predictive_value": 0.9565217391304348,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.12,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8269040553907022,
+      "balanced_accuracy": 0.674683582816113,
+      "macro_precision": 0.8815457203615098,
+      "macro_recall": 0.674683582816113,
+      "macro_f1": 0.7062105520103219,
+      "weighted_f1": 0.7961719133262536,
+      "confusion_matrix": [
+        [
+          94,
+          170
+        ],
+        [
+          5,
+          742
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9494949494949495,
+          "recall": 0.3560606060606061,
+          "f1": 0.5179063360881543,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8135964912280702,
+          "recall": 0.9933065595716198,
+          "f1": 0.8945147679324894,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9933065595716198,
+      "specificity": 0.3560606060606061,
+      "positive_predictive_value": 0.8135964912280702,
+      "negative_predictive_value": 0.9494949494949495,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.13,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8298714144411474,
+      "balanced_accuracy": 0.6803654009979312,
+      "macro_precision": 0.8836310101598395,
+      "macro_recall": 0.6803654009979312,
+      "macro_f1": 0.7130949552546131,
+      "weighted_f1": 0.8005415130640643,
+      "confusion_matrix": [
+        [
+          97,
+          167
+        ],
+        [
+          5,
+          742
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9509803921568627,
+          "recall": 0.36742424242424243,
+          "f1": 0.5300546448087432,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8162816281628162,
+          "recall": 0.9933065595716198,
+          "f1": 0.8961352657004831,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9933065595716198,
+      "specificity": 0.36742424242424243,
+      "positive_predictive_value": 0.8162816281628162,
+      "negative_predictive_value": 0.9509803921568627,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.14,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8298714144411474,
+      "balanced_accuracy": 0.6828145917001338,
+      "macro_precision": 0.8758209110809966,
+      "macro_recall": 0.6828145917001338,
+      "macro_f1": 0.7155094561874222,
+      "weighted_f1": 0.8016823514082478,
+      "confusion_matrix": [
+        [
+          99,
+          165
+        ],
+        [
+          7,
+          740
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9339622641509434,
+          "recall": 0.375,
+          "f1": 0.5351351351351351,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8176795580110497,
+          "recall": 0.9906291834002677,
+          "f1": 0.8958837772397095,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9906291834002677,
+      "specificity": 0.375,
+      "positive_predictive_value": 0.8176795580110497,
+      "negative_predictive_value": 0.9339622641509434,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.15,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8358061325420376,
+      "balanced_accuracy": 0.6941782280637703,
+      "macro_precision": 0.8803184093437153,
+      "macro_recall": 0.6941782280637703,
+      "macro_f1": 0.7288300457588996,
+      "weighted_f1": 0.810199258225444,
+      "confusion_matrix": [
+        [
+          105,
+          159
+        ],
+        [
+          7,
+          740
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9375,
+          "recall": 0.3977272727272727,
+          "f1": 0.5585106382978723,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8231368186874305,
+          "recall": 0.9906291834002677,
+          "f1": 0.8991494532199271,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9906291834002677,
+      "specificity": 0.3977272727272727,
+      "positive_predictive_value": 0.8231368186874305,
+      "negative_predictive_value": 0.9375,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.16,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8397626112759644,
+      "balanced_accuracy": 0.7029785809906292,
+      "macro_precision": 0.8798754911078634,
+      "macro_recall": 0.7029785809906292,
+      "macro_f1": 0.738567871280807,
+      "weighted_f1": 0.8162738480974383,
+      "confusion_matrix": [
+        [
+          110,
+          154
+        ],
+        [
+          8,
+          739
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9322033898305084,
+          "recall": 0.4166666666666667,
+          "f1": 0.5759162303664922,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8275475923852184,
+          "recall": 0.9892904953145917,
+          "f1": 0.901219512195122,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9892904953145917,
+      "specificity": 0.4166666666666667,
+      "positive_predictive_value": 0.8275475923852184,
+      "negative_predictive_value": 0.9322033898305084,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.17,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8427299703264095,
+      "balanced_accuracy": 0.7098849945235487,
+      "macro_precision": 0.878955174686882,
+      "macro_recall": 0.7098849945235487,
+      "macro_f1": 0.7459497901998435,
+      "weighted_f1": 0.8208613719324259,
+      "confusion_matrix": [
+        [
+          114,
+          150
+        ],
+        [
+          9,
+          738
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.926829268292683,
+          "recall": 0.4318181818181818,
+          "f1": 0.5891472868217055,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.831081081081081,
+          "recall": 0.9879518072289156,
+          "f1": 0.9027522935779817,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9879518072289156,
+      "specificity": 0.4318181818181818,
+      "positive_predictive_value": 0.831081081081081,
+      "negative_predictive_value": 0.926829268292683,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.18,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8447082096933729,
+      "balanced_accuracy": 0.7148974686625289,
+      "macro_precision": 0.877485124879752,
+      "macro_recall": 0.7148974686625289,
+      "macro_f1": 0.7511027549665136,
+      "weighted_f1": 0.8240244237295345,
+      "confusion_matrix": [
+        [
+          117,
+          147
+        ],
+        [
+          10,
+          737
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9212598425196851,
+          "recall": 0.4431818181818182,
+          "f1": 0.59846547314578,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.833710407239819,
+          "recall": 0.9866131191432396,
+          "f1": 0.9037400367872471,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9866131191432396,
+      "specificity": 0.4431818181818182,
+      "positive_predictive_value": 0.833710407239819,
+      "negative_predictive_value": 0.9212598425196851,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.19,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8447082096933729,
+      "balanced_accuracy": 0.718571254715833,
+      "macro_precision": 0.8691232637402162,
+      "macro_recall": 0.718571254715833,
+      "macro_f1": 0.7539593102111994,
+      "weighted_f1": 0.8253464738103685,
+      "confusion_matrix": [
+        [
+          120,
+          144
+        ],
+        [
+          13,
+          734
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.9022556390977443,
+          "recall": 0.45454545454545453,
+          "f1": 0.6045340050377834,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.835990888382688,
+          "recall": 0.9825970548862115,
+          "f1": 0.9033846153846153,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9825970548862115,
+      "specificity": 0.45454545454545453,
+      "positive_predictive_value": 0.835990888382688,
+      "negative_predictive_value": 0.9022556390977443,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.2,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.847675568743818,
+      "balanced_accuracy": 0.7254776682487526,
+      "macro_precision": 0.8690920862592759,
+      "macro_recall": 0.7254776682487526,
+      "macro_f1": 0.7609268472452552,
+      "weighted_f1": 0.8297275573992877,
+      "confusion_matrix": [
+        [
+          124,
+          140
+        ],
+        [
+          14,
+          733
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8985507246376812,
+          "recall": 0.4696969696969697,
+          "f1": 0.6169154228855721,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8396334478808706,
+          "recall": 0.9812583668005355,
+          "f1": 0.9049382716049382,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9812583668005355,
+      "specificity": 0.4696969696969697,
+      "positive_predictive_value": 0.8396334478808706,
+      "negative_predictive_value": 0.8985507246376812,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.21,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8496538081107814,
+      "balanced_accuracy": 0.7317147377388341,
+      "macro_precision": 0.8660130718954249,
+      "macro_recall": 0.7317147377388341,
+      "macro_f1": 0.7666375100225964,
+      "weighted_f1": 0.8331331517748242,
+      "confusion_matrix": [
+        [
+          128,
+          136
+        ],
+        [
+          16,
+          731
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8888888888888888,
+          "recall": 0.48484848484848486,
+          "f1": 0.6274509803921569,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8431372549019608,
+          "recall": 0.9785809906291834,
+          "f1": 0.9058240396530359,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9785809906291834,
+      "specificity": 0.48484848484848486,
+      "positive_predictive_value": 0.8431372549019608,
+      "negative_predictive_value": 0.8888888888888888,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.22,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8496538081107814,
+      "balanced_accuracy": 0.7341639284410368,
+      "macro_precision": 0.8615530362343804,
+      "macro_recall": 0.7341639284410368,
+      "macro_f1": 0.7683290116384249,
+      "weighted_f1": 0.8339047657221448,
+      "confusion_matrix": [
+        [
+          130,
+          134
+        ],
+        [
+          18,
+          729
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8783783783783784,
+          "recall": 0.49242424242424243,
+          "f1": 0.6310679611650486,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8447276940903824,
+          "recall": 0.9759036144578314,
+          "f1": 0.9055900621118013,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9759036144578314,
+      "specificity": 0.49242424242424243,
+      "positive_predictive_value": 0.8447276940903824,
+      "negative_predictive_value": 0.8783783783783784,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.23,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8536102868447082,
+      "balanced_accuracy": 0.7417396860167944,
+      "macro_precision": 0.8651200906807182,
+      "macro_recall": 0.7417396860167944,
+      "macro_f1": 0.7760381741546125,
+      "weighted_f1": 0.8390084773971608,
+      "confusion_matrix": [
+        [
+          134,
+          130
+        ],
+        [
+          18,
+          729
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.881578947368421,
+          "recall": 0.5075757575757576,
+          "f1": 0.6442307692307693,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8486612339930152,
+          "recall": 0.9759036144578314,
+          "f1": 0.9078455790784558,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9759036144578314,
+      "specificity": 0.5075757575757576,
+      "positive_predictive_value": 0.8486612339930152,
+      "negative_predictive_value": 0.881578947368421,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.24,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8585558852621167,
+      "balanced_accuracy": 0.7512093829864914,
+      "macro_precision": 0.8694901475260669,
+      "macro_recall": 0.7512093829864914,
+      "macro_f1": 0.7855066830261965,
+      "weighted_f1": 0.8453079790939075,
+      "confusion_matrix": [
+        [
+          139,
+          125
+        ],
+        [
+          18,
+          729
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8853503184713376,
+          "recall": 0.5265151515151515,
+          "f1": 0.6603325415676959,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8536299765807962,
+          "recall": 0.9759036144578314,
+          "f1": 0.9106808244846971,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9759036144578314,
+      "specificity": 0.5265151515151515,
+      "positive_predictive_value": 0.8536299765807962,
+      "negative_predictive_value": 0.8853503184713376,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.25,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8615232443125618,
+      "balanced_accuracy": 0.7568912011683095,
+      "macro_precision": 0.8720696239717979,
+      "macro_recall": 0.7568912011683095,
+      "macro_f1": 0.7911009044324273,
+      "weighted_f1": 0.8490463731924017,
+      "confusion_matrix": [
+        [
+          142,
+          122
+        ],
+        [
+          18,
+          729
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8875,
+          "recall": 0.5378787878787878,
+          "f1": 0.6698113207547169,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8566392479435958,
+          "recall": 0.9759036144578314,
+          "f1": 0.9123904881101377,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9759036144578314,
+      "specificity": 0.5378787878787878,
+      "positive_predictive_value": 0.8566392479435958,
+      "negative_predictive_value": 0.8875,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.26,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8625123639960435,
+      "balanced_accuracy": 0.7600097359133504,
+      "macro_precision": 0.8709630744299108,
+      "macro_recall": 0.7600097359133504,
+      "macro_f1": 0.7936628662462466,
+      "weighted_f1": 0.8506051734605479,
+      "confusion_matrix": [
+        [
+          144,
+          120
+        ],
+        [
+          19,
+          728
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8834355828220859,
+          "recall": 0.5454545454545454,
+          "f1": 0.6744730679156908,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8584905660377359,
+          "recall": 0.9745649263721553,
+          "f1": 0.9128526645768025,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9745649263721553,
+      "specificity": 0.5454545454545454,
+      "positive_predictive_value": 0.8584905660377359,
+      "negative_predictive_value": 0.8834355828220859,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.27,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8644906033630069,
+      "balanced_accuracy": 0.7662468054034319,
+      "macro_precision": 0.8689862120339007,
+      "macro_recall": 0.7662468054034319,
+      "macro_f1": 0.7986925121759441,
+      "weighted_f1": 0.8536760382025036,
+      "confusion_matrix": [
+        [
+          148,
+          116
+        ],
+        [
+          21,
+          726
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8757396449704142,
+          "recall": 0.5606060606060606,
+          "f1": 0.6836027713625866,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8622327790973872,
+          "recall": 0.9718875502008032,
+          "f1": 0.9137822529893015,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9718875502008032,
+      "specificity": 0.5606060606060606,
+      "positive_predictive_value": 0.8622327790973872,
+      "negative_predictive_value": 0.8757396449704142,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.28,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8654797230464887,
+      "balanced_accuracy": 0.770589935499574,
+      "macro_precision": 0.8664050591191859,
+      "macro_recall": 0.770589935499574,
+      "macro_f1": 0.8018195655181957,
+      "weighted_f1": 0.8554807454242436,
+      "confusion_matrix": [
+        [
+          151,
+          113
+        ],
+        [
+          23,
+          724
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.867816091954023,
+          "recall": 0.571969696969697,
+          "f1": 0.6894977168949772,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8649940262843488,
+          "recall": 0.9692101740294511,
+          "f1": 0.9141414141414141,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9692101740294511,
+      "specificity": 0.571969696969697,
+      "positive_predictive_value": 0.8649940262843488,
+      "negative_predictive_value": 0.867816091954023,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.29,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8654797230464887,
+      "balanced_accuracy": 0.7718145308506754,
+      "macro_precision": 0.8647523135547088,
+      "macro_recall": 0.7718145308506754,
+      "macro_f1": 0.8024709803470865,
+      "weighted_f1": 0.8557690936987699,
+      "confusion_matrix": [
+        [
+          152,
+          112
+        ],
+        [
+          24,
+          723
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8636363636363636,
+          "recall": 0.5757575757575758,
+          "f1": 0.6909090909090909,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8658682634730539,
+          "recall": 0.9678714859437751,
+          "f1": 0.9140328697850821,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9678714859437751,
+      "specificity": 0.5757575757575758,
+      "positive_predictive_value": 0.8658682634730539,
+      "negative_predictive_value": 0.8636363636363636,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.3,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8684470820969338,
+      "balanced_accuracy": 0.778720944383595,
+      "macro_precision": 0.8658789855554816,
+      "macro_recall": 0.778720944383595,
+      "macro_f1": 0.8083931230540138,
+      "weighted_f1": 0.8596405828026539,
+      "confusion_matrix": [
+        [
+          156,
+          108
+        ],
+        [
+          25,
+          722
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.861878453038674,
+          "recall": 0.5909090909090909,
+          "f1": 0.701123595505618,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8698795180722891,
+          "recall": 0.9665327978580991,
+          "f1": 0.9156626506024096,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9665327978580991,
+      "specificity": 0.5909090909090909,
+      "positive_predictive_value": 0.8698795180722891,
+      "negative_predictive_value": 0.861878453038674,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.31,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8714144411473789,
+      "balanced_accuracy": 0.7844027625654132,
+      "macro_precision": 0.868582750644025,
+      "macro_recall": 0.7844027625654132,
+      "macro_f1": 0.8136146532946089,
+      "weighted_f1": 0.8632013274205198,
+      "confusion_matrix": [
+        [
+          159,
+          105
+        ],
+        [
+          25,
+          722
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8641304347826086,
+          "recall": 0.6022727272727273,
+          "f1": 0.7098214285714286,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8730350665054414,
+          "recall": 0.9665327978580991,
+          "f1": 0.9174078780177891,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9665327978580991,
+      "specificity": 0.6022727272727273,
+      "positive_predictive_value": 0.8730350665054414,
+      "negative_predictive_value": 0.8641304347826086,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.32,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8733926805143423,
+      "balanced_accuracy": 0.7906398320554947,
+      "macro_precision": 0.8674370151932816,
+      "macro_recall": 0.7906398320554947,
+      "macro_f1": 0.818214510473793,
+      "weighted_f1": 0.8660620080134434,
+      "confusion_matrix": [
+        [
+          163,
+          101
+        ],
+        [
+          27,
+          720
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8578947368421053,
+          "recall": 0.6174242424242424,
+          "f1": 0.7180616740088106,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.876979293544458,
+          "recall": 0.963855421686747,
+          "f1": 0.9183673469387755,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.963855421686747,
+      "specificity": 0.6174242424242424,
+      "positive_predictive_value": 0.876979293544458,
+      "negative_predictive_value": 0.8578947368421053,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.33,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8714144411473789,
+      "balanced_accuracy": 0.7893011439698187,
+      "macro_precision": 0.8628186050061051,
+      "macro_recall": 0.7893011439698187,
+      "macro_f1": 0.8159491160852322,
+      "weighted_f1": 0.8642189395176949,
+      "confusion_matrix": [
+        [
+          163,
+          101
+        ],
+        [
+          29,
+          718
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8489583333333334,
+          "recall": 0.6174242424242424,
+          "f1": 0.7149122807017544,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8766788766788767,
+          "recall": 0.9611780455153949,
+          "f1": 0.9169859514687101,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9611780455153949,
+      "specificity": 0.6174242424242424,
+      "positive_predictive_value": 0.8766788766788767,
+      "negative_predictive_value": 0.8489583333333334,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.34,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8704253214638972,
+      "balanced_accuracy": 0.7886317999269806,
+      "macro_precision": 0.8605438514258206,
+      "macro_recall": 0.7886317999269806,
+      "macro_f1": 0.8148209254689215,
+      "weighted_f1": 0.8632991263093064,
+      "confusion_matrix": [
+        [
+          163,
+          101
+        ],
+        [
+          30,
+          717
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.844559585492228,
+          "recall": 0.6174242424242424,
+          "f1": 0.7133479212253829,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8765281173594132,
+          "recall": 0.9598393574297188,
+          "f1": 0.91629392971246,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9598393574297188,
+      "specificity": 0.6174242424242424,
+      "positive_predictive_value": 0.8765281173594132,
+      "negative_predictive_value": 0.844559585492228,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.35,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8753709198813057,
+      "balanced_accuracy": 0.7981014968966775,
+      "macro_precision": 0.8652018338365202,
+      "macro_recall": 0.7981014968966775,
+      "macro_f1": 0.8232517482517483,
+      "weighted_f1": 0.8691052271170965,
+      "confusion_matrix": [
+        [
+          168,
+          96
+        ],
+        [
+          30,
+          717
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8484848484848485,
+          "recall": 0.6363636363636364,
+          "f1": 0.7272727272727273,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8819188191881919,
+          "recall": 0.9598393574297188,
+          "f1": 0.9192307692307692,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9598393574297188,
+      "specificity": 0.6363636363636364,
+      "positive_predictive_value": 0.8819188191881919,
+      "negative_predictive_value": 0.8484848484848485,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.36,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8763600395647874,
+      "balanced_accuracy": 0.799995436290617,
+      "macro_precision": 0.8661255786320766,
+      "macro_recall": 0.799995436290617,
+      "macro_f1": 0.8249209979814829,
+      "weighted_f1": 0.8702586933915851,
+      "confusion_matrix": [
+        [
+          169,
+          95
+        ],
+        [
+          30,
+          717
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8492462311557789,
+          "recall": 0.6401515151515151,
+          "f1": 0.7300215982721382,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8830049261083743,
+          "recall": 0.9598393574297188,
+          "f1": 0.9198203976908275,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9598393574297188,
+      "specificity": 0.6401515151515151,
+      "positive_predictive_value": 0.8830049261083743,
+      "negative_predictive_value": 0.8492462311557789,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.37,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8753709198813057,
+      "balanced_accuracy": 0.799326092247779,
+      "macro_precision": 0.8639303329223181,
+      "macro_recall": 0.799326092247779,
+      "macro_f1": 0.8237876809348856,
+      "weighted_f1": 0.8693355866224923,
+      "confusion_matrix": [
+        [
+          169,
+          95
+        ],
+        [
+          31,
+          716
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.845,
+          "recall": 0.6401515151515151,
+          "f1": 0.728448275862069,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8828606658446363,
+          "recall": 0.9585006693440429,
+          "f1": 0.9191270860077022,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9585006693440429,
+      "specificity": 0.6401515151515151,
+      "positive_predictive_value": 0.8828606658446363,
+      "negative_predictive_value": 0.845,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.38,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8753709198813057,
+      "balanced_accuracy": 0.8005506875988804,
+      "macro_precision": 0.8626956638803559,
+      "macro_recall": 0.8005506875988804,
+      "macro_f1": 0.824318435076183,
+      "weighted_f1": 0.8695631142704477,
+      "confusion_matrix": [
+        [
+          170,
+          94
+        ],
+        [
+          32,
+          715
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8415841584158416,
+          "recall": 0.6439393939393939,
+          "f1": 0.7296137339055794,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8838071693448702,
+          "recall": 0.9571619812583668,
+          "f1": 0.9190231362467867,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9571619812583668,
+      "specificity": 0.6439393939393939,
+      "positive_predictive_value": 0.8838071693448702,
+      "negative_predictive_value": 0.8415841584158416,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.39,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8763600395647874,
+      "balanced_accuracy": 0.8036692223439211,
+      "macro_precision": 0.8624402348241844,
+      "macro_recall": 0.8036692223439211,
+      "macro_f1": 0.8264930521708449,
+      "weighted_f1": 0.8709317143687678,
+      "confusion_matrix": [
+        [
+          172,
+          92
+        ],
+        [
+          33,
+          714
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8390243902439024,
+          "recall": 0.6515151515151515,
+          "f1": 0.7334754797441365,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8858560794044665,
+          "recall": 0.9558232931726908,
+          "f1": 0.9195106245975532,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9558232931726908,
+      "specificity": 0.6515151515151515,
+      "positive_predictive_value": 0.8858560794044665,
+      "negative_predictive_value": 0.8390243902439024,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.4,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8773491592482691,
+      "balanced_accuracy": 0.8080123524400633,
+      "macro_precision": 0.8611111111111112,
+      "macro_recall": 0.8080123524400633,
+      "macro_f1": 0.8291466326497237,
+      "weighted_f1": 0.8725019778026052,
+      "confusion_matrix": [
+        [
+          175,
+          89
+        ],
+        [
+          35,
+          712
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8333333333333334,
+          "recall": 0.6628787878787878,
+          "f1": 0.7383966244725738,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8888888888888888,
+          "recall": 0.9531459170013387,
+          "f1": 0.9198966408268734,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9531459170013387,
+      "specificity": 0.6628787878787878,
+      "positive_predictive_value": 0.8888888888888888,
+      "negative_predictive_value": 0.8333333333333334,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.41,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8783382789317508,
+      "balanced_accuracy": 0.8099062918340026,
+      "macro_precision": 0.8620616113744075,
+      "macro_recall": 0.8099062918340026,
+      "macro_f1": 0.8307719525056987,
+      "weighted_f1": 0.8736348921769359,
+      "confusion_matrix": [
+        [
+          176,
+          88
+        ],
+        [
+          35,
+          712
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8341232227488151,
+          "recall": 0.6666666666666666,
+          "f1": 0.7410526315789474,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.89,
+          "recall": 0.9531459170013387,
+          "f1": 0.9204912734324499,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9531459170013387,
+      "specificity": 0.6666666666666666,
+      "positive_predictive_value": 0.89,
+      "negative_predictive_value": 0.8341232227488151,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.42,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8773491592482691,
+      "balanced_accuracy": 0.810461543142266,
+      "macro_precision": 0.8589717280924964,
+      "macro_recall": 0.810461543142266,
+      "macro_f1": 0.830137446614781,
+      "weighted_f1": 0.8729202931475666,
+      "confusion_matrix": [
+        [
+          177,
+          87
+        ],
+        [
+          37,
+          710
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8271028037383178,
+          "recall": 0.6704545454545454,
+          "f1": 0.7405857740585774,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.890840652446675,
+          "recall": 0.9504685408299867,
+          "f1": 0.9196891191709845,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9504685408299867,
+      "specificity": 0.6704545454545454,
+      "positive_predictive_value": 0.890840652446675,
+      "negative_predictive_value": 0.8271028037383178,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.43,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8793273986152325,
+      "balanced_accuracy": 0.8142494219301448,
+      "macro_precision": 0.8608927323549965,
+      "macro_recall": 0.8142494219301448,
+      "macro_f1": 0.8333576523994812,
+      "weighted_f1": 0.8751719413301927,
+      "confusion_matrix": [
+        [
+          179,
+          85
+        ],
+        [
+          37,
+          710
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8287037037037037,
+          "recall": 0.678030303030303,
+          "f1": 0.7458333333333333,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8930817610062893,
+          "recall": 0.9504685408299867,
+          "f1": 0.920881971465629,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9504685408299867,
+      "specificity": 0.678030303030303,
+      "positive_predictive_value": 0.8930817610062893,
+      "negative_predictive_value": 0.8287037037037037,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.44,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8793273986152325,
+      "balanced_accuracy": 0.8142494219301448,
+      "macro_precision": 0.8608927323549965,
+      "macro_recall": 0.8142494219301448,
+      "macro_f1": 0.8333576523994812,
+      "weighted_f1": 0.8751719413301927,
+      "confusion_matrix": [
+        [
+          179,
+          85
+        ],
+        [
+          37,
+          710
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8287037037037037,
+          "recall": 0.678030303030303,
+          "f1": 0.7458333333333333,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8930817610062893,
+          "recall": 0.9504685408299867,
+          "f1": 0.920881971465629,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9504685408299867,
+      "specificity": 0.678030303030303,
+      "positive_predictive_value": 0.8930817610062893,
+      "negative_predictive_value": 0.8287037037037037,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.45,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8793273986152325,
+      "balanced_accuracy": 0.8154740172812462,
+      "macro_precision": 0.8598806066846374,
+      "macro_recall": 0.8154740172812462,
+      "macro_f1": 0.8338335937921,
+      "weighted_f1": 0.8753714155871339,
+      "confusion_matrix": [
+        [
+          180,
+          84
+        ],
+        [
+          38,
+          709
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8256880733944955,
+          "recall": 0.6818181818181818,
+          "f1": 0.7468879668049793,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8940731399747793,
+          "recall": 0.9491298527443106,
+          "f1": 0.9207792207792208,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9491298527443106,
+      "specificity": 0.6818181818181818,
+      "positive_predictive_value": 0.8940731399747793,
+      "negative_predictive_value": 0.8256880733944955,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.46,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8793273986152325,
+      "balanced_accuracy": 0.8166986126323476,
+      "macro_precision": 0.8588984024824733,
+      "macro_recall": 0.8166986126323476,
+      "macro_f1": 0.8343050435791894,
+      "weighted_f1": 0.8755684164110846,
+      "confusion_matrix": [
+        [
+          181,
+          83
+        ],
+        [
+          39,
+          708
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8227272727272728,
+          "recall": 0.6856060606060606,
+          "f1": 0.7479338842975206,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8950695322376738,
+          "recall": 0.9477911646586346,
+          "f1": 0.9206762028608583,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9477911646586346,
+      "specificity": 0.6856060606060606,
+      "positive_predictive_value": 0.8950695322376738,
+      "negative_predictive_value": 0.8227272727272728,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.47,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8822947576656776,
+      "balanced_accuracy": 0.8223804308141658,
+      "macro_precision": 0.8617946324918623,
+      "macro_recall": 0.8223804308141658,
+      "macro_f1": 0.8390611936405166,
+      "weighted_f1": 0.8789119788011134,
+      "confusion_matrix": [
+        [
+          184,
+          80
+        ],
+        [
+          39,
+          708
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8251121076233184,
+          "recall": 0.696969696969697,
+          "f1": 0.75564681724846,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.8984771573604061,
+          "recall": 0.9477911646586346,
+          "f1": 0.9224755700325733,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9477911646586346,
+      "specificity": 0.696969696969697,
+      "positive_predictive_value": 0.8984771573604061,
+      "negative_predictive_value": 0.8251121076233184,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.48,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8832838773491593,
+      "balanced_accuracy": 0.8267235609103079,
+      "macro_precision": 0.8609178597835585,
+      "macro_recall": 0.8267235609103079,
+      "macro_f1": 0.8415192093097401,
+      "weighted_f1": 0.8803869061556735,
+      "confusion_matrix": [
+        [
+          187,
+          77
+        ],
+        [
+          41,
+          706
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8201754385964912,
+          "recall": 0.7083333333333334,
+          "f1": 0.7601626016260162,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9016602809706258,
+          "recall": 0.9451137884872824,
+          "f1": 0.9228758169934641,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9451137884872824,
+      "specificity": 0.7083333333333334,
+      "positive_predictive_value": 0.9016602809706258,
+      "negative_predictive_value": 0.8201754385964912,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.49,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8852621167161226,
+      "balanced_accuracy": 0.8354098211025922,
+      "macro_precision": 0.859537217215476,
+      "macro_recall": 0.8354098211025922,
+      "macro_f1": 0.8463042566575802,
+      "weighted_f1": 0.8832721277936824,
+      "confusion_matrix": [
+        [
+          193,
+          71
+        ],
+        [
+          45,
+          702
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8109243697478992,
+          "recall": 0.7310606060606061,
+          "f1": 0.7689243027888446,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.908150064683053,
+          "recall": 0.9397590361445783,
+          "f1": 0.9236842105263158,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9397590361445783,
+      "specificity": 0.7310606060606061,
+      "positive_predictive_value": 0.908150064683053,
+      "negative_predictive_value": 0.8109243697478992,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.5,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8892185954500494,
+      "balanced_accuracy": 0.8442101740294512,
+      "macro_precision": 0.8627129330797016,
+      "macro_recall": 0.8442101740294512,
+      "macro_f1": 0.8527756685632262,
+      "weighted_f1": 0.8877695725122036,
+      "confusion_matrix": [
+        [
+          198,
+          66
+        ],
+        [
+          46,
+          701
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8114754098360656,
+          "recall": 0.75,
+          "f1": 0.7795275590551181,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9139504563233377,
+          "recall": 0.9384203480589023,
+          "f1": 0.9260237780713342,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9384203480589023,
+      "specificity": 0.75,
+      "positive_predictive_value": 0.9139504563233377,
+      "negative_predictive_value": 0.8114754098360656,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.51,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8911968348170128,
+      "balanced_accuracy": 0.8479980528173299,
+      "macro_precision": 0.8646739996811732,
+      "macro_recall": 0.8479980528173299,
+      "macro_f1": 0.8557812013694366,
+      "weighted_f1": 0.8899244168488364,
+      "confusion_matrix": [
+        [
+          200,
+          64
+        ],
+        [
+          46,
+          701
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8130081300813008,
+          "recall": 0.7575757575757576,
+          "f1": 0.7843137254901961,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9163398692810457,
+          "recall": 0.9384203480589023,
+          "f1": 0.9272486772486772,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9384203480589023,
+      "specificity": 0.7575757575757576,
+      "positive_predictive_value": 0.9163398692810457,
+      "negative_predictive_value": 0.8130081300813008,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.52,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8882294757665677,
+      "balanced_accuracy": 0.8472146160399172,
+      "macro_precision": 0.8589510379534493,
+      "macro_recall": 0.8472146160399172,
+      "macro_f1": 0.8527995567610054,
+      "weighted_f1": 0.8873008690184381,
+      "confusion_matrix": [
+        [
+          201,
+          63
+        ],
+        [
+          50,
+          697
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8007968127490039,
+          "recall": 0.7613636363636364,
+          "f1": 0.7805825242718447,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9171052631578948,
+          "recall": 0.9330655957161981,
+          "f1": 0.9250165892501659,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9330655957161981,
+      "specificity": 0.7613636363636364,
+      "positive_predictive_value": 0.9171052631578948,
+      "negative_predictive_value": 0.8007968127490039,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.53,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8862512363996043,
+      "balanced_accuracy": 0.8458759279542412,
+      "macro_precision": 0.8556764733488377,
+      "macro_recall": 0.8458759279542412,
+      "macro_f1": 0.8505754512681777,
+      "weighted_f1": 0.8854568363258277,
+      "confusion_matrix": [
+        [
+          201,
+          63
+        ],
+        [
+          52,
+          695
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7944664031620553,
+          "recall": 0.7613636363636364,
+          "f1": 0.7775628626692457,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.91688654353562,
+          "recall": 0.9303882195448461,
+          "f1": 0.9235880398671097,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9303882195448461,
+      "specificity": 0.7613636363636364,
+      "positive_predictive_value": 0.91688654353562,
+      "negative_predictive_value": 0.7944664031620553,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.54,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8852621167161226,
+      "balanced_accuracy": 0.8452065839114031,
+      "macro_precision": 0.8540576665037082,
+      "macro_recall": 0.8452065839114031,
+      "macro_f1": 0.849467058243654,
+      "weighted_f1": 0.8845360506213464,
+      "confusion_matrix": [
+        [
+          201,
+          63
+        ],
+        [
+          53,
+          694
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7913385826771654,
+          "recall": 0.7613636363636364,
+          "f1": 0.7760617760617761,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.916776750330251,
+          "recall": 0.92904953145917,
+          "f1": 0.9228723404255319,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.92904953145917,
+      "specificity": 0.7613636363636364,
+      "positive_predictive_value": 0.916776750330251,
+      "negative_predictive_value": 0.7913385826771654,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.55,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8852621167161226,
+      "balanced_accuracy": 0.847655774613606,
+      "macro_precision": 0.8529062046388091,
+      "macro_recall": 0.847655774613606,
+      "macro_f1": 0.8502222222222222,
+      "weighted_f1": 0.8848321793603693,
+      "confusion_matrix": [
+        [
+          203,
+          61
+        ],
+        [
+          55,
+          692
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7868217054263565,
+          "recall": 0.7689393939393939,
+          "f1": 0.7777777777777778,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9189907038512616,
+          "recall": 0.9263721552878179,
+          "f1": 0.9226666666666666,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9263721552878179,
+      "specificity": 0.7689393939393939,
+      "positive_predictive_value": 0.9189907038512616,
+      "negative_predictive_value": 0.7868217054263565,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.56,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.884272997032641,
+      "balanced_accuracy": 0.8494356212729707,
+      "macro_precision": 0.8502953376303857,
+      "macro_recall": 0.8494356212729707,
+      "macro_f1": 0.8498638726177707,
+      "weighted_f1": 0.8842019038003788,
+      "confusion_matrix": [
+        [
+          205,
+          59
+        ],
+        [
+          58,
+          689
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.779467680608365,
+          "recall": 0.7765151515151515,
+          "f1": 0.777988614800759,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9211229946524064,
+          "recall": 0.9223560910307899,
+          "f1": 0.9217391304347826,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9223560910307899,
+      "specificity": 0.7765151515151515,
+      "positive_predictive_value": 0.9211229946524064,
+      "negative_predictive_value": 0.779467680608365,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.57,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8803165182987142,
+      "balanced_accuracy": 0.8492074358038213,
+      "macro_precision": 0.8434053056746784,
+      "macro_recall": 0.8492074358038213,
+      "macro_f1": 0.8462299429950537,
+      "weighted_f1": 0.8808177914649443,
+      "confusion_matrix": [
+        [
+          207,
+          57
+        ],
+        [
+          64,
+          683
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7638376383763837,
+          "recall": 0.7840909090909091,
+          "f1": 0.7738317757009345,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.922972972972973,
+          "recall": 0.9143239625167336,
+          "f1": 0.9186281102891728,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9143239625167336,
+      "specificity": 0.7840909090909091,
+      "positive_predictive_value": 0.922972972972973,
+      "negative_predictive_value": 0.7638376383763837,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.58,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8803165182987142,
+      "balanced_accuracy": 0.8504320311549227,
+      "macro_precision": 0.8430120015485869,
+      "macro_recall": 0.8504320311549227,
+      "macro_f1": 0.8465963169873785,
+      "weighted_f1": 0.8809567752856382,
+      "confusion_matrix": [
+        [
+          208,
+          56
+        ],
+        [
+          65,
+          682
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7619047619047619,
+          "recall": 0.7878787878787878,
+          "f1": 0.7746741154562383,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.924119241192412,
+          "recall": 0.9129852744310576,
+          "f1": 0.9185185185185185,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9129852744310576,
+      "specificity": 0.7878787878787878,
+      "positive_predictive_value": 0.924119241192412,
+      "negative_predictive_value": 0.7619047619047619,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.59,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8793273986152325,
+      "balanced_accuracy": 0.8522118778142874,
+      "macro_precision": 0.8408629167607251,
+      "macro_recall": 0.8522118778142874,
+      "macro_f1": 0.8462376583225292,
+      "weighted_f1": 0.8803151520568057,
+      "confusion_matrix": [
+        [
+          210,
+          54
+        ],
+        [
+          68,
+          679
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7553956834532374,
+          "recall": 0.7954545454545454,
+          "f1": 0.7749077490774908,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9263301500682128,
+          "recall": 0.9089692101740294,
+          "f1": 0.9175675675675675,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9089692101740294,
+      "specificity": 0.7954545454545454,
+      "positive_predictive_value": 0.9263301500682128,
+      "negative_predictive_value": 0.7553956834532374,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.6,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8763600395647874,
+      "balanced_accuracy": 0.8514284410368748,
+      "macro_precision": 0.8363904205335301,
+      "macro_recall": 0.8514284410368748,
+      "macro_f1": 0.8433675208378522,
+      "weighted_f1": 0.8777110263230024,
+      "confusion_matrix": [
+        [
+          211,
+          53
+        ],
+        [
+          72,
+          675
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7455830388692579,
+          "recall": 0.7992424242424242,
+          "f1": 0.7714808043875686,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9271978021978022,
+          "recall": 0.9036144578313253,
+          "f1": 0.9152542372881356,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9036144578313253,
+      "specificity": 0.7992424242424242,
+      "positive_predictive_value": 0.9271978021978022,
+      "negative_predictive_value": 0.7455830388692579,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.61,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8714144411473789,
+      "balanced_accuracy": 0.8480817208226847,
+      "macro_precision": 0.8296666090364223,
+      "macro_recall": 0.8480817208226847,
+      "macro_f1": 0.8380286897367643,
+      "weighted_f1": 0.8731601013518554,
+      "confusion_matrix": [
+        [
+          211,
+          53
+        ],
+        [
+          77,
+          670
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7326388888888888,
+          "recall": 0.7992424242424242,
+          "f1": 0.7644927536231884,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9266943291839558,
+          "recall": 0.8969210174029452,
+          "f1": 0.9115646258503401,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8969210174029452,
+      "specificity": 0.7992424242424242,
+      "positive_predictive_value": 0.9266943291839558,
+      "negative_predictive_value": 0.7326388888888888,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.62,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8664688427299704,
+      "balanced_accuracy": 0.8471841913106973,
+      "macro_precision": 0.8228715728715729,
+      "macro_recall": 0.8471841913106973,
+      "macro_f1": 0.8334779123521725,
+      "weighted_f1": 0.8688881776243422,
+      "confusion_matrix": [
+        [
+          213,
+          51
+        ],
+        [
+          84,
+          663
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7171717171717171,
+          "recall": 0.8068181818181818,
+          "f1": 0.7593582887700535,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9285714285714286,
+          "recall": 0.8875502008032129,
+          "f1": 0.9075975359342916,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8875502008032129,
+      "specificity": 0.8068181818181818,
+      "positive_predictive_value": 0.9285714285714286,
+      "negative_predictive_value": 0.7171717171717171,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.63,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8654797230464887,
+      "balanced_accuracy": 0.8477394426189606,
+      "macro_precision": 0.8215049226441632,
+      "macro_recall": 0.8477394426189606,
+      "macro_f1": 0.8327933922890582,
+      "weighted_f1": 0.8681121792148723,
+      "confusion_matrix": [
+        [
+          214,
+          50
+        ],
+        [
+          86,
+          661
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7133333333333334,
+          "recall": 0.8106060606060606,
+          "f1": 0.7588652482269503,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.929676511954993,
+          "recall": 0.8848728246318608,
+          "f1": 0.906721536351166,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8848728246318608,
+      "specificity": 0.8106060606060606,
+      "positive_predictive_value": 0.929676511954993,
+      "negative_predictive_value": 0.7133333333333334,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.64,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8644906033630069,
+      "balanced_accuracy": 0.848294693927224,
+      "macro_precision": 0.8201809587738436,
+      "macro_recall": 0.848294693927224,
+      "macro_f1": 0.8321096747213585,
+      "weighted_f1": 0.8673348741220706,
+      "confusion_matrix": [
+        [
+          215,
+          49
+        ],
+        [
+          88,
+          659
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7095709570957096,
+          "recall": 0.8143939393939394,
+          "f1": 0.7583774250440917,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9307909604519774,
+          "recall": 0.8821954484605087,
+          "f1": 0.9058419243986254,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8821954484605087,
+      "specificity": 0.8143939393939394,
+      "positive_predictive_value": 0.9307909604519774,
+      "negative_predictive_value": 0.7095709570957096,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.65,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8635014836795252,
+      "balanced_accuracy": 0.847625349884386,
+      "macro_precision": 0.818964955706097,
+      "macro_recall": 0.847625349884386,
+      "macro_f1": 0.8310658310246624,
+      "weighted_f1": 0.8664302107815445,
+      "confusion_matrix": [
+        [
+          215,
+          49
+        ],
+        [
+          89,
+          658
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7072368421052632,
+          "recall": 0.8143939393939394,
+          "f1": 0.7570422535211268,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9306930693069307,
+          "recall": 0.8808567603748326,
+          "f1": 0.9050894085281981,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8808567603748326,
+      "specificity": 0.8143939393939394,
+      "positive_predictive_value": 0.9306930693069307,
+      "negative_predictive_value": 0.7072368421052632,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.66,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8595450049455984,
+      "balanced_accuracy": 0.844947973713034,
+      "macro_precision": 0.814175333912176,
+      "macro_recall": 0.844947973713034,
+      "macro_f1": 0.8269086086327466,
+      "weighted_f1": 0.8628160788357248,
+      "confusion_matrix": [
+        [
+          215,
+          49
+        ],
+        [
+          93,
+          654
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.698051948051948,
+          "recall": 0.8143939393939394,
+          "f1": 0.7517482517482518,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.930298719772404,
+          "recall": 0.8755020080321285,
+          "f1": 0.9020689655172414,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8755020080321285,
+      "specificity": 0.8143939393939394,
+      "positive_predictive_value": 0.930298719772404,
+      "negative_predictive_value": 0.698051948051948,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.67,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.857566765578635,
+      "balanced_accuracy": 0.8460584763295607,
+      "macro_precision": 0.8118254758793373,
+      "macro_recall": 0.8460584763295607,
+      "macro_f1": 0.8255710301066816,
+      "weighted_f1": 0.8612614232543802,
+      "confusion_matrix": [
+        [
+          217,
+          47
+        ],
+        [
+          97,
+          650
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6910828025477707,
+          "recall": 0.821969696969697,
+          "f1": 0.7508650519031141,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9325681492109039,
+          "recall": 0.8701472556894244,
+          "f1": 0.9002770083102493,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8701472556894244,
+      "specificity": 0.821969696969697,
+      "positive_predictive_value": 0.9325681492109039,
+      "negative_predictive_value": 0.6910828025477707,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.68,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8555885262116716,
+      "balanced_accuracy": 0.8447197882438846,
+      "macro_precision": 0.8095414807394591,
+      "macro_recall": 0.8447197882438846,
+      "macro_f1": 0.8235137978860778,
+      "weighted_f1": 0.8594583310212561,
+      "confusion_matrix": [
+        [
+          217,
+          47
+        ],
+        [
+          99,
+          648
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6867088607594937,
+          "recall": 0.821969696969697,
+          "f1": 0.7482758620689656,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9323741007194245,
+          "recall": 0.8674698795180723,
+          "f1": 0.8987517337031901,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8674698795180723,
+      "specificity": 0.821969696969697,
+      "positive_predictive_value": 0.9323741007194245,
+      "negative_predictive_value": 0.6867088607594937,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.69,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8526211671612265,
+      "balanced_accuracy": 0.843936351466472,
+      "macro_precision": 0.8062305295950156,
+      "macro_recall": 0.843936351466472,
+      "macro_f1": 0.8208054529557661,
+      "weighted_f1": 0.8568781993436473,
+      "confusion_matrix": [
+        [
+          218,
+          46
+        ],
+        [
+          103,
+          644
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6791277258566978,
+          "recall": 0.8257575757575758,
+          "f1": 0.7452991452991453,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9333333333333333,
+          "recall": 0.8621151271753681,
+          "f1": 0.8963117606123869,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8621151271753681,
+      "specificity": 0.8257575757575758,
+      "positive_predictive_value": 0.9333333333333333,
+      "negative_predictive_value": 0.6791277258566978,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.7,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8496538081107814,
+      "balanced_accuracy": 0.8443775100401607,
+      "macro_precision": 0.8031550191050959,
+      "macro_recall": 0.8443775100401607,
+      "macro_f1": 0.8184747684747684,
+      "weighted_f1": 0.854416238985972,
+      "confusion_matrix": [
+        [
+          220,
+          44
+        ],
+        [
+          108,
+          639
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6707317073170732,
+          "recall": 0.8333333333333334,
+          "f1": 0.7432432432432432,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9355783308931186,
+          "recall": 0.8554216867469879,
+          "f1": 0.8937062937062937,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8554216867469879,
+      "specificity": 0.8333333333333334,
+      "positive_predictive_value": 0.9355783308931186,
+      "negative_predictive_value": 0.6707317073170732,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.71,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8456973293768546,
+      "balanced_accuracy": 0.84292472921991,
+      "macro_precision": 0.7990805685527026,
+      "macro_recall": 0.84292472921991,
+      "macro_f1": 0.8147899364924279,
+      "weighted_f1": 0.8509358705437067,
+      "confusion_matrix": [
+        [
+          221,
+          43
+        ],
+        [
+          113,
+          634
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6616766467065869,
+          "recall": 0.8371212121212122,
+          "f1": 0.7391304347826086,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9364844903988183,
+          "recall": 0.8487282463186078,
+          "f1": 0.8904494382022472,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8487282463186078,
+      "specificity": 0.8371212121212122,
+      "positive_predictive_value": 0.9364844903988183,
+      "negative_predictive_value": 0.6616766467065869,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.72,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8427299703264095,
+      "balanced_accuracy": 0.8421412924424974,
+      "macro_precision": 0.7961836283185841,
+      "macro_recall": 0.8421412924424974,
+      "macro_f1": 0.8121338340012412,
+      "weighted_f1": 0.8483542600920654,
+      "confusion_matrix": [
+        [
+          222,
+          42
+        ],
+        [
+          117,
+          630
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6548672566371682,
+          "recall": 0.8409090909090909,
+          "f1": 0.736318407960199,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9375,
+          "recall": 0.8433734939759037,
+          "f1": 0.8879492600422833,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8433734939759037,
+      "specificity": 0.8409090909090909,
+      "positive_predictive_value": 0.9375,
+      "negative_predictive_value": 0.6548672566371682,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.73,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8397626112759644,
+      "balanced_accuracy": 0.8413578556650846,
+      "macro_precision": 0.793393274293086,
+      "macro_recall": 0.8413578556650846,
+      "macro_f1": 0.8094920159309165,
+      "weighted_f1": 0.8457716624610856,
+      "confusion_matrix": [
+        [
+          223,
+          41
+        ],
+        [
+          121,
+          626
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6482558139534884,
+          "recall": 0.8446969696969697,
+          "f1": 0.7335526315789473,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9385307346326837,
+          "recall": 0.8380187416331994,
+          "f1": 0.8854314002828855,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8380187416331994,
+      "specificity": 0.8446969696969697,
+      "positive_predictive_value": 0.9385307346326837,
+      "negative_predictive_value": 0.6482558139534884,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.74,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8348170128585559,
+      "balanced_accuracy": 0.8380111354508946,
+      "macro_precision": 0.7885174733160779,
+      "macro_recall": 0.8380111354508946,
+      "macro_f1": 0.8045227777153859,
+      "weighted_f1": 0.8412868871981777,
+      "confusion_matrix": [
+        [
+          223,
+          41
+        ],
+        [
+          126,
+          621
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6389684813753582,
+          "recall": 0.8446969696969697,
+          "f1": 0.7275693311582382,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9380664652567976,
+          "recall": 0.8313253012048193,
+          "f1": 0.8814762242725337,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8313253012048193,
+      "specificity": 0.8446969696969697,
+      "positive_predictive_value": 0.9380664652567976,
+      "negative_predictive_value": 0.6389684813753582,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.75,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8308605341246291,
+      "balanced_accuracy": 0.8353337592795425,
+      "macro_precision": 0.7847090074653211,
+      "macro_recall": 0.8353337592795425,
+      "macro_f1": 0.8005721635511054,
+      "weighted_f1": 0.8377023234166179,
+      "confusion_matrix": [
+        [
+          223,
+          41
+        ],
+        [
+          130,
+          617
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6317280453257791,
+          "recall": 0.8446969696969697,
+          "f1": 0.7228525121555915,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9376899696048632,
+          "recall": 0.8259705488621151,
+          "f1": 0.8782918149466192,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8259705488621151,
+      "specificity": 0.8446969696969697,
+      "positive_predictive_value": 0.9376899696048632,
+      "negative_predictive_value": 0.6317280453257791,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.76,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8298714144411474,
+      "balanced_accuracy": 0.8358890105878058,
+      "macro_precision": 0.7840723904279956,
+      "macro_recall": 0.8358890105878058,
+      "macro_f1": 0.7999493810685196,
+      "weighted_f1": 0.8369118928817656,
+      "confusion_matrix": [
+        [
+          224,
+          40
+        ],
+        [
+          132,
+          615
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6292134831460674,
+          "recall": 0.8484848484848485,
+          "f1": 0.7225806451612903,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9389312977099237,
+          "recall": 0.8232931726907631,
+          "f1": 0.8773181169757489,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8232931726907631,
+      "specificity": 0.8484848484848485,
+      "positive_predictive_value": 0.9389312977099237,
+      "negative_predictive_value": 0.6292134831460674,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.77,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8259149357072205,
+      "balanced_accuracy": 0.8368854204697578,
+      "macro_precision": 0.7814271190748507,
+      "macro_recall": 0.8368854204697578,
+      "macro_f1": 0.7970990695128626,
+      "weighted_f1": 0.833629419570277,
+      "confusion_matrix": [
+        [
+          227,
+          37
+        ],
+        [
+          139,
+          608
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6202185792349727,
+          "recall": 0.8598484848484849,
+          "f1": 0.7206349206349206,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9426356589147287,
+          "recall": 0.8139223560910308,
+          "f1": 0.8735632183908046,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8139223560910308,
+      "specificity": 0.8598484848484849,
+      "positive_predictive_value": 0.9426356589147287,
+      "negative_predictive_value": 0.6202185792349727,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.78,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8189910979228486,
+      "balanced_accuracy": 0.8322000121698917,
+      "macro_precision": 0.7752926790321631,
+      "macro_recall": 0.8322000121698917,
+      "macro_f1": 0.7902929458370407,
+      "weighted_f1": 0.8273549978622954,
+      "confusion_matrix": [
+        [
+          227,
+          37
+        ],
+        [
+          146,
+          601
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6085790884718498,
+          "recall": 0.8598484848484849,
+          "f1": 0.7127158555729984,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9420062695924765,
+          "recall": 0.8045515394912985,
+          "f1": 0.867870036101083,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8045515394912985,
+      "specificity": 0.8598484848484849,
+      "positive_predictive_value": 0.9420062695924765,
+      "negative_predictive_value": 0.6085790884718498,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.79,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8180019782393669,
+      "balanced_accuracy": 0.832755263478155,
+      "macro_precision": 0.7748450326687888,
+      "macro_recall": 0.832755263478155,
+      "macro_f1": 0.7896798118668596,
+      "weighted_f1": 0.8265520662008786,
+      "confusion_matrix": [
+        [
+          228,
+          36
+        ],
+        [
+          148,
+          599
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6063829787234043,
+          "recall": 0.8636363636363636,
+          "f1": 0.7125,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9433070866141732,
+          "recall": 0.8018741633199464,
+          "f1": 0.8668596237337193,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.8018741633199464,
+      "specificity": 0.8636363636363636,
+      "positive_predictive_value": 0.9433070866141732,
+      "negative_predictive_value": 0.6063829787234043,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.8,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8130563798219584,
+      "balanced_accuracy": 0.8306331386150663,
+      "macro_precision": 0.771089371538807,
+      "macro_recall": 0.8306331386150663,
+      "macro_f1": 0.7852139946606715,
+      "weighted_f1": 0.8221586980477638,
+      "confusion_matrix": [
+        [
+          229,
+          35
+        ],
+        [
+          154,
+          593
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.597911227154047,
+          "recall": 0.8674242424242424,
+          "f1": 0.7078825347758887,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9442675159235668,
+          "recall": 0.7938420348058902,
+          "f1": 0.8625454545454545,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7938420348058902,
+      "specificity": 0.8674242424242424,
+      "positive_predictive_value": 0.9442675159235668,
+      "negative_predictive_value": 0.597911227154047,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.81,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.811078140454995,
+      "balanced_accuracy": 0.8292944505293902,
+      "macro_precision": 0.7694473258371022,
+      "macro_recall": 0.8292944505293902,
+      "macro_f1": 0.7832948218840796,
+      "weighted_f1": 0.8203648298115717,
+      "confusion_matrix": [
+        [
+          229,
+          35
+        ],
+        [
+          156,
+          591
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5948051948051948,
+          "recall": 0.8674242424242424,
+          "f1": 0.7057010785824345,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9440894568690096,
+          "recall": 0.7911646586345381,
+          "f1": 0.8608885651857247,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7911646586345381,
+      "specificity": 0.8674242424242424,
+      "positive_predictive_value": 0.9440894568690096,
+      "negative_predictive_value": 0.5948051948051948,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.82,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8041543026706232,
+      "balanced_accuracy": 0.8246090422295241,
+      "macro_precision": 0.7638204312419636,
+      "macro_recall": 0.8246090422295241,
+      "macro_f1": 0.7766109881084169,
+      "weighted_f1": 0.8140854132733342,
+      "confusion_matrix": [
+        [
+          229,
+          35
+        ],
+        [
+          163,
+          584
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5841836734693877,
+          "recall": 0.8674242424242424,
+          "f1": 0.698170731707317,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9434571890145396,
+          "recall": 0.7817938420348058,
+          "f1": 0.8550512445095169,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7817938420348058,
+      "specificity": 0.8674242424242424,
+      "positive_predictive_value": 0.9434571890145396,
+      "negative_predictive_value": 0.5841836734693877,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.83,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8001978239366964,
+      "balanced_accuracy": 0.8243808567603748,
+      "macro_precision": 0.7617450900163667,
+      "macro_recall": 0.8243808567603748,
+      "macro_f1": 0.7735174867363415,
+      "weighted_f1": 0.8106546707933195,
+      "confusion_matrix": [
+        [
+          231,
+          33
+        ],
+        [
+          169,
+          578
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5775,
+          "recall": 0.875,
+          "f1": 0.6957831325301205,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9459901800327333,
+          "recall": 0.7737617135207496,
+          "f1": 0.8512518409425626,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7737617135207496,
+      "specificity": 0.875,
+      "positive_predictive_value": 0.9459901800327333,
+      "negative_predictive_value": 0.5775,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.84,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7932739861523245,
+      "balanced_accuracy": 0.8209200438116101,
+      "macro_precision": 0.7570405088173895,
+      "macro_recall": 0.8209200438116101,
+      "macro_f1": 0.7672603227089132,
+      "weighted_f1": 0.8044336938425451,
+      "confusion_matrix": [
+        [
+          232,
+          32
+        ],
+        [
+          177,
+          570
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5672371638141809,
+          "recall": 0.8787878787878788,
+          "f1": 0.6894502228826151,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.946843853820598,
+          "recall": 0.7630522088353414,
+          "f1": 0.8450704225352113,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7630522088353414,
+      "specificity": 0.8787878787878788,
+      "positive_predictive_value": 0.946843853820598,
+      "negative_predictive_value": 0.5672371638141809,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.85,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7833827893175074,
+      "balanced_accuracy": 0.8154511987343313,
+      "macro_precision": 0.7504509038206046,
+      "macro_recall": 0.8154511987343313,
+      "macro_f1": 0.7582462097844067,
+      "weighted_f1": 0.7954884426509332,
+      "confusion_matrix": [
+        [
+          233,
+          31
+        ],
+        [
+          188,
+          559
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5534441805225653,
+          "recall": 0.8825757575757576,
+          "f1": 0.6802919708029197,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9474576271186441,
+          "recall": 0.7483266398929049,
+          "f1": 0.8362004487658938,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7483266398929049,
+      "specificity": 0.8825757575757576,
+      "positive_predictive_value": 0.9474576271186441,
+      "negative_predictive_value": 0.5534441805225653,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.86,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7784371909000989,
+      "balanced_accuracy": 0.8121044785201412,
+      "macro_precision": 0.7469784519080294,
+      "macro_recall": 0.8121044785201412,
+      "macro_f1": 0.7535970753362058,
+      "weighted_f1": 0.7909733239884189,
+      "confusion_matrix": [
+        [
+          233,
+          31
+        ],
+        [
+          193,
+          554
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5469483568075117,
+          "recall": 0.8825757575757576,
+          "f1": 0.6753623188405797,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.947008547008547,
+          "recall": 0.7416331994645248,
+          "f1": 0.8318318318318318,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7416331994645248,
+      "specificity": 0.8825757575757576,
+      "positive_predictive_value": 0.947008547008547,
+      "negative_predictive_value": 0.5469483568075117,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.87,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7734915924826904,
+      "balanced_accuracy": 0.8112069490081538,
+      "macro_precision": 0.7449413314176245,
+      "macro_recall": 0.8112069490081538,
+      "macro_f1": 0.7496488342595026,
+      "weighted_f1": 0.7865592580473223,
+      "confusion_matrix": [
+        [
+          235,
+          29
+        ],
+        [
+          200,
+          547
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5402298850574713,
+          "recall": 0.8901515151515151,
+          "f1": 0.6723891273247496,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9496527777777778,
+          "recall": 0.7322623828647925,
+          "f1": 0.8269085411942555,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7322623828647925,
+      "specificity": 0.8901515151515151,
+      "positive_predictive_value": 0.9496527777777778,
+      "negative_predictive_value": 0.5402298850574713,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.88,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7655786350148368,
+      "balanced_accuracy": 0.807076792016551,
+      "macro_precision": 0.7404335569936873,
+      "macro_recall": 0.807076792016551,
+      "macro_f1": 0.7426118547625621,
+      "weighted_f1": 0.779343493377955,
+      "confusion_matrix": [
+        [
+          236,
+          28
+        ],
+        [
+          209,
+          538
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5303370786516854,
+          "recall": 0.8939393939393939,
+          "f1": 0.6657263751763046,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.950530035335689,
+          "recall": 0.7202141900937081,
+          "f1": 0.8194973343488196,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7202141900937081,
+      "specificity": 0.8939393939393939,
+      "positive_predictive_value": 0.950530035335689,
+      "negative_predictive_value": 0.5303370786516854,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.89,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7556874381800198,
+      "balanced_accuracy": 0.8003833515881709,
+      "macro_precision": 0.7341608032255514,
+      "macro_recall": 0.8003833515881709,
+      "macro_f1": 0.7334523838750204,
+      "weighted_f1": 0.7702316004137695,
+      "confusion_matrix": [
+        [
+          236,
+          28
+        ],
+        [
+          219,
+          528
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.5186813186813187,
+          "recall": 0.8939393939393939,
+          "f1": 0.6564673157162726,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9496402877697842,
+          "recall": 0.7068273092369478,
+          "f1": 0.8104374520337683,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.7068273092369478,
+      "specificity": 0.8939393939393939,
+      "positive_predictive_value": 0.9496402877697842,
+      "negative_predictive_value": 0.5186813186813187,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.9,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7507418397626113,
+      "balanced_accuracy": 0.7982612267250822,
+      "macro_precision": 0.7319033425590802,
+      "macro_recall": 0.7982612267250822,
+      "macro_f1": 0.7292240587695134,
+      "weighted_f1": 0.7656910349788688,
+      "confusion_matrix": [
+        [
+          237,
+          27
+        ],
+        [
+          225,
+          522
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.512987012987013,
+          "recall": 0.8977272727272727,
+          "f1": 0.6528925619834711,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9508196721311475,
+          "recall": 0.6987951807228916,
+          "f1": 0.8055555555555556,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.6987951807228916,
+      "specificity": 0.8977272727272727,
+      "positive_predictive_value": 0.9508196721311475,
+      "negative_predictive_value": 0.512987012987013,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.91,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7368941641938674,
+      "balanced_accuracy": 0.7913396008275526,
+      "macro_precision": 0.7254178436911487,
+      "macro_recall": 0.7913396008275526,
+      "macro_f1": 0.7171677015498006,
+      "weighted_f1": 0.7528526508272698,
+      "confusion_matrix": [
+        [
+          239,
+          25
+        ],
+        [
+          241,
+          506
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.4979166666666667,
+          "recall": 0.9053030303030303,
+          "f1": 0.6424731182795699,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9529190207156308,
+          "recall": 0.677376171352075,
+          "f1": 0.7918622848200313,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.677376171352075,
+      "specificity": 0.9053030303030303,
+      "positive_predictive_value": 0.9529190207156308,
+      "negative_predictive_value": 0.4979166666666667,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.92,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.7072205736894164,
+      "balanced_accuracy": 0.7737084702446149,
+      "macro_precision": 0.7112969646673817,
+      "macro_recall": 0.7737084702446149,
+      "macro_f1": 0.6907975764388861,
+      "weighted_f1": 0.7248418153745348,
+      "confusion_matrix": [
+        [
+          241,
+          23
+        ],
+        [
+          273,
+          474
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.4688715953307393,
+          "recall": 0.9128787878787878,
+          "f1": 0.6195372750642674,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9537223340040242,
+          "recall": 0.6345381526104418,
+          "f1": 0.7620578778135049,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.6345381526104418,
+      "specificity": 0.9128787878787878,
+      "positive_predictive_value": 0.9537223340040242,
+      "negative_predictive_value": 0.4688715953307393,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.93,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.6775469831849654,
+      "balanced_accuracy": 0.756077339661677,
+      "macro_precision": 0.6990371427220129,
+      "macro_recall": 0.756077339661677,
+      "macro_f1": 0.6645503399421895,
+      "weighted_f1": 0.6960949564560627,
+      "confusion_matrix": [
+        [
+          243,
+          21
+        ],
+        [
+          305,
+          442
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.44343065693430656,
+          "recall": 0.9204545454545454,
+          "f1": 0.5985221674876847,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9546436285097192,
+          "recall": 0.5917001338688086,
+          "f1": 0.7305785123966942,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.5917001338688086,
+      "specificity": 0.9204545454545454,
+      "positive_predictive_value": 0.9546436285097192,
+      "negative_predictive_value": 0.44343065693430656,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.94,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.6468842729970327,
+      "balanced_accuracy": 0.7365522696847998,
+      "macro_precision": 0.6867269743425529,
+      "macro_recall": 0.7365522696847998,
+      "macro_f1": 0.6371006419892113,
+      "weighted_f1": 0.6655674719697997,
+      "confusion_matrix": [
+        [
+          244,
+          20
+        ],
+        [
+          337,
+          410
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.4199655765920826,
+          "recall": 0.9242424242424242,
+          "f1": 0.5775147928994083,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9534883720930233,
+          "recall": 0.5488621151271754,
+          "f1": 0.6966864910790145,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.5488621151271754,
+      "specificity": 0.9242424242424242,
+      "positive_predictive_value": 0.9534883720930233,
+      "negative_predictive_value": 0.4199655765920826,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "threshold": 0.95,
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.6162215628090999,
+      "balanced_accuracy": 0.7207009857612268,
+      "macro_precision": 0.6795396419437341,
+      "macro_recall": 0.7207009857612268,
+      "macro_f1": 0.6100684697293816,
+      "weighted_f1": 0.6334696032530349,
+      "confusion_matrix": [
+        [
+          248,
+          16
+        ],
+        [
+          372,
+          375
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.4,
+          "recall": 0.9393939393939394,
+          "f1": 0.5610859728506787,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.959079283887468,
+          "recall": 0.5020080321285141,
+          "f1": 0.6590509666080844,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.5020080321285141,
+      "specificity": 0.9393939393939394,
+      "positive_predictive_value": 0.959079283887468,
+      "negative_predictive_value": 0.4,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    }
+  ]
+}

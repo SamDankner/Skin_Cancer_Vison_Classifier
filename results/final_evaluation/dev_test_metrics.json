@@ -1,0 +1,88 @@
+{
+  "evaluation_scope": "internal_development_test",
+  "frozen_config": "configs\\final_model.yaml",
+  "metrics": {
+    "loss": 0.29015672959972133,
+    "sample_count": 968,
+    "labels": [
+      0,
+      1
+    ],
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "class_coverage_complete": true,
+    "missing_classes": [],
+    "accuracy": 0.8853305785123967,
+    "balanced_accuracy": 0.8463290710475062,
+    "macro_precision": 0.8491735537190083,
+    "macro_recall": 0.8463290710475062,
+    "macro_f1": 0.847734683552914,
+    "weighted_f1": 0.8850960926810486,
+    "confusion_matrix": [
+      [
+        188,
+        57
+      ],
+      [
+        54,
+        669
+      ]
+    ],
+    "class_metrics": [
+      {
+        "class": 0,
+        "class_name": "benign",
+        "precision": 0.7768595041322314,
+        "recall": 0.7673469387755102,
+        "f1": 0.7720739219712526,
+        "support": 245
+      },
+      {
+        "class": 1,
+        "class_name": "malignant",
+        "precision": 0.9214876033057852,
+        "recall": 0.9253112033195021,
+        "f1": 0.9233954451345756,
+        "support": 723
+      }
+    ],
+    "roc_auc": 0.922189290654021,
+    "pr_auc": 0.966824732508468,
+    "sensitivity": 0.9253112033195021,
+    "specificity": 0.7673469387755102,
+    "positive_predictive_value": 0.9214876033057852,
+    "negative_predictive_value": 0.7768595041322314,
+    "brier_score": 0.08670359765884336,
+    "calibration_error": 0.014833291625019075,
+    "loss_name": "cross_entropy",
+    "confidence_intervals": {
+      "roc_auc": {
+        "lower": 0.9045011734688687,
+        "upper": 0.9990086393673492,
+        "confidence": 0.95,
+        "valid_resamples": 1000
+      },
+      "sensitivity": {
+        "lower": 0.9130361832506565,
+        "upper": 0.9657152641878669,
+        "confidence": 0.95,
+        "valid_resamples": 1000
+      },
+      "specificity": {
+        "lower": 0.7342939398135327,
+        "upper": 1.0,
+        "confidence": 0.95,
+        "valid_resamples": 1000
+      },
+      "macro_f1": {
+        "lower": 0.8317520348454176,
+        "upper": 0.954136627972102,
+        "confidence": 0.95,
+        "valid_resamples": 1000
+      }
+    },
+    "bootstrap_method": "percentile bootstrap resampling groups with replacement"
+  }
+}

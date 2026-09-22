@@ -200,6 +200,8 @@ A run is organized as `results/runs/<run_id>/<strategy>/`. Depending on task and
 
 Calibration, thresholds, and ensemble weights may be fit only on validation predictions. Compatible ensemble members must share task, class order, and sample order. `notebooks/30_ensemble.ipynb` supports development-only selection and creates an immutable frozen configuration before final testing. Ground-truth crops are oracle ablations and must never be described as deployable end-to-end performance.
 
+The reproducible completed selection command is `\.venv\Scripts\python.exe run_final_selection.py`. It writes the validation leaderboard, ID-aligned component predictions, equal-weight ensemble comparison, validation threshold scan, and frozen system configuration. The current frozen system is in `configs/final_model.yaml`; it averages the retained ConvNeXt-Tiny, EfficientNetV2-S, and age/sex/anatomical-site multimodal DINOv2 checkpoints at a threshold of 0.51. It never opens DDI.
+
 ## Protected DDI final external test
 
 DDI belongs only in `data/final_external_test/DDI/`. It is never training, validation, development test, parameter-search, calibration, threshold-selection, or ensemble-selection data.

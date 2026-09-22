@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader
 import yaml
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
+from src.data.targets import target_encoding_for_manifest
 from src.data.transforms import build_transforms
 from .metrics import bootstrap_confidence_intervals, classification_metrics, lesion_presence_metrics
 
@@ -81,6 +82,11 @@ def build_evaluation_loader(
 
     loader = DataLoader(dataset, batch_size=batch_size or int(bundle.config.get("batch_size", 16)), shuffle=False, num_workers=0, collate_fn=collate)
     loader.class_names = bundle.class_order
+    # Manifest datasets retain canonical raw targets (0/1 for binary tasks),
+    # while checkpoint class names are presentation labels (benign/malignant).
+    # Preserve the training-split encoding so universal evaluation never tries
+    # to look up the raw string "1" in a display-label mapping.
+    loader.target_encoding = target_encoding_for_manifest(checked, bundle.task)
     return loader
 
 

@@ -1,0 +1,578 @@
+{
+  "selection_split": "validation",
+  "comparison": [
+    {
+      "system": "convnext_plus_efficientnet_plus_multimodal",
+      "members": "convnext+efficientnet+multimodal",
+      "weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8892185954500494,
+      "balanced_accuracy": 0.8442101740294512,
+      "macro_precision": 0.8627129330797016,
+      "macro_recall": 0.8442101740294512,
+      "macro_f1": 0.8527756685632262,
+      "weighted_f1": 0.8877695725122036,
+      "confusion_matrix": [
+        [
+          198,
+          66
+        ],
+        [
+          46,
+          701
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8114754098360656,
+          "recall": 0.75,
+          "f1": 0.7795275590551181,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9139504563233377,
+          "recall": 0.9384203480589023,
+          "f1": 0.9260237780713342,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9073972658310008,
+      "pr_auc": 0.9552103790145295,
+      "sensitivity": 0.9384203480589023,
+      "specificity": 0.75,
+      "positive_predictive_value": 0.9139504563233377,
+      "negative_predictive_value": 0.8114754098360656,
+      "brier_score": 0.09200099398405014,
+      "calibration_error": 0.027125194205287903
+    },
+    {
+      "system": "convnext_plus_multimodal",
+      "members": "convnext+multimodal",
+      "weights": [
+        0.5,
+        0.5
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8832838773491593,
+      "balanced_accuracy": 0.8352957283680176,
+      "macro_precision": 0.8553127921847629,
+      "macro_recall": 0.8352957283680176,
+      "macro_f1": 0.8444810036814167,
+      "weighted_f1": 0.8815934551299704,
+      "confusion_matrix": [
+        [
+          194,
+          70
+        ],
+        [
+          48,
+          699
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8016528925619835,
+          "recall": 0.7348484848484849,
+          "f1": 0.766798418972332,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9089726918075423,
+          "recall": 0.9357429718875502,
+          "f1": 0.9221635883905013,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9122855056589997,
+      "pr_auc": 0.9571013492736565,
+      "sensitivity": 0.9357429718875502,
+      "specificity": 0.7348484848484849,
+      "positive_predictive_value": 0.9089726918075423,
+      "negative_predictive_value": 0.8016528925619835,
+      "brier_score": 0.08877003755174998,
+      "calibration_error": 0.018373122759025723
+    },
+    {
+      "system": "convnext_plus_efficientnet",
+      "members": "convnext+efficientnet",
+      "weights": [
+        0.5,
+        0.5
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8803165182987142,
+      "balanced_accuracy": 0.8394106729950104,
+      "macro_precision": 0.8472066604419546,
+      "macro_recall": 0.8394106729950104,
+      "macro_f1": 0.8431768447690361,
+      "weighted_f1": 0.8796371340268297,
+      "confusion_matrix": [
+        [
+          199,
+          65
+        ],
+        [
+          56,
+          691
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7803921568627451,
+          "recall": 0.7537878787878788,
+          "f1": 0.766859344894027,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9140211640211641,
+          "recall": 0.9250334672021419,
+          "f1": 0.9194943446440452,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.895589935499574,
+      "pr_auc": 0.9485077774748887,
+      "sensitivity": 0.9250334672021419,
+      "specificity": 0.7537878787878788,
+      "positive_predictive_value": 0.9140211640211641,
+      "negative_predictive_value": 0.7803921568627451,
+      "brier_score": 0.09900358445647549,
+      "calibration_error": 0.04389383260287834
+    },
+    {
+      "system": "convnext",
+      "members": "convnext",
+      "weights": [
+        1.0
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8783382789317508,
+      "balanced_accuracy": 0.8380719849093343,
+      "macro_precision": 0.8440560847980679,
+      "macro_recall": 0.8380719849093343,
+      "macro_f1": 0.8409850886357272,
+      "weighted_f1": 0.8778046619275218,
+      "confusion_matrix": [
+        [
+          199,
+          65
+        ],
+        [
+          58,
+          689
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.77431906614786,
+          "recall": 0.7537878787878788,
+          "f1": 0.763915547024952,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9137931034482759,
+          "recall": 0.9223560910307899,
+          "f1": 0.9180546302465024,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.8974002068881588,
+      "pr_auc": 0.9509295338986956,
+      "sensitivity": 0.9223560910307899,
+      "specificity": 0.7537878787878788,
+      "positive_predictive_value": 0.9137931034482759,
+      "negative_predictive_value": 0.77431906614786,
+      "brier_score": 0.1022907794392054,
+      "calibration_error": 0.06892184768680948
+    },
+    {
+      "system": "all_four",
+      "members": "convnext+efficientnet+multimodal+dinov2",
+      "weights": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8773491592482691,
+      "balanced_accuracy": 0.830055068759888,
+      "macro_precision": 0.8458711940060577,
+      "macro_recall": 0.830055068759888,
+      "macro_f1": 0.8374260815437287,
+      "weighted_f1": 0.8759147971750522,
+      "confusion_matrix": [
+        [
+          193,
+          71
+        ],
+        [
+          53,
+          694
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.7845528455284553,
+          "recall": 0.7310606060606061,
+          "f1": 0.7568627450980392,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9071895424836601,
+          "recall": 0.92904953145917,
+          "f1": 0.917989417989418,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9062816924262707,
+      "pr_auc": 0.9551495964478749,
+      "sensitivity": 0.92904953145917,
+      "specificity": 0.7310606060606061,
+      "positive_predictive_value": 0.9071895424836601,
+      "negative_predictive_value": 0.7845528455284553,
+      "brier_score": 0.09498231769703368,
+      "calibration_error": 0.03125117213431868
+    },
+    {
+      "system": "multimodal",
+      "members": "multimodal",
+      "weights": [
+        1.0
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8684470820969338,
+      "balanced_accuracy": 0.7970898746501156,
+      "macro_precision": 0.8470882701421801,
+      "macro_recall": 0.7970898746501156,
+      "macro_f1": 0.8170135746606335,
+      "weighted_f1": 0.8633613061750608,
+      "confusion_matrix": [
+        [
+          171,
+          93
+        ],
+        [
+          40,
+          707
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.8104265402843602,
+          "recall": 0.6477272727272727,
+          "f1": 0.72,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.88375,
+          "recall": 0.9464524765729585,
+          "f1": 0.9140271493212669,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.9013173907752221,
+      "pr_auc": 0.9527681611266551,
+      "sensitivity": 0.9464524765729585,
+      "specificity": 0.6477272727272727,
+      "positive_predictive_value": 0.88375,
+      "negative_predictive_value": 0.8104265402843602,
+      "brier_score": 0.0994003139143367,
+      "calibration_error": 0.01271600559958128
+    },
+    {
+      "system": "efficientnet",
+      "members": "efficientnet",
+      "weights": [
+        1.0
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8417408506429278,
+      "balanced_accuracy": 0.8035094925155166,
+      "macro_precision": 0.7937298183281478,
+      "macro_recall": 0.8035094925155166,
+      "macro_f1": 0.7983444699311858,
+      "weighted_f1": 0.843036264992532,
+      "confusion_matrix": [
+        [
+          191,
+          73
+        ],
+        [
+          87,
+          660
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6870503597122302,
+          "recall": 0.7234848484848485,
+          "f1": 0.7047970479704797,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9004092769440655,
+          "recall": 0.8835341365461847,
+          "f1": 0.8918918918918919,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.8718637174962477,
+      "pr_auc": 0.9384330890052602,
+      "sensitivity": 0.8835341365461847,
+      "specificity": 0.7234848484848485,
+      "positive_predictive_value": 0.9004092769440655,
+      "negative_predictive_value": 0.6870503597122302,
+      "brier_score": 0.11970066366739704,
+      "calibration_error": 0.041806297106382784
+    },
+    {
+      "system": "dinov2",
+      "members": "dinov2",
+      "weights": [
+        1.0
+      ],
+      "loss": null,
+      "sample_count": 1011,
+      "labels": [
+        0,
+        1
+      ],
+      "class_names": [
+        "benign",
+        "malignant"
+      ],
+      "class_coverage_complete": true,
+      "missing_classes": [],
+      "accuracy": 0.8219584569732937,
+      "balanced_accuracy": 0.7999193744675672,
+      "macro_precision": 0.7702505734311745,
+      "macro_recall": 0.7999193744675672,
+      "macro_f1": 0.7819637876333522,
+      "weighted_f1": 0.8265767790679752,
+      "confusion_matrix": [
+        [
+          199,
+          65
+        ],
+        [
+          115,
+          632
+        ]
+      ],
+      "class_metrics": [
+        {
+          "class": 0,
+          "class_name": "benign",
+          "precision": 0.6337579617834395,
+          "recall": 0.7537878787878788,
+          "f1": 0.6885813148788927,
+          "support": 264
+        },
+        {
+          "class": 1,
+          "class_name": "malignant",
+          "precision": 0.9067431850789096,
+          "recall": 0.8460508701472557,
+          "f1": 0.8753462603878116,
+          "support": 747
+        }
+      ],
+      "roc_auc": 0.8708242059145674,
+      "pr_auc": 0.9430081909828472,
+      "sensitivity": 0.8460508701472557,
+      "specificity": 0.7537878787878788,
+      "positive_predictive_value": 0.9067431850789096,
+      "negative_predictive_value": 0.6337579617834395,
+      "brier_score": 0.13399683803019402,
+      "calibration_error": 0.032539180123673725
+    }
+  ],
+  "relationships": {
+    "models": [
+      "efficientnet",
+      "convnext",
+      "dinov2",
+      "multimodal"
+    ],
+    "probability_correlation": {
+      "efficientnet": {
+        "efficientnet": 1.0,
+        "convnext": 0.830474079764398,
+        "dinov2": 0.7984622776796056,
+        "multimodal": 0.8344403370620392
+      },
+      "convnext": {
+        "efficientnet": 0.830474079764398,
+        "convnext": 1.0,
+        "dinov2": 0.7609151987891988,
+        "multimodal": 0.823165351024756
+      },
+      "dinov2": {
+        "efficientnet": 0.7984622776796056,
+        "convnext": 0.7609151987891988,
+        "dinov2": 1.0,
+        "multimodal": 0.871695690587678
+      },
+      "multimodal": {
+        "efficientnet": 0.8344403370620392,
+        "convnext": 0.823165351024756,
+        "dinov2": 0.871695690587678,
+        "multimodal": 1.0
+      }
+    },
+    "pairs": [
+      {
+        "first": "efficientnet",
+        "second": "convnext",
+        "disagreement_rate": 0.10385756676557864,
+        "first_correct_second_wrong": 34,
+        "second_correct_first_wrong": 71
+      },
+      {
+        "first": "efficientnet",
+        "second": "dinov2",
+        "disagreement_rate": 0.13649851632047477,
+        "first_correct_second_wrong": 79,
+        "second_correct_first_wrong": 59
+      },
+      {
+        "first": "efficientnet",
+        "second": "multimodal",
+        "disagreement_rate": 0.11572700296735905,
+        "first_correct_second_wrong": 45,
+        "second_correct_first_wrong": 72
+      },
+      {
+        "first": "convnext",
+        "second": "dinov2",
+        "disagreement_rate": 0.14737883283877348,
+        "first_correct_second_wrong": 103,
+        "second_correct_first_wrong": 46
+      },
+      {
+        "first": "convnext",
+        "second": "multimodal",
+        "disagreement_rate": 0.10484668644906034,
+        "first_correct_second_wrong": 58,
+        "second_correct_first_wrong": 48
+      },
+      {
+        "first": "dinov2",
+        "second": "multimodal",
+        "disagreement_rate": 0.11572700296735905,
+        "first_correct_second_wrong": 35,
+        "second_correct_first_wrong": 82
+      }
+    ]
+  }
+}
