@@ -1,0 +1,50 @@
+version: 2
+status: experimental
+identifier: v2_adaptive
+task: diagnosis_binary
+class_order:
+- benign
+- malignant
+models:
+- name: convnext
+  strategy: convnext
+  checkpoint: models\convnext\convnext_convnext_tiny_20260921T060517413359Z_convnext.pt
+  metadata_fields: []
+  checkpoint_sha256: 12a771625797ffc6afb3dc3fadd3ea482a63edfc64b399f71472ba0e3bffe7cf
+- name: efficientnet
+  strategy: efficientnet
+  checkpoint: models\efficientnet\efficientnet_efficientnet_v2_s_20260921T053334483303Z_efficientnet.pt
+  metadata_fields: []
+  checkpoint_sha256: d66216b103e2f021578425a21535ebf05b90c904d202850a147f7d0024e24d91
+- name: multimodal
+  strategy: multimodal
+  checkpoint: models\multimodal\multimodal_dinov2_vits14_20260921T224823181902Z_multimodal_serious_01.pt
+  metadata_fields:
+  - age
+  - sex
+  - anatomical_site
+  checkpoint_sha256: 165303f4effccb3fef40f4c71d4ea0d2b953848fdbdfd5103cc4a0bd54e8e2b6
+ensemble:
+  member_names:
+  - convnext
+  - efficientnet
+  - multimodal
+  no_metadata_policy:
+    strategy: equal_probability_average
+  metadata_available_policy:
+    strategy: closest_pair_consensus
+    pair_max_distance: 0.1
+    separation_ratio: 3.0
+    outlier_weight_multiplier: 0.2
+    weights:
+      convnext: 0.3427816148634098
+      efficientnet: 0.32914912409374214
+      multimodal: 0.3280692610428481
+threshold:
+  threshold: 0.51
+  fit_split: validation
+  objective: balanced_accuracy
+selection:
+  data: row-aligned validation prediction exports only
+  external_evaluation: not performed
+  report: results/ensemble_search/v2_adaptive/weighting_report.md

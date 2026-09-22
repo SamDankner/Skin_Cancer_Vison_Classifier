@@ -1,4 +1,4 @@
-"""Clinical Cobalt Streamlit UI for the frozen final model."""
+"""Clinical Cobalt Streamlit UI for the versioned deployment ensembles."""
 from __future__ import annotations
 
 import logging
@@ -21,7 +21,7 @@ except ImportError:  # permits lightweight source-level smoke tests
 if st is not None:
     @st.cache_resource(show_spinner=False)
     def load_predictor() -> SkinCancerPredictor:
-        """Initialize the immutable model bundle once per Streamlit process."""
+        """Initialize the selected versioned model bundle once per process."""
         return SkinCancerPredictor.from_frozen_config()
 else:
     def load_predictor() -> SkinCancerPredictor:
@@ -51,7 +51,7 @@ def main() -> None:
         if uploaded:
             st.image(uploaded, use_container_width=True)
         else:
-            st.markdown('<p class="muted">Upload a focal skin-lesion photograph to run the frozen classification ensemble.</p>', unsafe_allow_html=True)
+            st.markdown('<p class="muted">Upload a focal skin-lesion photograph to run the classification ensemble.</p>', unsafe_allow_html=True)
         st.markdown("</section>", unsafe_allow_html=True)
     with result_col:
         result = st.session_state.get("prediction")
@@ -63,18 +63,19 @@ def main() -> None:
     st.markdown('<section class="metadata-card"><div class="eyebrow">Optional metadata</div>', unsafe_allow_html=True)
     age_col, sex_col, site_col = st.columns(3)
     with age_col:
-        age = st.number_input("Age", min_value=0, max_value=120, value=None, placeholder="Not provided")
+        age = st.number_input("Age (optional)", min_value=0, max_value=120, value=None, placeholder="Not provided")
     with sex_col:
-        sex = st.selectbox("Sex", SEX_OPTIONS)
+        sex = st.selectbox("Sex (optional)", SEX_OPTIONS)
     with site_col:
-        site = st.selectbox("Anatomical site", SITE_OPTIONS)
+        site = st.selectbox("Anatomical site (optional)", SITE_OPTIONS)
+    st.caption("Providing all available metadata gives the multimodal model the most complete input. If no metadata is provided, the multimodal model will not be used.")
     analyze = st.button("Analyze image", type="primary", disabled=uploaded is None)
     st.markdown("</section>", unsafe_allow_html=True)
 
     if analyze and uploaded:
         try:
             image = validate_uploaded_image(uploaded.getvalue(), uploaded.name)
-            with st.spinner("Loading frozen models..."):
+            with st.spinner("Loading models..."):
                 predictor = load_predictor()
             with st.spinner("Analyzing image..."):
                 st.session_state.prediction = predictor.predict(image, **_metadata(age, sex, site))
@@ -86,7 +87,12 @@ def main() -> None:
 
     result = st.session_state.get("prediction")
     if result:
-        st.info("Image + metadata provided" if all(result.metadata_used.values()) else "Missing metadata is handled by the model's frozen preprocessing pipeline." if not any(result.metadata_used.values()) else "Some metadata is missing; the model's frozen preprocessing pipeline handles it.")
+        if "multimodal" in result.inactive_models:
+            st.info("No metadata provided. Multimodal DINOv2 was not used.")
+        elif all(result.metadata_used.values()):
+            st.info("All supported metadata provided.")
+        else:
+            st.info("Multimodal inference is active. Missing metadata fields are handled by the saved preprocessing pipeline.")
         render_model_outputs(st, result)
     render_about(st)
     render_disclaimer(st)

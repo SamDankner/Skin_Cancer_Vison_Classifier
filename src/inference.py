@@ -21,6 +21,7 @@ from src.evaluation.ensemble import EnsembleMember, average_probabilities
 from src.evaluation.evaluator import CheckpointBundle, load_checkpoint_bundle
 from src.utils.device import get_device
 from src.utils.timing import benchmark_callable
+from src.ensemble.adaptive_ensemble import AdaptiveEnsemble
 
 
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
@@ -38,6 +39,10 @@ class PredictionResult:
     threshold: float
     individual_models: dict[str, float]
     metadata_used: dict[str, bool]
+    active_models: tuple[str, ...] = ()
+    inactive_models: tuple[str, ...] = ()
+    model_weights: dict[str, float] | None = None
+    strategy_name: str = "equal_probability_average"
 
 
 def validate_uploaded_image(
@@ -97,7 +102,7 @@ def _metadata_frame(metadata: Mapping[str, Any] | None) -> pd.DataFrame:
 
 
 class SkinCancerPredictor:
-    """Reusable, cached-by-caller service for the frozen final ensemble only."""
+    """Reusable service for the protected v1 and separately configured v2 ensembles."""
 
     def __init__(self, frozen_config: Mapping[str, Any], bundles: Mapping[str, CheckpointBundle], device: torch.device):
         self.frozen_config = dict(frozen_config)
@@ -119,7 +124,12 @@ class SkinCancerPredictor:
         directory possible while preserving repository-local defaults.
         """
         repository_root = Path(__file__).resolve().parents[1]
-        config_path = Path(frozen_config or os.environ.get("FROZEN_CONFIG_PATH") or repository_root / "configs" / "final_model.yaml")
+        variant = os.environ.get("MODEL_VARIANT", "v2_adaptive")
+        if frozen_config is None and "FROZEN_CONFIG_PATH" not in os.environ and variant not in {"v1_frozen", "v2_adaptive"}:
+            raise ValueError("MODEL_VARIANT must be 'v1_frozen' or 'v2_adaptive'.")
+        default_config = repository_root / "configs" / "deployments" / variant / "ensemble.yaml"
+        # Retain the historical path as the explicit v1 compatibility default.
+        config_path = Path(frozen_config or os.environ.get("FROZEN_CONFIG_PATH") or default_config)
         if not config_path.is_file():
             raise FileNotFoundError(f"Frozen model configuration was not found: {config_path}")
         frozen = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
@@ -136,7 +146,7 @@ class SkinCancerPredictor:
             elif configured_root is not None:
                 checkpoint = configured_root / Path(*raw_checkpoint.parts[1:]) if raw_checkpoint.parts and raw_checkpoint.parts[0] == "models" else configured_root / raw_checkpoint
             else:
-                checkpoint = config_path.parent.parent / raw_checkpoint
+                checkpoint = repository_root / raw_checkpoint
             if not checkpoint.is_file():
                 raise FileNotFoundError(f"Frozen checkpoint for {name!r} was not found: {checkpoint}")
             expected_hash = definition.get("checkpoint_sha256")
@@ -147,19 +157,22 @@ class SkinCancerPredictor:
 
     def _validate_contract(self) -> None:
         config = self.frozen_config
-        if config.get("status") != "frozen" or config.get("task") != "diagnosis_binary":
-            raise ValueError("The app requires the frozen diagnosis_binary configuration.")
+        if config.get("status") not in {"frozen", "experimental"} or config.get("task") != "diagnosis_binary":
+            raise ValueError("The app requires a diagnosis_binary deployment configuration.")
         if list(config.get("class_order", [])) != ["benign", "malignant"]:
             raise ValueError("Frozen class order must be benign, malignant.")
         ensemble = config.get("ensemble") or {}
         names = tuple(ensemble.get("member_names") or ())
-        weights = tuple(float(weight) for weight in ensemble.get("weights") or ())
         if names != FINAL_ENSEMBLE_MEMBERS or tuple(self.bundles) != FINAL_ENSEMBLE_MEMBERS:
             raise ValueError("The application only supports ConvNeXt, EfficientNet, and multimodal DINOv2 final members.")
-        if len(weights) != 3 or any(weight != (1.0 / 3.0) for weight in weights):
-            raise ValueError("Frozen final ensemble must retain its three equal weights.")
-        if float((config.get("threshold") or {}).get("threshold", -1)) != 0.51:
-            raise ValueError("Frozen final ensemble threshold must be 0.51.")
+        if config.get("status") == "frozen":
+            weights = tuple(float(weight) for weight in ensemble.get("weights") or ())
+            if len(weights) != 3 or any(weight != (1.0 / 3.0) for weight in weights):
+                raise ValueError("Frozen v1 ensemble must retain its three equal weights.")
+            if float((config.get("threshold") or {}).get("threshold", -1)) != 0.51:
+                raise ValueError("Frozen v1 ensemble threshold must be 0.51.")
+        elif not {"no_metadata_policy", "metadata_available_policy"}.issubset(ensemble):
+            raise ValueError("v2 configuration needs policies for metadata-present and metadata-absent requests.")
         definitions = {item.get("name"): item for item in config.get("models", [])}
         if definitions.get("multimodal", {}).get("strategy") != "multimodal":
             raise ValueError("The final DINOv2 member must be the multimodal checkpoint.")
@@ -175,28 +188,38 @@ class SkinCancerPredictor:
         sex: str | None = None,
         anatomical_site: str | None = None,
     ) -> PredictionResult:
-        """Run one in-memory image through the three frozen ensemble members."""
+        """Run image models and apply the configured deployment policy."""
         photo = _load_rgb_image(image)
         metadata = {"age": age, "sex": sex, "anatomical_site": anatomical_site}
         provided = {key: value is not None and str(value).strip() != "" for key, value in metadata.items()}
         try:
             probabilities: dict[str, float] = {}
             with torch.inference_mode():
-                for name in FINAL_ENSEMBLE_MEMBERS:
+                active = FINAL_ENSEMBLE_MEMBERS if any(provided.values()) or self.frozen_config.get("status") == "frozen" else FINAL_ENSEMBLE_MEMBERS[:2]
+                for name in active:
                     bundle = self.bundles[name]
                     args, _, _ = _bundle_input(bundle, photo, metadata, self.device)
                     logits = bundle.model.to(self.device).eval()(*args)
                     output = torch.softmax(logits.float(), dim=1)[0].detach().cpu().numpy()
                     probabilities[name] = float(output[bundle.class_order.index("malignant")])
-            weights = (self.frozen_config.get("ensemble") or {})["weights"]
-            malignant_probability = float(sum(probabilities[name] * float(weight) for name, weight in zip(FINAL_ENSEMBLE_MEMBERS, weights)))
-            threshold = float((self.frozen_config.get("threshold") or {})["threshold"])
+            if self.frozen_config.get("status") == "frozen":
+                weights = dict(zip(FINAL_ENSEMBLE_MEMBERS, (self.frozen_config.get("ensemble") or {})["weights"]))
+                malignant_probability = float(sum(probabilities[name] * float(weights[name]) for name in FINAL_ENSEMBLE_MEMBERS))
+                threshold = float((self.frozen_config.get("threshold") or {})["threshold"])
+                decision = None
+            else:
+                decision = AdaptiveEnsemble(self.frozen_config).combine(probabilities, metadata=metadata)
+                malignant_probability, threshold, weights = decision.malignant_probability, decision.threshold, decision.model_weights
             return PredictionResult(
-                predicted_class="malignant" if malignant_probability >= threshold else "benign",
+                predicted_class=decision.predicted_class if decision else ("malignant" if malignant_probability >= threshold else "benign"),
                 malignant_probability=malignant_probability,
                 threshold=threshold,
                 individual_models=probabilities,
                 metadata_used=provided,
+                active_models=decision.active_models if decision else FINAL_ENSEMBLE_MEMBERS,
+                inactive_models=decision.inactive_models if decision else (),
+                model_weights=weights,
+                strategy_name=decision.strategy_name if decision else "equal_probability_average",
             )
         finally:
             photo.close()

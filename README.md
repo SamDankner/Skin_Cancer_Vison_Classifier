@@ -286,3 +286,26 @@ docker run --rm -p 8501:8501 -v "${PWD}\models:/models:ro" skin-cancer-classifie
 ```
 
 Screenshot placeholder: add a verified local demo screenshot after launch; no synthetic prediction screenshots are included. The Docker image has not been built in this environment.
+
+## Model Versions
+
+### v1 frozen ensemble
+
+The historically selected, externally evaluated research system is preserved in
+`configs/deployments/v1_frozen/ensemble.yaml` (with the original source retained
+at `configs/final_model.yaml`). It uses ConvNeXt-Tiny, EfficientNetV2-S, and
+multimodal DINOv2 with equal probability weights and a 0.51 threshold.
+
+### v2 adaptive ensemble
+
+`configs/deployments/v2_adaptive/ensemble.yaml` is the separate experimental/
+deployment configuration. With metadata, it uses a validation-selected
+closest-pair consensus policy; without metadata, it runs only the two image
+models and uses their separately selected two-model policy. Run
+`python scripts/search_ensemble_weighting.py --help` for the reproducible,
+validation-only policy search and its saved report under
+`results/ensemble_search/v2_adaptive/`.
+
+v2 was developed after the original DDI external evaluation and therefore the
+historical DDI metrics apply to v1, not v2. Select the deployment through
+`MODEL_VARIANT=v1_frozen` or `MODEL_VARIANT=v2_adaptive` (the app default).

@@ -1,0 +1,108 @@
+version: 1
+status: frozen
+task: diagnosis_binary
+class_order:
+- benign
+- malignant
+models:
+- name: convnext
+  strategy: convnext
+  checkpoint: models\convnext\convnext_convnext_tiny_20260921T060517413359Z_convnext.pt
+  metadata_fields: []
+  checkpoint_sha256: 12a771625797ffc6afb3dc3fadd3ea482a63edfc64b399f71472ba0e3bffe7cf
+- name: efficientnet
+  strategy: efficientnet
+  checkpoint: models\efficientnet\efficientnet_efficientnet_v2_s_20260921T053334483303Z_efficientnet.pt
+  metadata_fields: []
+  checkpoint_sha256: d66216b103e2f021578425a21535ebf05b90c904d202850a147f7d0024e24d91
+- name: multimodal
+  strategy: multimodal
+  checkpoint: models\multimodal\multimodal_dinov2_vits14_20260921T224823181902Z_multimodal_serious_01.pt
+  metadata_fields: &id001
+  - age
+  - sex
+  - anatomical_site
+  checkpoint_sha256: 165303f4effccb3fef40f4c71d4ea0d2b953848fdbdfd5103cc4a0bd54e8e2b6
+ensemble:
+  identifier: convnext_plus_efficientnet_plus_multimodal
+  method: equal_weight_probability_average
+  member_names:
+  - convnext
+  - efficientnet
+  - multimodal
+  weights:
+  - 0.3333333333333333
+  - 0.3333333333333333
+  - 0.3333333333333333
+  missing_member_policy: error
+  fit_split: validation
+threshold:
+  threshold: 0.51
+  objective: macro_f1
+  fit_split: validation
+  selected_metrics:
+    threshold: 0.51
+    loss: null
+    sample_count: 1011
+    labels:
+    - 0
+    - 1
+    class_names:
+    - benign
+    - malignant
+    class_coverage_complete: true
+    missing_classes: []
+    accuracy: 0.8911968348170128
+    balanced_accuracy: 0.8479980528173299
+    macro_precision: 0.8646739996811732
+    macro_recall: 0.8479980528173299
+    macro_f1: 0.8557812013694366
+    weighted_f1: 0.8899244168488364
+    confusion_matrix:
+    - - 200
+      - 64
+    - - 46
+      - 701
+    class_metrics:
+    - class: 0
+      class_name: benign
+      precision: 0.8130081300813008
+      recall: 0.7575757575757576
+      f1: 0.7843137254901961
+      support: 264
+    - class: 1
+      class_name: malignant
+      precision: 0.9163398692810457
+      recall: 0.9384203480589023
+      f1: 0.9272486772486772
+      support: 747
+    roc_auc: 0.9073972658310008
+    pr_auc: 0.9552103790145295
+    sensitivity: 0.9384203480589023
+    specificity: 0.7575757575757576
+    positive_predictive_value: 0.9163398692810457
+    negative_predictive_value: 0.8130081300813008
+    brier_score: 0.09200099398405014
+    calibration_error: 0.027125194205287903
+calibration:
+  enabled: false
+  fit_split: validation
+preprocessing:
+  image_resolution: 224
+  normalization: ImageNet weights transforms via build_transforms
+  metadata_fields: *id001
+  metadata_preprocessor: checkpoint-persisted training-only state
+dataset_mappings:
+  development: persisted diagnosis_binary mapping
+  DDI: must be supplied and validated before external final test
+development_datasets:
+- MILK10k
+- PAD-UFES-20
+seed: 42
+selection_split: validation
+frozen_at_utc: '2026-09-22T02:45:07.455105+00:00'
+code_identifier:
+  commit: 324bcb2fcb19924033662779ffab36a3d0f407db
+  dirty: true
+  worktree_diff_sha256: e54233b00cd96b6fe145f5fc0bf008a2d96736e438d9d495deafec6ea0b94a2e
+external_test_consumed: false

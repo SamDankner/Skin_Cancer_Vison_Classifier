@@ -1,0 +1,68 @@
+{
+  "selected": {
+    "metadata_available": {
+      "strategy": "closest_pair_consensus",
+      "pair_max_distance": 0.1,
+      "separation_ratio": 3.0,
+      "outlier_weight_multiplier": 0.2,
+      "weights": {
+        "convnext": 0.3427816148634098,
+        "efficientnet": 0.32914912409374214,
+        "multimodal": 0.3280692610428481
+      }
+    },
+    "no_metadata": {
+      "strategy": "equal_probability_average"
+    }
+  },
+  "threshold": 0.51,
+  "fixed_051": {
+    "accuracy": 0.8862512363996043,
+    "balanced_accuracy": 0.8409775465498357,
+    "macro_f1": 0.8490294331900218,
+    "sensitivity": 0.9357429718875502,
+    "specificity": 0.7462121212121212,
+    "roc_auc": 0.9044257839438562,
+    "pr_auc": 0.9548487573584474,
+    "brier_score": 0.09253964762046686
+  },
+  "tuned": {
+    "accuracy": 0.884272997032641,
+    "balanced_accuracy": 0.8420880491663625,
+    "macro_f1": 0.8475889216021029,
+    "sensitivity": 0.9303882195448461,
+    "specificity": 0.7537878787878788,
+    "roc_auc": 0.9044257839438562,
+    "pr_auc": 0.9548487573584474,
+    "brier_score": 0.09253964762046686
+  },
+  "config": "configs\\deployments\\v2_adaptive\\ensemble.yaml",
+  "examples": [
+    {
+      "probabilities": [
+        0.86,
+        0.92,
+        0.05
+      ],
+      "weights": {
+        "convnext": 0.4647605296943856,
+        "efficientnet": 0.44627691401479536,
+        "multimodal": 0.08896255629081903
+      },
+      "ensemble_probability": 0.8147169442453243
+    },
+    {
+      "probabilities": [
+        0.2,
+        0.4,
+        0.65
+      ],
+      "weights": {
+        "convnext": 0.3427816148634098,
+        "efficientnet": 0.32914912409374214,
+        "multimodal": 0.3280692610428481
+      },
+      "ensemble_probability": 0.4134609922880301
+    }
+  ]
+}
