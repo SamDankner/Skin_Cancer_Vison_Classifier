@@ -14,7 +14,7 @@ def test_streamlit_entrypoint_imports_without_loading_models():
     }
 
 
-def test_ui_copy_documents_focal_lesion_task_and_versioned_demo():
+def test_ui_copy_documents_focal_lesion_task_and_refined_versioned_demo():
     from app import ui
 
     guide_source = ui.render_usage_guide.__code__.co_consts
@@ -24,12 +24,50 @@ def test_ui_copy_documents_focal_lesion_task_and_versioned_demo():
     assert "not a general skin-condition classifier" in guide
     assert "does not first determine whether a lesion exists" in guide
     assert "blank skin" in guide
-    assert "Skin Lesion Classification Lab" in " ".join(value for value in ui.render_hero.__code__.co_consts if isinstance(value, str))
+    hero = " ".join(value for value in ui.render_hero.__code__.co_consts if isinstance(value, str))
+    assert "Skin Lesion Classification Model" in hero
+    assert "Skin Lesion Classification Lab" not in hero
     assert "Created by Samuel Dankner" in " ".join(value for value in ui.render_hero.__code__.co_consts if isinstance(value, str))
     assert ui.VERSION_LABELS == {"v1_frozen": "v1 Frozen", "v2_adaptive": "v2 Adaptive"}
     assert "57.3% → 68.4%" in ui.PROJECT_METRICS["v2_ddi"]
     assert "+11.1 percentage points" in ui.PROJECT_METRICS["v2_ddi"]
     assert "19 additional malignant lesions" in ui.PROJECT_METRICS["v2_ddi"]
+
+
+def test_refinement_uses_visible_controls_and_collapsed_information_sections():
+    from app import streamlit_app, ui
+
+    source = streamlit_app.main.__code__.co_consts
+    page_copy = " ".join(value for value in source if isinstance(value, str))
+    assert "Model Version" in page_copy
+    assert "Optional Metadata" in page_copy
+    assert "Supported metadata can provide additional context" in page_copy
+    assert "Age" in page_copy and "Sex" in page_copy and "Anatomical Site" in page_copy
+    assert "Compare model versions" in " ".join(value for value in ui.render_version_comparison.__code__.co_consts if isinstance(value, str))
+    assert "original frozen research ensemble" in ui.VERSION_COMPARISON
+    assert "post-hoc" in ui.VERSION_COMPARISON
+    assert "better overall" not in ui.VERSION_COMPARISON
+    assert "more accurate overall" not in ui.VERSION_COMPARISON
+
+    class FakeStreamlit:
+        def __init__(self): self.expanders = []
+        def expander(self, label, expanded=False):
+            self.expanders.append((label, expanded))
+            return _NullContext()
+        def markdown(self, *_args, **_kwargs): pass
+        def columns(self, count): return [_NullContext() for _ in range(count)]
+        def caption(self, *_args, **_kwargs): pass
+    class _NullContext:
+        def __enter__(self): return self
+        def __exit__(self, *_args): return False
+        def markdown(self, *_args, **_kwargs): pass
+
+    fake = FakeStreamlit()
+    ui.render_about(fake)
+    ui.render_next_steps(fake)
+    assert ("About This Model", False) in fake.expanders
+    assert ("Project Highlights", False) in fake.expanders
+    assert ("Next Steps", False) in fake.expanders
 
 
 def test_input_signature_change_invalidates_stale_prediction(monkeypatch):

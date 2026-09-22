@@ -5,7 +5,7 @@ import hashlib
 import logging
 
 from app.styles import CLINICAL_COBALT_CSS
-from app.ui import VERSION_HELP, VERSION_LABELS, render_about, render_disclaimer, render_hero, render_model_outputs, render_next_steps, render_result, render_usage_guide
+from app.ui import VERSION_LABELS, render_about, render_disclaimer, render_hero, render_model_outputs, render_next_steps, render_result, render_usage_guide, render_version_comparison
 from src.inference import DEPLOYMENT_VARIANTS, SkinCancerPredictor, validate_uploaded_image
 
 LOGGER = logging.getLogger(__name__)
@@ -49,20 +49,21 @@ def _invalidate_if_inputs_changed(signature) -> None:
 def main() -> None:
     if st is None:
         raise RuntimeError("Streamlit is not installed. Install requirements-app.txt before launching the demo.")
-    st.set_page_config(page_title="Skin Lesion Classification Lab", page_icon="◈", layout="wide")
+    st.set_page_config(page_title="Skin Lesion Classification Model", page_icon="◈", layout="wide")
     st.markdown(CLINICAL_COBALT_CSS, unsafe_allow_html=True)
     render_hero(st)
     render_usage_guide(st)
-    st.markdown('<div class="selector-label">Model version</div>', unsafe_allow_html=True)
-    variant = st.radio("Model version", DEPLOYMENT_VARIANTS, index=1, format_func=VERSION_LABELS.get, horizontal=True, label_visibility="collapsed", help=VERSION_HELP)
+    st.markdown('<div class="selector-label">Model Version</div>', unsafe_allow_html=True)
+    variant = st.radio("Model Version", DEPLOYMENT_VARIANTS, index=1, format_func=VERSION_LABELS.get, horizontal=True, label_visibility="collapsed")
+    render_version_comparison(st)
     uploaded = st.file_uploader("Upload a focal skin-lesion photograph", type=["png", "jpg", "jpeg"], help="PNG, JPG, or JPEG up to 10 MB. Images are processed in memory.")
-    st.markdown('<section class="metadata-card"><div class="eyebrow">Optional metadata</div>', unsafe_allow_html=True)
+    st.markdown('<section class="metadata-card"><div class="eyebrow">Optional Metadata</div><p class="muted">Supported metadata can provide additional context to the multimodal model.</p>', unsafe_allow_html=True)
     age_col, sex_col, site_col = st.columns(3)
-    with age_col: age = st.number_input("Age (optional)", min_value=0, max_value=120, value=None, placeholder="Not provided")
-    with sex_col: sex = st.selectbox("Sex (optional)", SEX_OPTIONS)
-    with site_col: site = st.selectbox("Anatomical site (optional)", SITE_OPTIONS)
+    with age_col: age = st.number_input("Age", min_value=0, max_value=120, value=None, placeholder="Not provided")
+    with sex_col: sex = st.selectbox("Sex", SEX_OPTIONS)
+    with site_col: site = st.selectbox("Anatomical Site", SITE_OPTIONS)
     metadata = _metadata(age, sex, site)
-    st.caption("Providing all available metadata gives the multimodal model the most complete input. For v2, at least one field activates it; v1 retains its historical missing-value preprocessing.")
+    st.caption("All metadata is optional. Providing at least one supported metadata field activates the multimodal DINOv2 component for v2; v1 retains its historical missing-value preprocessing.")
     _invalidate_if_inputs_changed(_input_signature(uploaded, metadata, variant))
     analyze = st.button("Analyze image", type="primary", disabled=uploaded is None)
     st.markdown("</section>", unsafe_allow_html=True)

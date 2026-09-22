@@ -9,13 +9,23 @@ from src.inference import PredictionResult
 MODEL_LABELS = {"convnext": "ConvNeXt-Tiny", "efficientnet": "EfficientNetV2-S", "multimodal": "Multimodal DINOv2"}
 VERSION_LABELS = {"v1_frozen": "v1 Frozen", "v2_adaptive": "v2 Adaptive"}
 PROJECT_METRICS = {"development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"), "v1_ddi_images": "656 independent DDI images", "v2_ddi": "57.3% → 68.4% malignant sensitivity · +11.1 percentage points · 19 additional malignant lesions detected"}
-VERSION_HELP = """v1 Frozen — Original research ensemble using all three models with equal weighting; it showed a more balanced historical external-test profile on the independent DDI evaluation.
+VERSION_COMPARISON = """#### v1 Frozen
+The original frozen research ensemble uses ConvNeXt-Tiny, EfficientNetV2-S, and Multimodal DINOv2 with equal ensemble weighting. It retains historical missing-metadata handling and was used for the original independent DDI evaluation, where it showed a more balanced historical sensitivity/specificity profile.
 
-v2 Adaptive — Newer metadata-aware deployment configuration. It uses multimodal DINOv2 when metadata is available and image-only models otherwise. In a post-hoc DDI comparison without metadata, it identified more malignant lesions, with a more aggressive positive-classification profile. This is not a fresh untouched external validation."""
+#### v2 Adaptive
+The newer deployment-oriented version uses Multimodal DINOv2 when at least one supported metadata field is supplied, applying the saved adaptive disagreement-aware ensemble when all three models are active. Without metadata, it uses ConvNeXt-Tiny and EfficientNetV2-S only. It showed higher malignant sensitivity in the later post-hoc DDI comparison; that comparison is post-hoc, not a fresh untouched validation.
+
+**v1 is the original externally evaluated configuration and showed a more balanced historical external-test profile. v2 is a newer metadata-aware deployment configuration that detected more malignant lesions in the later no-metadata DDI comparison, while making more positive predictions overall.**"""
 
 
 def render_hero(st) -> None:
-    st.markdown("""<section class="hero"><h1>Skin Lesion Classification Lab</h1><p>Deep-learning research demo for benign vs malignant lesion classification</p><p class="creator">Created by Samuel Dankner</p></section>""", unsafe_allow_html=True)
+    st.markdown("""<section class="hero"><h1>Skin Lesion Classification Model</h1><p>Deep-learning research demo for benign vs malignant lesion classification</p><p class="creator">Created by Samuel Dankner</p></section>""", unsafe_allow_html=True)
+
+
+def render_version_comparison(st) -> None:
+    """Provide visible, native disclosure for the deployment tradeoffs."""
+    with st.popover("Compare model versions", use_container_width=False):
+        st.markdown(VERSION_COMPARISON)
 
 
 def render_usage_guide(st) -> None:
@@ -61,23 +71,25 @@ def render_model_outputs(st, result: PredictionResult, variant: str) -> None:
 
 
 def render_about(st) -> None:
-    st.markdown('<div class="section-title">About This Model</div>', unsafe_allow_html=True)
-    st.markdown("""<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · independent DDI evaluation of v1 · adaptive v2 deployment policy · Streamlit interface · Docker-ready deployment</p></section>""", unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Project Highlights</div>', unsafe_allow_html=True)
-    cards = [*PROJECT_METRICS["development"], f"v1: {PROJECT_METRICS['v1_ddi_images']}", f"v2 post-hoc DDI comparison: {PROJECT_METRICS['v2_ddi']}"]
-    columns = st.columns(2)
-    for index, text in enumerate(cards):
-        with columns[index % 2]: st.markdown(f'<section class="highlight-card">{text}</section>', unsafe_allow_html=True)
-    with st.expander("Research & evaluation details", expanded=False):
-        st.markdown("v1 was frozen before its independent DDI evaluation. v2 was developed later; its DDI comparison is post-hoc, and its weighting search used validation data only.")
+    with st.expander("About This Model", expanded=False):
+        st.markdown("""<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · independent DDI evaluation of v1 · adaptive v2 deployment policy · Streamlit interface · Docker-ready deployment</p></section>""", unsafe_allow_html=True)
+
+    with st.expander("Project Highlights", expanded=False):
+        cards = [*PROJECT_METRICS["development"], f"v1: {PROJECT_METRICS['v1_ddi_images']}", f"v2 post-hoc DDI comparison: {PROJECT_METRICS['v2_ddi']}"]
+        columns = st.columns(2)
+        for index, text in enumerate(cards):
+            with columns[index % 2]: st.markdown(f'<section class="highlight-card">{text}</section>', unsafe_allow_html=True)
+        st.caption("v1 is the independent external evaluation; the v2 DDI comparison is post-hoc.")
+        with st.expander("Research & evaluation details", expanded=False):
+            st.markdown("v1 was frozen before its independent DDI evaluation. v2 was developed later; its DDI comparison is post-hoc, and its weighting search used validation data only.")
 
 
 def render_next_steps(st) -> None:
-    st.markdown('<div class="section-title">Next Steps</div>', unsafe_allow_html=True)
-    items = (("New external validation", "Evaluate v2 on a new untouched external dataset."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Metadata robustness", "Improve multimodal behavior with partial metadata."), ("Prospective testing", "Validate the full workflow on newly collected data."))
-    columns = st.columns(2)
-    for index, (title, body) in enumerate(items):
-        with columns[index % 2]: st.markdown(f'<section class="next-card"><strong>{title}</strong><p>{body}</p></section>', unsafe_allow_html=True)
+    with st.expander("Next Steps", expanded=False):
+        items = (("New external validation", "Evaluate v2 on a new untouched external dataset."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Metadata robustness", "Improve multimodal behavior with partial metadata."), ("Prospective testing", "Validate the full workflow on newly collected data."))
+        columns = st.columns(2)
+        for index, (title, body) in enumerate(items):
+            with columns[index % 2]: st.markdown(f'<section class="next-card"><strong>{title}</strong><p>{body}</p></section>', unsafe_allow_html=True)
 
 
 def render_disclaimer(st) -> None:
