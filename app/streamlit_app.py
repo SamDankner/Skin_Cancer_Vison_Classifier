@@ -63,7 +63,7 @@ def main() -> None:
     st.markdown('<section class="metadata-card"><div class="eyebrow">Optional Metadata</div><p class="muted">Supported metadata can provide additional context to the multimodal model.</p>', unsafe_allow_html=True)
     age_col, sex_col, site_col = st.columns(3)
     with age_col:
-        age = st.number_input("Age", min_value=0, max_value=120, value=None, placeholder="Age in years")
+        age = st.number_input("Age", min_value=0, max_value=120, value=None)
         st.caption("Enter age in years")
     with sex_col:
         sex = st.selectbox("Sex", SEX_OPTIONS)

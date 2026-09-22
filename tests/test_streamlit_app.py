@@ -33,6 +33,8 @@ def test_ui_copy_documents_focal_lesion_task_and_refined_versioned_demo():
     assert "57.3% → 68.4%" in ui.PROJECT_METRICS["v2_ddi"]
     assert "+11.1 percentage points" in ui.PROJECT_METRICS["v2_ddi"]
     assert "19 additional malignant lesions" in ui.PROJECT_METRICS["v2_ddi"]
+    assert "independent external dataset not used in training or validation" in ui.PROJECT_METRICS["v1_ddi_images"]
+    assert ui.DDI_URL == "https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images"
 
 
 def test_refinement_uses_visible_controls_and_collapsed_information_sections():
@@ -52,15 +54,20 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert ui.VERSION_LABELS == {"v1_frozen": "V1", "v2_adaptive": "V2"}
     assert "V1 — Frozen" in ui.VERSION_COMPARISON
     assert "V2 — Adaptive" in ui.VERSION_COMPARISON
+    assert "independent external dataset not used in training or validation" in ui.VERSION_COMPARISON
+    assert "DDI evaluation" not in ui.VERSION_COMPARISON
+    assert "DDI comparison" not in ui.VERSION_COMPARISON
     assert "render_version_overview" not in page_copy
     assert '[data-testid="stButton"] button {' not in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stButton"] button[kind="primary"]' in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stPopover"] button { background:#005396; border-color:#005396; color:#FFF; }' in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stNumberInput"] [data-baseweb="input"], [data-testid="stNumberInput"] input { background:transparent; }' in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stNumberInput"] input { color:#FFF !important; }' in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stExpander"] summary, [data-testid="stExpander"] summary *' in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stExpander"] [data-testid="stExpanderDetails"], [data-testid="stExpander"] [data-testid="stExpanderDetails"] *' in styles.CLINICAL_COBALT_CSS
 
     field_copy = " ".join(value for value in source if isinstance(value, str))
-    assert "Age in years" in field_copy
+    assert "Age in years" not in field_copy
     assert "Enter age in years" in field_copy
     assert "Select the available sex value" in field_copy
     assert "Body location of the lesion" in field_copy

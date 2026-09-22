@@ -36,7 +36,8 @@ CLINICAL_COBALT_CSS = """
  [data-testid="stNumberInput"] input::placeholder { color:#D9E2EC; opacity:1; }
  [data-testid="stNumberInput"] [data-baseweb="input"]:focus-within { border-color:#005396; box-shadow:0 0 0 1px #005396; }
  [data-testid="stSelectbox"] [data-baseweb="select"] > div { background:#FFF; }
- [data-testid="stExpander"] summary, [data-testid="stExpander"] summary p, [data-testid="stExpanderDetails"] { color:#17212B !important; }
+ [data-testid="stExpander"] summary, [data-testid="stExpander"] summary *, [data-testid="stExpander"] summary:hover, [data-testid="stExpander"] summary:focus, [data-testid="stExpander"] summary:focus-visible { color:#17212B !important; }
+ [data-testid="stExpander"] [data-testid="stExpanderDetails"], [data-testid="stExpander"] [data-testid="stExpanderDetails"] * { color:#17212B !important; }
  [data-testid="stPopover"] button { background:#005396; border-color:#005396; color:#FFF; }
  [data-testid="stPopover"] button:hover, [data-testid="stPopover"] button:focus-visible { background:#0D36B8; border-color:#0D36B8; color:#FFF; }
  [data-testid="stPopover"] button:disabled { background:#9AB4CE; border-color:#9AB4CE; color:#17212B; opacity:1; }

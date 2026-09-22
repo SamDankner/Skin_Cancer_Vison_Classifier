@@ -9,21 +9,23 @@ from src.inference import PredictionResult
 MODEL_LABELS = {"convnext": "ConvNeXt-Tiny", "efficientnet": "EfficientNetV2-S", "multimodal": "Multimodal DINOv2"}
 VERSION_LABELS = {"v1_frozen": "V1", "v2_adaptive": "V2"}
 VERSION_DISPLAY_NAMES = {"v1_frozen": "V1 Frozen", "v2_adaptive": "V2 Adaptive"}
-PROJECT_METRICS = {"development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"), "v1_ddi_images": "656 independent DDI images", "v2_ddi": "57.3% → 68.4% malignant sensitivity · +11.1 percentage points · 19 additional malignant lesions detected"}
+DDI_URL = "https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images"
+DDI_LINK = f'<a href="{DDI_URL}" target="_blank" rel="noopener noreferrer">DDI</a>'
+PROJECT_METRICS = {"development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"), "v1_ddi_images": f"656 images from an independent external dataset not used in training or validation ({DDI_LINK})", "v2_ddi": "57.3% → 68.4% malignant sensitivity · +11.1 percentage points · 19 additional malignant lesions detected"}
 VERSION_COMPARISON = """#### V1 — Frozen
 - Original frozen research ensemble
 - ConvNeXt-Tiny + EfficientNetV2-S + Multimodal DINOv2
 - Equal ensemble weighting
 - Uses historical missing-metadata handling
-- Configuration used for the original independent DDI evaluation
-- Showed a more balanced historical sensitivity/specificity profile
+- Configuration used for the original evaluation on an independent external dataset not used in training or validation ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images))
+- Showed a more balanced historical sensitivity/specificity profile on that external evaluation
 
 #### V2 — Adaptive
 - Newer metadata-aware deployment version
 - Uses Multimodal DINOv2 when supported metadata is provided
 - Uses the saved adaptive three-model policy when metadata is available
 - Uses ConvNeXt + EfficientNet when no metadata is supplied
-- In the later post-hoc no-metadata DDI comparison, detected more malignant lesions / showed higher malignant sensitivity
+- In the later post-hoc no-metadata comparison on the same independent external dataset ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images)), detected more malignant lesions / showed higher malignant sensitivity
 
 > V1 is the original externally evaluated configuration with a more balanced historical external-test profile. V2 is a newer metadata-aware deployment configuration that showed higher malignant sensitivity in the later post-hoc no-metadata comparison while making more positive predictions overall."""
 
@@ -82,16 +84,16 @@ def render_model_outputs(st, result: PredictionResult, variant: str) -> None:
 
 def render_about(st) -> None:
     with st.expander("About This Model", expanded=False):
-        st.markdown("""<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · independent DDI evaluation of v1 · adaptive v2 deployment policy · Streamlit interface · Docker-ready deployment</p></section>""", unsafe_allow_html=True)
+        st.markdown(f'''<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · original v1 evaluation on an independent external dataset not used in training or validation ({DDI_LINK}) · adaptive v2 deployment policy · Streamlit interface · Docker-ready deployment</p></section>''', unsafe_allow_html=True)
 
     with st.expander("Project Highlights", expanded=False):
-        cards = [*PROJECT_METRICS["development"], f"v1: {PROJECT_METRICS['v1_ddi_images']}", f"v2 post-hoc DDI comparison: {PROJECT_METRICS['v2_ddi']}"]
+        cards = [*PROJECT_METRICS["development"], f"v1: {PROJECT_METRICS['v1_ddi_images']}", f"v2 post-hoc comparison on the same independent external dataset: {PROJECT_METRICS['v2_ddi']}"]
         columns = st.columns(2)
         for index, text in enumerate(cards):
             with columns[index % 2]: st.markdown(f'<section class="highlight-card">{text}</section>', unsafe_allow_html=True)
-        st.caption("v1 is the independent external evaluation; the v2 DDI comparison is post-hoc.")
+        st.caption("v1 is the independent external evaluation; the v2 comparison on the same external dataset is post-hoc.")
         with st.expander("Research & evaluation details", expanded=False):
-            st.markdown("v1 was frozen before its independent DDI evaluation. v2 was developed later; its DDI comparison is post-hoc, and its weighting search used validation data only.")
+            st.markdown("v1 was frozen before its original evaluation on an independent external dataset not used in training or validation ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images)). v2 was developed later; its comparison on the same external dataset is post-hoc, and its weighting search used validation data only.")
 
 
 def render_next_steps(st) -> None:
