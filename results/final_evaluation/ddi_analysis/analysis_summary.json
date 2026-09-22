@@ -1,0 +1,19 @@
+{
+  "scope": "posthoc_analysis_only",
+  "frozen_threshold": 0.51,
+  "n": 656,
+  "confusion_counts": {
+    "TN": 368,
+    "FP": 117,
+    "TP": 98,
+    "FN": 73
+  },
+  "false_negative_count": 73,
+  "fn_convnext_detected": 40,
+  "fn_efficientnet_detected": 4,
+  "fn_multimodal_detected": 1,
+  "fn_missed_by_all_members": 30,
+  "fn_overruled_convnext": 40,
+  "all_ddi_auxiliary_missing": true,
+  "standalone_dinov2": "not run: absent from saved DDI artifacts; this analysis script does not rerun final-test inference"
+}

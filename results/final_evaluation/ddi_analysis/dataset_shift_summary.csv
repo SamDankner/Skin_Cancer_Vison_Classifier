@@ -1,0 +1,15 @@
+dataset,statistic,count,mean,std,median,development_test_status
+DDI,width,656.0,649.625,303.90184170108773,525.0,unavailable: retained development manifest is placeholder
+DDI,height,656.0,700.907012195122,338.7121395484249,645.5,unavailable: retained development manifest is placeholder
+DDI,aspect_ratio,656.0,0.9742050444326341,0.2836212150290134,0.8819377817853922,unavailable: retained development manifest is placeholder
+DDI,mean_r,656.0,0.596834618109756,0.11583931078900055,0.60805772,unavailable: retained development manifest is placeholder
+DDI,mean_g,656.0,0.482655062652439,0.1060870698249705,0.48967599500000003,unavailable: retained development manifest is placeholder
+DDI,mean_b,656.0,0.402216237804878,0.11268918226003455,0.401617825,unavailable: retained development manifest is placeholder
+DDI,std_r,656.0,0.16212581552286587,0.058260374803964315,0.157670435,unavailable: retained development manifest is placeholder
+DDI,std_g,656.0,0.16941449147865853,0.05161783646665933,0.166472095,unavailable: retained development manifest is placeholder
+DDI,std_b,656.0,0.17466337531554876,0.055396962855123785,0.173577595,unavailable: retained development manifest is placeholder
+DDI,luminance_mean,656.0,0.5011750646468909,0.10453458059484104,0.508980282708223,unavailable: retained development manifest is placeholder
+DDI,luminance_std,656.0,0.16558035843633448,0.05114208432676233,0.16218983728864156,unavailable: retained development manifest is placeholder
+DDI,saturation_proxy,656.0,0.2105029382957317,0.08750235705179679,0.20128622000000002,unavailable: retained development manifest is placeholder
+DDI,sharpness_proxy,656.0,0.019398830878245146,0.00997413803314606,0.0169201081535904,unavailable: retained development manifest is placeholder
+DDI,format,0.0,,,,unavailable: retained development manifest is placeholder
