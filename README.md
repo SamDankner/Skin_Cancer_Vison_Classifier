@@ -252,3 +252,37 @@ python -m pytest -q
 ```
 
 Tests use synthetic data and tiny offline models; they do not require medical datasets or pretrained downloads. Seeds are applied to Python, NumPy, PyTorch, and CUDA. The default configuration allows cuDNN benchmarking for practical GPU speed; enable deterministic mode when repeatability is more important than throughput.
+
+## Live Demo
+
+The Clinical Cobalt Streamlit demo accepts one ordinary clinical/macro skin-lesion photograph and optional age, sex, and anatomical-site metadata. Missing values use the multimodal checkpoint's persisted missing-value preprocessing; uploads are processed in memory and are not saved.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-app.txt
+.\.venv\Scripts\python.exe -m streamlit run app\streamlit_app.py
+```
+
+The app caches exactly the frozen ConvNeXt-Tiny, EfficientNetV2-S, and multimodal DINOv2 members in `configs/final_model.yaml`, using its 0.51 threshold. The standalone DINOv2 development model is never loaded or displayed. This is a research and educational demonstration, not a medical device or diagnostic tool.
+
+### Demo architecture
+
+```text
+Image + optional metadata
+          ↓
+Frozen preprocessing
+          ↓
+ConvNeXt-Tiny ───────┐
+EfficientNetV2-S ────┼─→ Frozen Ensemble → Prediction
+Multimodal DINOv2 ───┘
+```
+
+### Docker
+
+The CPU-ready image intentionally excludes checkpoint files. Mount the frozen `models` directory at runtime; the container reads it through `MODEL_ROOT=/models`. `FROZEN_CONFIG_PATH` can override the default configuration when needed.
+
+```powershell
+docker build -t skin-cancer-classifier .
+docker run --rm -p 8501:8501 -v "${PWD}\models:/models:ro" skin-cancer-classifier
+```
+
+Screenshot placeholder: add a verified local demo screenshot after launch; no synthetic prediction screenshots are included. The Docker image has not been built in this environment.

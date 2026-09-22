@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import os
+from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Mapping
@@ -22,6 +24,44 @@ from src.utils.timing import benchmark_callable
 
 
 SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
+APP_SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+FINAL_ENSEMBLE_MEMBERS = ("convnext", "efficientnet", "multimodal")
+
+
+@dataclass(frozen=True)
+class PredictionResult:
+    """A UI-neutral prediction from the immutable final ensemble."""
+
+    predicted_class: str
+    malignant_probability: float
+    threshold: float
+    individual_models: dict[str, float]
+    metadata_used: dict[str, bool]
+
+
+def validate_uploaded_image(
+    content: bytes,
+    filename: str,
+    *,
+    max_bytes: int = MAX_UPLOAD_BYTES,
+) -> Image.Image:
+    """Decode a Streamlit upload in memory and return a detached RGB image."""
+    if not content:
+        raise ValueError("The uploaded image is empty.")
+    if len(content) > max_bytes:
+        raise ValueError(f"The uploaded image exceeds the {max_bytes // (1024 * 1024)} MB limit.")
+    suffix = Path(filename).suffix.lower()
+    if suffix not in APP_SUPPORTED_IMAGE_SUFFIXES:
+        raise ValueError("Unsupported image format. Upload a PNG, JPG, or JPEG image.")
+    from io import BytesIO
+
+    try:
+        with Image.open(BytesIO(content)) as uploaded:
+            uploaded.load()
+            return _load_rgb_image(uploaded)
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ValueError("The uploaded image could not be decoded. Please choose a valid PNG, JPG, or JPEG file.") from exc
 
 
 def _load_rgb_image(image: str | Path | Image.Image) -> Image.Image:
@@ -41,8 +81,8 @@ def _load_rgb_image(image: str | Path | Image.Image) -> Image.Image:
     try:
         source.load()
         bands = source.getbands()
-        if len(bands) not in {3, 4}:
-            raise ValueError(f"Expected a three-channel photo (optional alpha); got mode {source.mode!r}")
+        if len(bands) not in {1, 2, 3, 4}:
+            raise ValueError(f"Unsupported image color mode {source.mode!r}")
         return source.convert("RGB").copy()
     finally:
         if should_close:
@@ -54,6 +94,112 @@ def _metadata_frame(metadata: Mapping[str, Any] | None) -> pd.DataFrame:
     if metadata is not None and not isinstance(metadata, Mapping):
         raise TypeError("metadata must be a mapping or None")
     return pd.DataFrame([dict(metadata or {})])
+
+
+class SkinCancerPredictor:
+    """Reusable, cached-by-caller service for the frozen final ensemble only."""
+
+    def __init__(self, frozen_config: Mapping[str, Any], bundles: Mapping[str, CheckpointBundle], device: torch.device):
+        self.frozen_config = dict(frozen_config)
+        self.bundles = dict(bundles)
+        self.device = device
+        self._validate_contract()
+
+    @classmethod
+    def from_frozen_config(
+        cls,
+        frozen_config: str | Path | None = None,
+        *,
+        model_root: str | Path | None = None,
+        device: str | torch.device | None = None,
+    ) -> "SkinCancerPredictor":
+        """Load exactly the three checkpoints named by the immutable YAML file.
+
+        ``FROZEN_CONFIG_PATH`` and ``MODEL_ROOT`` make a container-mounted model
+        directory possible while preserving repository-local defaults.
+        """
+        repository_root = Path(__file__).resolve().parents[1]
+        config_path = Path(frozen_config or os.environ.get("FROZEN_CONFIG_PATH") or repository_root / "configs" / "final_model.yaml")
+        if not config_path.is_file():
+            raise FileNotFoundError(f"Frozen model configuration was not found: {config_path}")
+        frozen = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        resolved_device = torch.device(device) if device is not None else get_device()
+        configured_root = Path(model_root or os.environ.get("MODEL_ROOT", "")) if (model_root or os.environ.get("MODEL_ROOT")) else None
+        bundles: dict[str, CheckpointBundle] = {}
+        for definition in frozen.get("models", []):
+            name = definition.get("name")
+            # Frozen YAML was authored on Windows; resolve it portably in a
+            # Linux/macOS container as well as in the local checkout.
+            raw_checkpoint = Path(str(definition.get("checkpoint", "")).replace("\\", "/"))
+            if raw_checkpoint.is_absolute():
+                checkpoint = raw_checkpoint
+            elif configured_root is not None:
+                checkpoint = configured_root / Path(*raw_checkpoint.parts[1:]) if raw_checkpoint.parts and raw_checkpoint.parts[0] == "models" else configured_root / raw_checkpoint
+            else:
+                checkpoint = config_path.parent.parent / raw_checkpoint
+            if not checkpoint.is_file():
+                raise FileNotFoundError(f"Frozen checkpoint for {name!r} was not found: {checkpoint}")
+            expected_hash = definition.get("checkpoint_sha256")
+            if expected_hash and file_sha256(checkpoint) != expected_hash:
+                raise ValueError(f"Frozen checkpoint hash mismatch: {checkpoint}")
+            bundles[str(name)] = load_checkpoint_bundle(checkpoint, strategy=definition.get("strategy"), device=resolved_device)
+        return cls(frozen, bundles, resolved_device)
+
+    def _validate_contract(self) -> None:
+        config = self.frozen_config
+        if config.get("status") != "frozen" or config.get("task") != "diagnosis_binary":
+            raise ValueError("The app requires the frozen diagnosis_binary configuration.")
+        if list(config.get("class_order", [])) != ["benign", "malignant"]:
+            raise ValueError("Frozen class order must be benign, malignant.")
+        ensemble = config.get("ensemble") or {}
+        names = tuple(ensemble.get("member_names") or ())
+        weights = tuple(float(weight) for weight in ensemble.get("weights") or ())
+        if names != FINAL_ENSEMBLE_MEMBERS or tuple(self.bundles) != FINAL_ENSEMBLE_MEMBERS:
+            raise ValueError("The application only supports ConvNeXt, EfficientNet, and multimodal DINOv2 final members.")
+        if len(weights) != 3 or any(weight != (1.0 / 3.0) for weight in weights):
+            raise ValueError("Frozen final ensemble must retain its three equal weights.")
+        if float((config.get("threshold") or {}).get("threshold", -1)) != 0.51:
+            raise ValueError("Frozen final ensemble threshold must be 0.51.")
+        definitions = {item.get("name"): item for item in config.get("models", [])}
+        if definitions.get("multimodal", {}).get("strategy") != "multimodal":
+            raise ValueError("The final DINOv2 member must be the multimodal checkpoint.")
+        for name, bundle in self.bundles.items():
+            if bundle.strategy != definitions[name].get("strategy") or bundle.task != config["task"] or bundle.class_order != config["class_order"]:
+                raise ValueError(f"Frozen inference contract mismatch for {name}.")
+
+    def predict(
+        self,
+        image: Image.Image,
+        *,
+        age: float | int | None = None,
+        sex: str | None = None,
+        anatomical_site: str | None = None,
+    ) -> PredictionResult:
+        """Run one in-memory image through the three frozen ensemble members."""
+        photo = _load_rgb_image(image)
+        metadata = {"age": age, "sex": sex, "anatomical_site": anatomical_site}
+        provided = {key: value is not None and str(value).strip() != "" for key, value in metadata.items()}
+        try:
+            probabilities: dict[str, float] = {}
+            with torch.inference_mode():
+                for name in FINAL_ENSEMBLE_MEMBERS:
+                    bundle = self.bundles[name]
+                    args, _, _ = _bundle_input(bundle, photo, metadata, self.device)
+                    logits = bundle.model.to(self.device).eval()(*args)
+                    output = torch.softmax(logits.float(), dim=1)[0].detach().cpu().numpy()
+                    probabilities[name] = float(output[bundle.class_order.index("malignant")])
+            weights = (self.frozen_config.get("ensemble") or {})["weights"]
+            malignant_probability = float(sum(probabilities[name] * float(weight) for name, weight in zip(FINAL_ENSEMBLE_MEMBERS, weights)))
+            threshold = float((self.frozen_config.get("threshold") or {})["threshold"])
+            return PredictionResult(
+                predicted_class="malignant" if malignant_probability >= threshold else "benign",
+                malignant_probability=malignant_probability,
+                threshold=threshold,
+                individual_models=probabilities,
+                metadata_used=provided,
+            )
+        finally:
+            photo.close()
 
 
 def _bundle_input(
