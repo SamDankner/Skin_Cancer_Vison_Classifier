@@ -16,9 +16,10 @@ from torch.utils.data import DataLoader
 import yaml
 
 from src.data.datasets import ManifestImageDataset, TASK_TARGETS, select_task_manifest, validate_manifest
-from src.data.targets import target_encoding_for_manifest
+from src.data.targets import TargetEncoding, target_encoding_for_manifest
 from src.data.transforms import build_transforms
 from .metrics import bootstrap_confidence_intervals, classification_metrics, lesion_presence_metrics
+from .final_selection import binary_metrics
 
 
 PREDICTION_COLUMNS = [
@@ -86,7 +87,13 @@ def build_evaluation_loader(
     # while checkpoint class names are presentation labels (benign/malignant).
     # Preserve the training-split encoding so universal evaluation never tries
     # to look up the raw string "1" in a display-label mapping.
-    loader.target_encoding = target_encoding_for_manifest(checked, bundle.task)
+    # DDI has no development ``train`` split by design.  Its labels are
+    # validated against the frozen binary contract, never used to fit one.
+    loader.target_encoding = (
+        TargetEncoding(bundle.task, (0, 1), ("benign", "malignant"))
+        if is_ddi and bundle.task == "diagnosis_binary"
+        else target_encoding_for_manifest(checked, bundle.task)
+    )
     return loader
 
 
@@ -509,6 +516,7 @@ def evaluate_frozen_external_test(
     frozen_config_path: str | Path = "results/final_model/frozen_config.yaml",
     output_directory: str | Path = "results/final_external_test",
     dinov2_backbone_factory=None,
+    allow_existing_preflight: bool = False,
 ) -> dict:
     """Run the already-frozen system once on compatible DDI labels."""
     checked = validate_external_manifest(manifest, allow_final_test=allow_final_test, frozen_config_path=frozen_config_path)
@@ -522,7 +530,7 @@ def evaluate_frozen_external_test(
     from .calibration import apply_temperature
     from .ensemble import EnsembleMember, average_probabilities
 
-    members, reference = [], None
+    members, reference, individual = [], None, {}
     for definition in frozen["models"]:
         checkpoint = Path(definition["checkpoint"])
         if _file_sha256(checkpoint) != definition["checkpoint_sha256"]:
@@ -540,6 +548,7 @@ def evaluate_frozen_external_test(
             raise ValueError("Frozen members did not evaluate identically ordered DDI samples")
         sample_ids = tuple(str(row.get("image_id", index)) for index, row in enumerate(collected["metadata"]))
         members.append(EnsembleMember(definition.get("name", checkpoint.stem), task, tuple(class_order), collected["probabilities"], sample_ids, bundle.strategy == "multimodal"))
+        individual[definition.get("name", checkpoint.stem)] = collected
     ensemble = frozen.get("ensemble") or {}
     if ensemble.get("member_names") and ensemble["member_names"] != [member.name for member in members]:
         raise ValueError("Frozen ensemble member names/order do not match frozen model definitions")
@@ -554,10 +563,25 @@ def evaluate_frozen_external_test(
     metrics = major_result_report(reference["targets"], predictions, probabilities, class_order=class_order, groups=[row.get("patient_id") or row.get("image_id") for row in reference["metadata"]], n_resamples=int((frozen.get("bootstrap") or {}).get("resamples", 1000)), seed=int((frozen.get("bootstrap") or {}).get("seed", 42)))
     export = prediction_frame(reference["targets"], probabilities, reference["metadata"], class_order=class_order, task=task, strategy="frozen_ensemble", ensemble_id=ensemble.get("identifier", "final"), threshold=threshold, calibrated=calibrated)
     destination = Path(output_directory)
-    if destination.exists() and any(destination.iterdir()):
-        raise FileExistsError("Final external-test output directory is not empty; automatic reruns are disabled")
+    allowed_preflight = {"ddi_dataset_report.json", "ddi_overlap_audit.json"}
+    existing = {item.name for item in destination.iterdir()} if destination.exists() else set()
+    if existing and not (allow_existing_preflight and existing <= allowed_preflight):
+        raise FileExistsError("Final external-test output directory contains completed or unowned artifacts; automatic reruns are disabled")
+    destination.mkdir(parents=True, exist_ok=True)
+    comparison = []
+    for name, collected in individual.items():
+        member_prediction = (collected["probabilities"][:, 1] >= threshold).astype(int)
+        member_metrics = major_result_report(collected["targets"], member_prediction, collected["probabilities"], class_order=class_order, groups=[row.get("patient_id") or row.get("image_id") for row in collected["metadata"]], n_resamples=int((frozen.get("bootstrap") or {}).get("resamples", 1000)), seed=int((frozen.get("bootstrap") or {}).get("seed", 42)))
+        member_export = prediction_frame(collected["targets"], collected["probabilities"], collected["metadata"], class_order=class_order, task=task, strategy=name, checkpoint_id=Path(next(item["checkpoint"] for item in frozen["models"] if item.get("name") == name)).stem, threshold=threshold)
+        member_export["original_diagnosis"] = [row.get("original_label") for row in collected["metadata"]]
+        member_export.to_csv(destination / f"{name}_predictions.csv", index=False)
+        comparison.append({"system": name, **{key: member_metrics.get(key) for key in ("sample_count", "accuracy", "balanced_accuracy", "macro_f1", "roc_auc", "pr_auc", "sensitivity", "specificity", "brier_score")}})
     export_predictions(export, destination / "ddi_predictions.csv")
-    report = {"metrics": metrics, "ensemble": ensemble_details, "threshold": threshold, "calibrated": calibrated}
+    export.to_csv(destination / "ensemble_predictions.csv", index=False)
+    comparison.append({"system": "Frozen final ensemble", **{key: metrics.get(key) for key in ("sample_count", "accuracy", "balanced_accuracy", "macro_f1", "roc_auc", "pr_auc", "sensitivity", "specificity", "brier_score")}})
+    pd.DataFrame(comparison).to_csv(destination / "model_comparison.csv", index=False)
+    (destination / "model_comparison.json").write_text(json.dumps(comparison, indent=2), encoding="utf-8")
+    report = {"metrics": metrics, "individual_metrics": {name: binary_metrics(values["targets"], values["probabilities"][:, 1], threshold) for name, values in individual.items()}, "ensemble": ensemble_details, "threshold": threshold, "calibrated": calibrated}
     report_path = save_external_test_report(report, frozen_config_path=frozen_path, output_directory=destination)
     return {"report": report, "report_path": report_path, "predictions_path": destination / "ddi_predictions.csv"}
 

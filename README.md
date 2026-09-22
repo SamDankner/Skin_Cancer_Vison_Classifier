@@ -206,6 +206,29 @@ The reproducible completed selection command is `\.venv\Scripts\python.exe run_f
 
 DDI belongs only in `data/final_external_test/DDI/`. It is never training, validation, development test, parameter-search, calibration, threshold-selection, or ensemble-selection data.
 
+## Final DDI external evaluation
+
+DDI has not been accessed by this repository. Obtain it individually from the
+official Stanford AIMI portal at https://stanfordaimi.azurewebsites.net/datasets/35866158-8196-48d8-87bf-50dca81df965,
+accept the Stanford DDI Research Use Agreement, and place the official
+`ddi_metadata.csv` plus images under `data/final_external_test/ddi/` (normally
+`images/`). Do not use mirrors or share the download link. The official DDI
+code specifies a direct `malignant` / `malignancy(malig=1)` field; that field,
+not a guessed diagnosis mapping, drives this project's binary evaluation.
+
+Once the registered user has completed that manual access step, run exactly
+once:
+
+```powershell
+.\.venv\Scripts\python.exe run_ddi_final_evaluation.py --allow-final-test
+```
+
+It preserves the immutable download outside Git, writes the DDI manifest,
+checks image hashes and identifiers against the development manifest, verifies
+frozen checkpoint hashes, and refuses a non-empty output directory. Results go
+to `results/final_evaluation/ddi/`; no threshold, preprocessing, metadata
+vocabulary, ensemble weight, or checkpoint is fit after DDI access.
+
 Do not add DDI to `configs/experiments.yaml`. Normal `python run_experiments.py` and `python predict.py` cannot consume it. After all development choices are frozen, use `notebooks/91_final_external_test.ipynb` deliberately. Access requires both `allow_final_test=True` and an existing immutable `results/final_model/frozen_config.yaml`; the external-test workflow verifies checkpoint hashes and prevents automatic reruns.
 
 ## Notebooks

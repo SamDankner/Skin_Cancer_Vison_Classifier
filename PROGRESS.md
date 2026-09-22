@@ -1,5 +1,55 @@
 # Target focal-lesion gate: independent data audit and integration record
 
+## DDI final external-test readiness (2026-09-21)
+
+- Inspected the frozen `configs/final_model.yaml`, model checkpoints,
+  manifests, selection code, and final-test directory. `external_test_consumed`
+  remains false and `data/final_external_test/` contains only `.gitkeep`; no
+  DDI image, manifest, prediction, or evaluation result exists.
+- The authentic source is Stanford AIMI's DDI portal:
+  `https://stanfordaimi.azurewebsites.net/datasets/35866158-8196-48d8-87bf-50dca81df965`.
+  The associated project is `https://ddi-dataset.github.io/` and the source
+  paper is Daneshjou et al., *Science Advances* (2022),
+  doi:10.1126/sciadv.abq6147. Its Research Use Agreement requires individual
+  registration, non-commercial research use, and prohibits redistributing the
+  dataset or download link.
+- Automatic download is therefore intentionally not possible without a
+  registered user's manual agreement. Added `src/data/ddi.py` and
+  `run_ddi_final_evaluation.py` to build a manifest only from the official
+  `ddi_metadata.csv` direct malignancy flag, preserve diagnoses/unknowns,
+  audit exact hash and ID overlap, verify frozen checkpoints, and refuse rerun.
+  This is readiness work only: **DDI has not been accessed or evaluated.**
+
+## DDI integration attempt (2026-09-21)
+
+- The registered user placed the authentic official DDI export locally: 656 PNGs
+  and `ddi_metadata.csv`. DDI metadata was accessed for integration. Its actual
+  columns include `DDI_file`, `skin_tone`, `malignant`, and `disease`; the
+  direct official `malignant` flag contains 485 false (benign) and 171 true
+  (malignant) rows.
+- The first evaluation stopped before inference because the intentional final
+  external split has no `train` rows, while the generic loader incorrectly
+  tried to fit a target encoding from that empty split. No model outputs,
+  performance metrics, subgroup results, or tuning decisions were produced.
+- The external loader now uses the frozen diagnosis-binary contract (canonical
+  0=benign, 1=malignant) for DDI only, after explicit pre-inference validation.
+  Checkpoints, architecture, preprocessing, metadata state, ensemble weights,
+  threshold, training data, and validation choices remain unchanged.
+- A second pre-inference plumbing issue was identified: the common diagnosis
+  selector correctly requires `lesion_present=true`, but the DDI manifest had
+  left that required eligibility field null despite each official DDI row being
+  a clinical lesion image selected from pathology reports. The DDI builder now
+  explicitly sets that eligibility field for rows with a valid official
+  malignancy flag. This changes neither binary labels nor any frozen model
+  decision; no inference was run while correcting it.
+- A third attempt reached model initialization but stopped before prediction
+  collection. The runner had written only `ddi_dataset_report.json` and
+  `ddi_overlap_audit.json` into `results/final_evaluation/ddi/`; the evaluator
+  then treated those same-invocation preflight files as an unsafe rerun. The
+  lifecycle guard now admits exactly that preflight-only state, while any
+  prediction, metric, report, consumption marker, or unknown artifact still
+  blocks rerunning final DDI evaluation.
+
 ## 2026-09-20 independent audit outcome
 
 The official archives for `SkinDiseaseClassification` (`10.17632/schhndjbjp.1`),

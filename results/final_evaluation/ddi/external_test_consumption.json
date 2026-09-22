@@ -1,0 +1,6 @@
+{
+  "dataset": "DDI",
+  "consumed": true,
+  "consumed_at_utc": "2026-09-22T04:33:02.468702+00:00",
+  "frozen_config": "configs\\final_model.yaml"
+}

@@ -1,0 +1,7 @@
+{
+  "ddi_samples": 656,
+  "development_manifest": "data/processed/development_manifest.csv",
+  "exact_hash_overlap": [],
+  "shared_image_ids": [],
+  "clean_external_test": true
+}

@@ -1,0 +1,12 @@
+{
+  "source_url": "https://stanfordaimi.azurewebsites.net/datasets/35866158-8196-48d8-87bf-50dca81df965",
+  "project_url": "https://ddi-dataset.github.io/",
+  "paper": "https://doi.org/10.1126/sciadv.abq6147",
+  "terms": "Stanford DDI Research Use Agreement; personal, non-commercial research only; do not redistribute.",
+  "download_date": "2026-09-22",
+  "metadata_file": "data\\final_external_test\\ddi\\ddi_metadata.csv",
+  "metadata_sha256": "534bdb3d95943eefb9bb5691d5fc00e5c0f132326bea24b28f750e9f6087a838",
+  "image_count": 656,
+  "eligible_binary_count": 656,
+  "excluded_count": 0
+}

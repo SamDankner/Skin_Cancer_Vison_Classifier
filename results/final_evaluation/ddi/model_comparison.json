@@ -1,0 +1,50 @@
+[
+  {
+    "system": "convnext",
+    "sample_count": 656,
+    "accuracy": 0.5259146341463414,
+    "balanced_accuracy": 0.615017785012359,
+    "macro_f1": 0.5202953244218719,
+    "roc_auc": 0.6895701452945078,
+    "pr_auc": 0.4582447126307264,
+    "sensitivity": 0.8011695906432749,
+    "specificity": 0.4288659793814433,
+    "brier_score": 0.34592849711198215
+  },
+  {
+    "system": "efficientnet",
+    "sample_count": 656,
+    "accuracy": 0.6600609756097561,
+    "balanced_accuracy": 0.6110869958401157,
+    "macro_f1": 0.5972856533289287,
+    "roc_auc": 0.6917827214083319,
+    "pr_auc": 0.4891327128121177,
+    "sensitivity": 0.5087719298245614,
+    "specificity": 0.7134020618556701,
+    "brier_score": 0.2265959660943357
+  },
+  {
+    "system": "multimodal",
+    "sample_count": 656,
+    "accuracy": 0.7713414634146342,
+    "balanced_accuracy": 0.6446976547898957,
+    "macro_f1": 0.6594684385382059,
+    "roc_auc": 0.7362392234882739,
+    "pr_auc": 0.4908387024955708,
+    "sensitivity": 0.38011695906432746,
+    "specificity": 0.9092783505154639,
+    "brier_score": 0.16896425196222664
+  },
+  {
+    "system": "Frozen final ensemble",
+    "sample_count": 656,
+    "accuracy": 0.7103658536585366,
+    "balanced_accuracy": 0.6659311509013082,
+    "macro_f1": 0.6512942177061068,
+    "roc_auc": 0.7209621993127147,
+    "pr_auc": 0.5073981139087945,
+    "sensitivity": 0.5730994152046783,
+    "specificity": 0.7587628865979381,
+    "brier_score": 0.20189919453562463
+  }
+]
