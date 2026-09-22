@@ -60,7 +60,7 @@ def main() -> None:
     with comparison_col:
         render_version_comparison(st)
     uploaded = st.file_uploader("Upload a focal skin-lesion photograph", type=["png", "jpg", "jpeg"], help="PNG, JPG, or JPEG up to 10 MB. Images are processed in memory.")
-    st.markdown('<section class="metadata-card"><div class="eyebrow">Optional Metadata</div><p class="muted">Supported metadata can provide additional context to the multimodal model.</p>', unsafe_allow_html=True)
+    st.markdown('<section class="metadata-card"><div class="eyebrow">Optional Information About You</div><p class="muted">If you choose to share it, your age, sex, and lesion location can provide additional context to the multimodal model.</p>', unsafe_allow_html=True)
     age_col, sex_col, site_col = st.columns(3)
     with age_col:
         age = st.number_input("Age", min_value=0, max_value=120, value=None)
@@ -72,7 +72,7 @@ def main() -> None:
         site = st.selectbox("Anatomical Site", SITE_OPTIONS)
         st.caption("Body location of the lesion")
     metadata = _metadata(age, sex, site)
-    st.caption("All metadata is optional. Providing at least one supported metadata field activates the multimodal DINOv2 component for V2; V1 retains its historical missing-value preprocessing.")
+    st.caption("Sharing information about you is optional. For V2, adding your age, sex, or lesion location activates the multimodal DINOv2 component; V1 retains its historical missing-value preprocessing.")
     _invalidate_if_inputs_changed(_input_signature(uploaded, metadata, variant))
     analyze = st.button("Analyze image", type="primary", disabled=uploaded is None)
     st.markdown("</section>", unsafe_allow_html=True)
@@ -99,9 +99,9 @@ def main() -> None:
         else: st.markdown('<section class="clinical-card"><div class="eyebrow">Analysis result</div><p class="muted">Results will appear here after you upload an image and select Analyze image.</p></section>', unsafe_allow_html=True)
     result = st.session_state.get("prediction")
     if result:
-        if "multimodal" in result.inactive_models: st.info("No metadata provided. Multimodal DINOv2 was not used.")
+        if "multimodal" in result.inactive_models: st.info("No optional information was provided. Multimodal DINOv2 was not used.")
         elif variant == "v1_frozen": st.info("V1 uses the multimodal model with its persisted missing-value preprocessing.")
-        else: st.info("Multimodal inference is active. Missing metadata fields are handled by the saved preprocessing pipeline.")
+        else: st.info("Multimodal inference is active. Missing optional information is handled by the saved preprocessing pipeline.")
         render_model_outputs(st, result, variant)
     render_about(st)
     render_next_steps(st)

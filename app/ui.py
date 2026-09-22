@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from html import escape
+from pathlib import Path
 from typing import Mapping
 
 from src.inference import PredictionResult
@@ -11,9 +12,10 @@ VERSION_LABELS = {"v1_frozen": "V1", "v2_adaptive": "V2"}
 VERSION_DISPLAY_NAMES = {"v1_frozen": "V1 Frozen", "v2_adaptive": "V2 Adaptive"}
 DDI_URL = "https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images"
 DDI_LINK = f'<a href="{DDI_URL}" target="_blank" rel="noopener noreferrer">DDI</a>'
+CLOSE_UP_EXAMPLE_PATH = Path(__file__).with_name("assets") / "pad_ufes_20_close_up_examples.jpg"
 PROJECT_METRICS = {
     "development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"),
-    "architecture": "Three-model CNN + transformer ensemble with optional structured metadata",
+    "architecture": "Three-model CNN + transformer ensemble with optional age, sex, and lesion-location information",
     "methodology": "Leakage-aware patient, lesion, and image grouping with validation-only model and threshold selection",
     "v2_ddi": "+19.4% relative increase in malignant-lesion sensitivity in the post-hoc V2 comparison on previously inspected DDI · 19 additional malignant lesions detected",
 }
@@ -21,15 +23,15 @@ VERSION_COMPARISON = """#### V1 — Frozen
 - Original frozen research ensemble
 - ConvNeXt-Tiny + EfficientNetV2-S + Multimodal DINOv2
 - Equal ensemble weighting
-- Uses historical missing-metadata handling
+- Uses historical missing-information handling
 - Configuration used for the original evaluation on an independent external dataset not used in training or validation ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images))
 - Showed a more balanced historical sensitivity/specificity profile on that external evaluation
 
 #### V2 — Adaptive
-- Newer metadata-aware deployment version
-- Uses Multimodal DINOv2 when supported metadata is provided
-- Uses the saved adaptive three-model policy when metadata is available
-- Uses ConvNeXt + EfficientNet when no metadata is supplied
+- Newer information-aware deployment version
+- Uses Multimodal DINOv2 when optional information about you is provided
+- Uses the saved adaptive three-model policy when that information is available
+- Uses ConvNeXt + EfficientNet when no optional information is supplied
 - In the later post-hoc no-metadata comparison on the same independent external dataset ([DDI](https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images)), detected more malignant lesions / showed higher malignant sensitivity
 
 > V1 is the original externally evaluated configuration with a more balanced historical external-test profile. V2 is a newer metadata-aware deployment configuration that showed higher malignant sensitivity in the later post-hoc no-metadata comparison while making more positive predictions overall."""
@@ -61,9 +63,11 @@ It is not designed for normal or blank skin, acne without a focal lesion, diffus
 
 #### Best photo inputs
 Use one clearly visible focal skin lesion, reasonably centered and relatively close-up so it occupies a meaningful part of a well-lit, sharp image. Where practical, minimize obstruction from hair, clothing, fingers, rulers, and glare. Avoid extremely distant images, many unrelated lesions without a clear target, blank or normal skin, and unrelated dermatologic conditions. These characteristics do not guarantee a correct prediction.
-
-#### Optional metadata
-You may provide age, sex, and anatomical site. For V2, at least one supplied field activates the multimodal DINOv2 component. Providing all available supported metadata gives the multimodal model the most complete input, but does not guarantee accuracy. V1 always passes metadata through its historical persisted missing-value preprocessing.
+""")
+        st.image(CLOSE_UP_EXAMPLE_PATH, width=460)
+        st.caption("Published close-up clinical-image examples from the PAD-UFES-20 development dataset. A close-up with one focal lesion is generally most useful; this example does not guarantee a correct classification. Source: PAD-UFES-20, CC BY 4.0.")
+        st.markdown("""#### Optional information about you
+If you choose to share it, you may add your age, sex, and lesion location. For V2, adding any one of these activates the multimodal DINOv2 component. Adding all available supported information gives the multimodal model the most complete input, but does not guarantee accuracy. V1 always passes this information through its historical persisted missing-value preprocessing.
 
 Research and educational demonstration only. This system is not a medical device and is not intended for diagnosis or treatment decisions.""")
 
@@ -82,7 +86,7 @@ def render_model_outputs(st, result: PredictionResult, variant: str) -> None:
     labels = {**MODEL_LABELS, "ensemble": ensemble_label}
     for name in ("convnext", "efficientnet", "multimodal", "ensemble"):
         if name in result.inactive_models:
-            st.markdown(f'<div class="model-row"><span>{labels[name]}</span><span>N/A</span></div><p class="muted">Not used — no metadata provided</p>', unsafe_allow_html=True)
+            st.markdown(f'<div class="model-row"><span>{labels[name]}</span><span>N/A</span></div><p class="muted">Not used — no optional information provided</p>', unsafe_allow_html=True)
         else:
             value = float(values[name])
             st.markdown(f'<div class="model-row"><span>{labels[name]}</span><span>{value:.1%}</span></div>', unsafe_allow_html=True)
@@ -92,7 +96,7 @@ def render_model_outputs(st, result: PredictionResult, variant: str) -> None:
 
 def render_about(st) -> None:
     with st.expander("About This Model", expanded=False):
-        st.markdown(f'''<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured metadata.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · metadata fusion · leakage-aware development · validation-based selection · ensemble inference · original V1 evaluation on an independent external dataset not used in training or validation ({DDI_LINK}) · adaptive V2 deployment policy · Streamlit interface · Docker-ready deployment</p><p><strong>Training &amp; development datasets</strong></p><p class="muted">MILK10k · PAD-UFES-20</p></section>''', unsafe_allow_html=True)
+        st.markdown(f'''<section class="clinical-card"><p>A PyTorch skin-lesion classification system combining convolutional and transformer-based vision models with optional structured information about the person.</p><p class="muted">ConvNeXt-Tiny · EfficientNetV2-S · Multimodal DINOv2 · age/sex/location fusion · leakage-aware development · validation-based selection · ensemble inference · original V1 evaluation on an independent external dataset not used in training or validation ({DDI_LINK}) · adaptive V2 deployment policy · Streamlit interface · Docker-ready deployment</p><p><strong>Training &amp; development datasets</strong></p><p class="muted">MILK10k · PAD-UFES-20</p></section>''', unsafe_allow_html=True)
 
     with st.expander("Project Highlights", expanded=False):
         cards = [
@@ -111,7 +115,7 @@ def render_about(st) -> None:
 
 def render_next_steps(st) -> None:
     with st.expander("Next Steps", expanded=False):
-        items = (("New external validation", "Evaluate V2 on a new untouched external dataset."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Metadata robustness", "Improve multimodal behavior with partial metadata."), ("Prospective testing", "Validate the full workflow on newly collected data."))
+        items = (("Safety-focused workflow research", "Study uncertainty, explanation, and human-review experiences before any clinical use."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Information robustness", "Improve multimodal behavior when only some optional information is shared."), ("Prospective testing", "Validate the full workflow on newly collected data."))
         columns = st.columns(2)
         for index, (title, body) in enumerate(items):
             with columns[index % 2]: st.markdown(f'<section class="next-card"><strong>{title}</strong><p>{body}</p></section>', unsafe_allow_html=True)

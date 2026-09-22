@@ -34,7 +34,7 @@ def test_ui_copy_documents_focal_lesion_task_and_refined_versioned_demo():
     assert "19 additional malignant lesions" in ui.PROJECT_METRICS["v2_ddi"]
     assert "previously inspected DDI" in ui.PROJECT_METRICS["v2_ddi"]
     assert "v1_ddi_images" not in ui.PROJECT_METRICS
-    assert ui.PROJECT_METRICS["architecture"] == "Three-model CNN + transformer ensemble with optional structured metadata"
+    assert ui.PROJECT_METRICS["architecture"] == "Three-model CNN + transformer ensemble with optional age, sex, and lesion-location information"
     assert "validation-only model and threshold selection" in ui.PROJECT_METRICS["methodology"]
     assert ui.DDI_URL == "https://aimi.stanford.edu/datasets/ddi-diverse-dermatology-images"
 
@@ -45,8 +45,8 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     source = streamlit_app.main.__code__.co_consts
     page_copy = " ".join(value for value in source if isinstance(value, str))
     assert "Model Version" in page_copy
-    assert "Optional Metadata" in page_copy
-    assert "Supported metadata can provide additional context" in page_copy
+    assert "Optional Information About You" in page_copy
+    assert "If you choose to share it, your age, sex, and lesion location" in page_copy
     assert "Age" in page_copy and "Sex" in page_copy and "Anatomical Site" in page_copy
     assert "Compare V1 and V2" in " ".join(value for value in ui.render_version_comparison.__code__.co_consts if isinstance(value, str))
     assert "Original frozen research ensemble" in ui.VERSION_COMPARISON
@@ -87,6 +87,11 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert "Training &amp; development datasets" in public_copy
     assert "MILK10k · PAD-UFES-20" in public_copy
     assert "Best photo inputs" in public_copy
+    assert "Published close-up clinical-image examples from the PAD-UFES-20 development dataset" in public_copy
+    assert ui.CLOSE_UP_EXAMPLE_PATH.is_file()
+    assert "New external validation" not in public_copy
+    assert "Safety-focused workflow research" in str(ui.render_next_steps.__code__.co_consts)
+    assert "Optional information about you" in public_copy
     assert "656 images from an independent external dataset" not in public_copy
 
     class FakeStreamlit:
