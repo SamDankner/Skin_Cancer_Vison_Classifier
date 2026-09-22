@@ -1,0 +1,104 @@
+{
+  "evaluation_type": "post-hoc DDI evaluation of v2",
+  "methodological_notice": "This is a post-hoc evaluation of the v2 adaptive ensemble on DDI. DDI had previously been inspected during analysis of v1 and therefore these results do not constitute a new untouched external validation. V2 weighting parameters were selected using validation data only; DDI was not used to numerically tune those weights. DDI findings nevertheless influenced the subsequent research direction. Historical clean DDI results belong to v1 only.",
+  "dataset": {
+    "sample_count": 656,
+    "benign": 485,
+    "malignant": 171,
+    "metadata_available": false
+  },
+  "active_models": [
+    "convnext",
+    "efficientnet"
+  ],
+  "inactive_models": {
+    "multimodal": "DDI lacks age, sex, and anatomical_site"
+  },
+  "no_metadata_policy": {
+    "strategy": "equal_probability_average"
+  },
+  "metadata_available_policy_saved_but_not_used_on_ddi": {
+    "strategy": "closest_pair_consensus",
+    "pair_max_distance": 0.1,
+    "separation_ratio": 3.0,
+    "outlier_weight_multiplier": 0.2,
+    "weights": {
+      "convnext": 0.3427816148634098,
+      "efficientnet": 0.32914912409374214,
+      "multimodal": 0.3280692610428481
+    }
+  },
+  "threshold": 0.51,
+  "metrics": {
+    "loss": null,
+    "sample_count": 656,
+    "labels": [
+      0,
+      1
+    ],
+    "class_names": [
+      "benign",
+      "malignant"
+    ],
+    "class_coverage_complete": true,
+    "missing_classes": [],
+    "accuracy": 0.6128048780487805,
+    "balanced_accuracy": 0.6359196961475855,
+    "macro_precision": 0.6048965690516735,
+    "macro_recall": 0.6359196961475855,
+    "macro_f1": 0.5856278847684228,
+    "weighted_f1": 0.6364229793519486,
+    "confusion_matrix": [
+      [
+        285,
+        200
+      ],
+      [
+        54,
+        117
+      ]
+    ],
+    "class_metrics": [
+      {
+        "class": 0,
+        "class_name": "benign",
+        "precision": 0.8407079646017699,
+        "recall": 0.5876288659793815,
+        "f1": 0.691747572815534,
+        "support": 485
+      },
+      {
+        "class": 1,
+        "class_name": "malignant",
+        "precision": 0.36908517350157727,
+        "recall": 0.6842105263157895,
+        "f1": 0.47950819672131145,
+        "support": 171
+      }
+    ],
+    "roc_auc": 0.7032977633086152,
+    "pr_auc": 0.5031208807591957,
+    "sensitivity": 0.6842105263157895,
+    "specificity": 0.5876288659793815,
+    "positive_predictive_value": 0.36908517350157727,
+    "negative_predictive_value": 0.8407079646017699,
+    "brier_score": 0.2540069496820541,
+    "calibration_error": 0.12429097668143912,
+    "tn": 285,
+    "fp": 200,
+    "fn": 54,
+    "tp": 117,
+    "false_positive_rate": 0.41237113402061853,
+    "false_negative_rate": 0.3157894736842105,
+    "predicted_malignant_rate": 0.48323170731707316
+  },
+  "integrity_hashes": {
+    "v2_config": "b074e67628f3105d487322588894475609b36728afe1bdcb410dc65e3d52be83",
+    "v1_config": "587f83cc83210fbcab0b25db5b5849100cfe613685c477739b60e12fdae201ab",
+    "v1_report": "605d4c2ba070f4bf01918623faf65abf2a88b2d1ad45655f3973a5f881744188",
+    "convnext_checkpoint": "12a771625797ffc6afb3dc3fadd3ea482a63edfc64b399f71472ba0e3bffe7cf",
+    "efficientnet_checkpoint": "d66216b103e2f021578425a21535ebf05b90c904d202850a147f7d0024e24d91"
+  },
+  "v1_reference_report": "C:\\Users\\samue\\OneDrive\\Desktop\\ML Code\\Skin_Cancer_Classifier\\results\\final_evaluation\\ddi\\ddi_report.json",
+  "comparison_policy_note": "v1 ran ConvNeXt, EfficientNet, and multimodal DINOv2 with missing metadata; v2 intentionally runs only ConvNeXt and EfficientNet because DDI lacks age, sex, and anatomical site. This is not solely a weighting comparison."
+}

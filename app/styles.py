@@ -8,6 +8,8 @@ CLINICAL_COBALT_CSS = """
  .hero { padding: 0.25rem 0 1.75rem; border-bottom: 1px solid #D9E2EC; margin-bottom: 1.25rem; }
  .hero h1 { color: #17212B; font-size: 2.25rem; line-height: 1.15; letter-spacing: -0.045em; margin: 0; }
  .hero p { color: #5B6773; font-size: 1.02rem; margin: .55rem 0 0; }
+ .hero .creator { color: #7A8793; font-size: .84rem; margin-top: .42rem; }
+ .selector-label, .section-title { color:#005396; font-size:.78rem; letter-spacing:.1em; font-weight:700; text-transform:uppercase; margin:1.3rem 0 .55rem; }
  .clinical-card { background: #FFF; border: 1px solid #D9E2EC; border-radius: 14px; padding: 1.35rem; min-height: 100%; box-shadow: 0 1px 2px rgba(23,33,43,.035); }
  .eyebrow { color: #005396; font-size: .72rem; letter-spacing: .11em; font-weight: 700; text-transform: uppercase; margin-bottom: .55rem; }
  .result-label { color: #17212B; font-size: 1.35rem; font-weight: 700; margin: .15rem 0; }
@@ -16,6 +18,8 @@ CLINICAL_COBALT_CSS = """
  .muted { color: #5B6773; font-size: .9rem; } .fineprint { color: #7A8793; font-size: .82rem; }
  .metadata-card { background: #EDF4FA; border: 1px solid #D9E2EC; border-radius: 14px; padding: 1.25rem 1.35rem; margin: 1.25rem 0; }
  .model-row { display:flex; justify-content:space-between; align-items:baseline; margin-top:.8rem; color:#17212B; font-weight:600; }
+ .highlight-card, .next-card { background:#FFF; border:1px solid #D9E2EC; border-radius:12px; color:#17212B; font-weight:650; margin:.45rem 0; min-height:4.8rem; padding:1rem; }
+ .next-card p { color:#5B6773; font-size:.88rem; font-weight:400; margin:.4rem 0 0; }
  .disclaimer { border-left: 3px solid #005396; background:#FFF; border-radius: 8px; padding: .85rem 1rem; color:#5B6773; font-size:.86rem; margin-top:1.5rem; }
  [data-testid="stButton"] button { width:100%; background:#1345E9; color:#FFF; border:0; border-radius:8px; min-height:2.8rem; font-weight:700; letter-spacing:.02em; }
  [data-testid="stButton"] button:hover { background:#0D36B8; color:#FFF; }

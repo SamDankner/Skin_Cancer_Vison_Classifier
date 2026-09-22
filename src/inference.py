@@ -28,6 +28,7 @@ SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".
 APP_SUPPORTED_IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 FINAL_ENSEMBLE_MEMBERS = ("convnext", "efficientnet", "multimodal")
+DEPLOYMENT_VARIANTS = ("v1_frozen", "v2_adaptive")
 
 
 @dataclass(frozen=True)
@@ -115,6 +116,7 @@ class SkinCancerPredictor:
         cls,
         frozen_config: str | Path | None = None,
         *,
+        variant: str | None = None,
         model_root: str | Path | None = None,
         device: str | torch.device | None = None,
     ) -> "SkinCancerPredictor":
@@ -124,10 +126,10 @@ class SkinCancerPredictor:
         directory possible while preserving repository-local defaults.
         """
         repository_root = Path(__file__).resolve().parents[1]
-        variant = os.environ.get("MODEL_VARIANT", "v2_adaptive")
-        if frozen_config is None and "FROZEN_CONFIG_PATH" not in os.environ and variant not in {"v1_frozen", "v2_adaptive"}:
+        selected_variant = variant or os.environ.get("MODEL_VARIANT", "v2_adaptive")
+        if frozen_config is None and "FROZEN_CONFIG_PATH" not in os.environ and selected_variant not in DEPLOYMENT_VARIANTS:
             raise ValueError("MODEL_VARIANT must be 'v1_frozen' or 'v2_adaptive'.")
-        default_config = repository_root / "configs" / "deployments" / variant / "ensemble.yaml"
+        default_config = repository_root / "configs" / "deployments" / selected_variant / "ensemble.yaml"
         # Retain the historical path as the explicit v1 compatibility default.
         config_path = Path(frozen_config or os.environ.get("FROZEN_CONFIG_PATH") or default_config)
         if not config_path.is_file():

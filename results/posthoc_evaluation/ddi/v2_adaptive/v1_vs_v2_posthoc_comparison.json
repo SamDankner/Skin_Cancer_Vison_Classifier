@@ -1,0 +1,54 @@
+{
+  "comparison_type": "descriptive_only",
+  "important_policy_difference": "v1 ran ConvNeXt, EfficientNet, and multimodal DINOv2 with missing metadata; v2 intentionally runs only ConvNeXt and EfficientNet because DDI lacks age, sex, and anatomical site. This is not solely a weighting comparison.",
+  "rows": [
+    {
+      "metric": "accuracy",
+      "v1_frozen": 0.7103658536585366,
+      "v2_posthoc": 0.6128048780487805,
+      "v2_minus_v1": -0.09756097560975607
+    },
+    {
+      "metric": "balanced_accuracy",
+      "v1_frozen": 0.6659311509013082,
+      "v2_posthoc": 0.6359196961475855,
+      "v2_minus_v1": -0.03001145475372269
+    },
+    {
+      "metric": "macro_f1",
+      "v1_frozen": 0.6512942177061068,
+      "v2_posthoc": 0.5856278847684228,
+      "v2_minus_v1": -0.06566633293768409
+    },
+    {
+      "metric": "roc_auc",
+      "v1_frozen": 0.7209621993127147,
+      "v2_posthoc": 0.7032977633086152,
+      "v2_minus_v1": -0.017664436004099504
+    },
+    {
+      "metric": "pr_auc",
+      "v1_frozen": 0.5073981139087945,
+      "v2_posthoc": 0.5031208807591957,
+      "v2_minus_v1": -0.004277233149598825
+    },
+    {
+      "metric": "sensitivity",
+      "v1_frozen": 0.5730994152046783,
+      "v2_posthoc": 0.6842105263157895,
+      "v2_minus_v1": 0.11111111111111116
+    },
+    {
+      "metric": "specificity",
+      "v1_frozen": 0.7587628865979381,
+      "v2_posthoc": 0.5876288659793815,
+      "v2_minus_v1": -0.17113402061855665
+    },
+    {
+      "metric": "brier_score",
+      "v1_frozen": 0.20189919453562463,
+      "v2_posthoc": 0.2540069496820541,
+      "v2_minus_v1": 0.052107755146429485
+    }
+  ]
+}

@@ -255,30 +255,30 @@ Tests use synthetic data and tiny offline models; they do not require medical da
 
 ## Live Demo
 
-The Clinical Cobalt Streamlit demo accepts one ordinary clinical/macro skin-lesion photograph and optional age, sex, and anatomical-site metadata. Missing values use the multimodal checkpoint's persisted missing-value preprocessing; uploads are processed in memory and are not saved.
+The Clinical Cobalt Streamlit demo accepts an ordinary clinical/macro photograph of an already-present focal skin lesion for benign-vs-malignant classification. It is not a general skin-condition classifier or lesion detector. Uploads are processed in memory and are not saved. Optional age, sex, and anatomical-site metadata can be supplied through the interface.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-app.txt
 .\.venv\Scripts\python.exe -m streamlit run app\streamlit_app.py
 ```
 
-The app caches exactly the frozen ConvNeXt-Tiny, EfficientNetV2-S, and multimodal DINOv2 members in `configs/final_model.yaml`, using its 0.51 threshold. The standalone DINOv2 development model is never loaded or displayed. This is a research and educational demonstration, not a medical device or diagnostic tool.
+The app offers two separately cached saved deployment configurations. **v1 Frozen** is the original externally evaluated ensemble: all three members use equal weighting and the historical missing-value preprocessing. **v2 Adaptive** is the newer metadata-aware deployment configuration: without metadata it uses ConvNeXt-Tiny and EfficientNetV2-S, while at least one metadata field activates the multimodal DINOv2 member and the saved adaptive policy. The standalone DINOv2 development model is never loaded or displayed. This is a research and educational demonstration, not a medical device or diagnostic tool.
 
 ### Demo architecture
 
 ```text
-Image + optional metadata
+Focal lesion image + optional metadata
           ↓
-Frozen preprocessing
+Saved versioned preprocessing/policy
           ↓
 ConvNeXt-Tiny ───────┐
-EfficientNetV2-S ────┼─→ Frozen Ensemble → Prediction
+EfficientNetV2-S ────┼─→ v1 Frozen or v2 Adaptive → Prediction
 Multimodal DINOv2 ───┘
 ```
 
 ### Docker
 
-The CPU-ready image intentionally excludes checkpoint files. Mount the frozen `models` directory at runtime; the container reads it through `MODEL_ROOT=/models`. `FROZEN_CONFIG_PATH` can override the default configuration when needed.
+The CPU-ready image intentionally excludes checkpoint files. Mount the `models` directory at runtime; the container reads it through `MODEL_ROOT=/models`. `FROZEN_CONFIG_PATH` can override a configuration when needed.
 
 ```powershell
 docker build -t skin-cancer-classifier .

@@ -54,6 +54,27 @@ def test_predictor_uses_configured_equal_weight_ensemble(monkeypatch):
     assert all(isinstance(value, float) and 0 <= value <= 1 for value in result.individual_models.values())
 
 
+def test_v2_skips_multimodal_only_when_metadata_is_absent(monkeypatch):
+    import src.inference as inference
+
+    members = (("convnext", "convnext", 0.2), ("efficientnet", "efficientnet", 0.4), ("multimodal", "multimodal", 0.8))
+    config = {
+        "status": "experimental", "task": "diagnosis_binary", "class_order": ["benign", "malignant"],
+        "models": [{"name": name, "strategy": strategy} for name, strategy, _ in members],
+        "ensemble": {"member_names": [name for name, _, _ in members], "no_metadata_policy": {"strategy": "equal_probability_average"}, "metadata_available_policy": {"strategy": "closest_pair_consensus", "pair_max_distance": .1, "separation_ratio": 3, "outlier_weight_multiplier": .2, "weights": {"convnext": .34, "efficientnet": .33, "multimodal": .33}}},
+        "threshold": {"threshold": .51},
+    }
+    bundles = {name: CheckpointBundle(_FixedModel(value), strategy, "diagnosis_binary", ["benign", "malignant"], {"image_size": 16, "input_mode": "full_image"}, f"{name}.pt", {}) for name, strategy, value in members}
+    monkeypatch.setattr(inference, "_bundle_input", lambda *_args: ((torch.zeros((1, 3, 1, 1)),), False, []))
+    predictor = SkinCancerPredictor(config, bundles, torch.device("cpu"))
+    without_metadata = predictor.predict(Image.new("RGB", (8, 8)))
+    with_metadata = predictor.predict(Image.new("RGB", (8, 8)), age=42)
+    assert without_metadata.active_models == ("convnext", "efficientnet")
+    assert without_metadata.inactive_models == ("multimodal",)
+    assert set(with_metadata.active_models) == {"convnext", "efficientnet", "multimodal"}
+    assert "multimodal" in with_metadata.individual_models
+
+
 @pytest.mark.parametrize("mode", ["RGB", "RGBA", "L"])
 def test_upload_validation_normalizes_supported_color_modes(mode):
     color = 128 if mode == "L" else (100, 120, 140, 200) if mode == "RGBA" else (100, 120, 140)
