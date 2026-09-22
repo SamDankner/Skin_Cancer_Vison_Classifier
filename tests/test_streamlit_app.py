@@ -55,6 +55,9 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert "render_version_overview" not in page_copy
     assert '[data-testid="stButton"] button {' not in styles.CLINICAL_COBALT_CSS
     assert '[data-testid="stButton"] button[kind="primary"]' in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stPopover"] button { background:#005396; border-color:#005396; color:#FFF; }' in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stNumberInput"] [data-baseweb="input"], [data-testid="stNumberInput"] input { background:transparent; }' in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stNumberInput"] input { color:#FFF !important; }' in styles.CLINICAL_COBALT_CSS
 
     field_copy = " ".join(value for value in source if isinstance(value, str))
     assert "Age in years" in field_copy
