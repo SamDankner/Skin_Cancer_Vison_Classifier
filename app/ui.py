@@ -168,7 +168,7 @@ def render_about(st) -> None:
 
 def render_next_steps(st) -> None:
     with st.expander("Next Steps", expanded=False):
-        items = (("Safety-focused workflow research", "Study uncertainty, explanation, and human-review experiences before any clinical use."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Explainability", "Add Grad-CAM and transformer interpretability visualizations."), ("Information robustness", "Improve multimodal behavior when only some optional information is shared."), ("Prospective testing", "Validate the full workflow on newly collected data."))
+        items = (("Safety-focused workflow research", "Study uncertainty, explanation, and human-review experiences before any clinical use."), ("Broader training data", "Expand coverage across environments, skin tones, presentations, and cameras."), ("Calibration", "Research probabilities that better correspond to observed risk."), ("Information robustness", "Improve multimodal behavior when only some optional information is shared."), ("Prospective testing", "Validate the full workflow on newly collected data."))
         columns = st.columns(2)
         for index, (title, body) in enumerate(items):
             with columns[index % 2]: st.markdown(f'<section class="next-card"><strong>{title}</strong><p>{body}</p></section>', unsafe_allow_html=True)
