@@ -5,7 +5,7 @@ import hashlib
 import logging
 
 from app.styles import CLINICAL_COBALT_CSS
-from app.ui import VERSION_LABELS, render_about, render_disclaimer, render_hero, render_model_outputs, render_next_steps, render_result, render_usage_guide, render_version_comparison, render_version_overview
+from app.ui import VERSION_LABELS, render_about, render_disclaimer, render_hero, render_model_outputs, render_next_steps, render_result, render_usage_guide, render_version_comparison
 from src.inference import DEPLOYMENT_VARIANTS, SkinCancerPredictor, validate_uploaded_image
 
 LOGGER = logging.getLogger(__name__)
@@ -54,9 +54,11 @@ def main() -> None:
     render_hero(st)
     render_usage_guide(st)
     st.markdown('<div class="selector-label">Model Version</div>', unsafe_allow_html=True)
-    variant = st.radio("Model Version", DEPLOYMENT_VARIANTS, index=1, format_func=VERSION_LABELS.get, horizontal=True, label_visibility="collapsed")
-    render_version_overview(st)
-    render_version_comparison(st)
+    selector_col, comparison_col = st.columns((2, 1), vertical_alignment="bottom")
+    with selector_col:
+        variant = st.radio("Model Version", DEPLOYMENT_VARIANTS, index=1, format_func=VERSION_LABELS.get, horizontal=True, label_visibility="collapsed")
+    with comparison_col:
+        render_version_comparison(st)
     uploaded = st.file_uploader("Upload a focal skin-lesion photograph", type=["png", "jpg", "jpeg"], help="PNG, JPG, or JPEG up to 10 MB. Images are processed in memory.")
     st.markdown('<section class="metadata-card"><div class="eyebrow">Optional Metadata</div><p class="muted">Supported metadata can provide additional context to the multimodal model.</p>', unsafe_allow_html=True)
     age_col, sex_col, site_col = st.columns(3)

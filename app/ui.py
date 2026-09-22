@@ -7,20 +7,25 @@ from typing import Mapping
 from src.inference import PredictionResult
 
 MODEL_LABELS = {"convnext": "ConvNeXt-Tiny", "efficientnet": "EfficientNetV2-S", "multimodal": "Multimodal DINOv2"}
-VERSION_LABELS = {"v1_frozen": "v1 Frozen", "v2_adaptive": "v2 Adaptive"}
-VERSION_SUMMARIES = {
-    "v1_frozen": "Original frozen research ensemble<br><span>Equal weighting · all three models · original external DDI evaluation</span>",
-    "v2_adaptive": "Newer metadata-aware deployment version<br><span>Adaptive three-model behavior with metadata · two-model behavior without metadata</span>",
-}
-VERSION_TRADEOFF = "v1: Original externally evaluated three-model ensemble with a more balanced historical external-test profile.<br><br>v2: Newer metadata-aware version that changes model participation based on available metadata and showed higher malignant sensitivity in the later post-hoc no-metadata comparison."
+VERSION_LABELS = {"v1_frozen": "V1", "v2_adaptive": "V2"}
+VERSION_DISPLAY_NAMES = {"v1_frozen": "V1 Frozen", "v2_adaptive": "V2 Adaptive"}
 PROJECT_METRICS = {"development": ("0.922 ROC-AUC", "0.848 Macro-F1", "92.5% malignant sensitivity"), "v1_ddi_images": "656 independent DDI images", "v2_ddi": "57.3% → 68.4% malignant sensitivity · +11.1 percentage points · 19 additional malignant lesions detected"}
-VERSION_COMPARISON = """#### v1 Frozen
-The original frozen research ensemble uses ConvNeXt-Tiny, EfficientNetV2-S, and Multimodal DINOv2 with equal ensemble weighting. It retains historical missing-metadata handling and was used for the original independent DDI evaluation, where it showed a more balanced historical sensitivity/specificity profile.
+VERSION_COMPARISON = """#### V1 — Frozen
+- Original frozen research ensemble
+- ConvNeXt-Tiny + EfficientNetV2-S + Multimodal DINOv2
+- Equal ensemble weighting
+- Uses historical missing-metadata handling
+- Configuration used for the original independent DDI evaluation
+- Showed a more balanced historical sensitivity/specificity profile
 
-#### v2 Adaptive
-The newer deployment-oriented version uses Multimodal DINOv2 when at least one supported metadata field is supplied, applying the saved adaptive disagreement-aware ensemble when all three models are active. Without metadata, it uses ConvNeXt-Tiny and EfficientNetV2-S only. It showed higher malignant sensitivity in the later post-hoc DDI comparison; that comparison is post-hoc, not a fresh untouched validation.
+#### V2 — Adaptive
+- Newer metadata-aware deployment version
+- Uses Multimodal DINOv2 when supported metadata is provided
+- Uses the saved adaptive three-model policy when metadata is available
+- Uses ConvNeXt + EfficientNet when no metadata is supplied
+- In the later post-hoc no-metadata DDI comparison, detected more malignant lesions / showed higher malignant sensitivity
 
-**v1 is the original externally evaluated configuration and showed a more balanced historical external-test profile. v2 is a newer metadata-aware deployment configuration that detected more malignant lesions in the later no-metadata DDI comparison, while making more positive predictions overall.**"""
+> V1 is the original externally evaluated configuration with a more balanced historical external-test profile. V2 is a newer metadata-aware deployment configuration that showed higher malignant sensitivity in the later post-hoc no-metadata comparison while making more positive predictions overall."""
 
 
 def render_hero(st) -> None:
@@ -28,22 +33,9 @@ def render_hero(st) -> None:
 
 
 def render_version_comparison(st) -> None:
-    """Provide visible, native disclosure for the deployment tradeoffs."""
-    with st.popover("Compare model versions", use_container_width=False):
+    """Keep deployment tradeoffs available without expanding the main layout."""
+    with st.popover("Compare V1 and V2", use_container_width=True):
         st.markdown(VERSION_COMPARISON)
-
-
-def render_version_overview(st) -> None:
-    """Keep the essential version differences visible next to the selector."""
-    columns = st.columns(2)
-    for variant, column in zip(("v1_frozen", "v2_adaptive"), columns):
-        with column:
-            st.markdown(
-                f'<section class="version-card"><strong>{VERSION_LABELS[variant]}</strong>'
-                f'<p>{VERSION_SUMMARIES[variant]}</p></section>',
-                unsafe_allow_html=True,
-            )
-    st.markdown(f'<p class="version-tradeoff">{VERSION_TRADEOFF}</p>', unsafe_allow_html=True)
 
 
 def render_usage_guide(st) -> None:
@@ -70,7 +62,7 @@ def render_result(st, result: PredictionResult, variant: str) -> None:
     classification = escape(result.predicted_class.title())
     css_class = "result-malignant" if result.predicted_class == "malignant" else "result-benign"
     ensemble = "Final Ensemble" if variant == "v1_frozen" else "Adaptive Ensemble"
-    st.markdown(f'''<section class="clinical-card"><div class="eyebrow">Analysis result</div><div class="muted">Model classification</div><div class="result-label {css_class}">{classification}</div><div class="probability">{result.malignant_probability:.1%}</div><div class="muted">Malignant probability</div><p class="fineprint">Decision threshold: {result.threshold:.0%} · {ensemble}</p><p class="fineprint">Analyzed with {VERSION_LABELS[variant]}</p></section>''', unsafe_allow_html=True)
+    st.markdown(f'''<section class="clinical-card"><div class="eyebrow">Analysis result</div><div class="muted">Model classification</div><div class="result-label {css_class}">{classification}</div><div class="probability">{result.malignant_probability:.1%}</div><div class="muted">Malignant probability</div><p class="fineprint">Decision threshold: {result.threshold:.0%} · {ensemble}</p><p class="fineprint">Analyzed with {VERSION_DISPLAY_NAMES[variant]}</p></section>''', unsafe_allow_html=True)
 
 
 def render_model_outputs(st, result: PredictionResult, variant: str) -> None:

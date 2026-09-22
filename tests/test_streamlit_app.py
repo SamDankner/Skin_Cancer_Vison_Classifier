@@ -28,14 +28,15 @@ def test_ui_copy_documents_focal_lesion_task_and_refined_versioned_demo():
     assert "Skin Lesion Classification Model" in hero
     assert "Skin Lesion Classification Lab" not in hero
     assert "Created by Samuel Dankner" in " ".join(value for value in ui.render_hero.__code__.co_consts if isinstance(value, str))
-    assert ui.VERSION_LABELS == {"v1_frozen": "v1 Frozen", "v2_adaptive": "v2 Adaptive"}
+    assert ui.VERSION_LABELS == {"v1_frozen": "V1", "v2_adaptive": "V2"}
+    assert ui.VERSION_DISPLAY_NAMES == {"v1_frozen": "V1 Frozen", "v2_adaptive": "V2 Adaptive"}
     assert "57.3% → 68.4%" in ui.PROJECT_METRICS["v2_ddi"]
     assert "+11.1 percentage points" in ui.PROJECT_METRICS["v2_ddi"]
     assert "19 additional malignant lesions" in ui.PROJECT_METRICS["v2_ddi"]
 
 
 def test_refinement_uses_visible_controls_and_collapsed_information_sections():
-    from app import streamlit_app, ui
+    from app import streamlit_app, styles, ui
 
     source = streamlit_app.main.__code__.co_consts
     page_copy = " ".join(value for value in source if isinstance(value, str))
@@ -43,20 +44,17 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert "Optional Metadata" in page_copy
     assert "Supported metadata can provide additional context" in page_copy
     assert "Age" in page_copy and "Sex" in page_copy and "Anatomical Site" in page_copy
-    assert "Compare model versions" in " ".join(value for value in ui.render_version_comparison.__code__.co_consts if isinstance(value, str))
-    assert "original frozen research ensemble" in ui.VERSION_COMPARISON
+    assert "Compare V1 and V2" in " ".join(value for value in ui.render_version_comparison.__code__.co_consts if isinstance(value, str))
+    assert "Original frozen research ensemble" in ui.VERSION_COMPARISON
     assert "post-hoc" in ui.VERSION_COMPARISON
     assert "better overall" not in ui.VERSION_COMPARISON
     assert "more accurate overall" not in ui.VERSION_COMPARISON
-    assert ui.VERSION_LABELS == {"v1_frozen": "v1 Frozen", "v2_adaptive": "v2 Adaptive"}
-    assert "Original frozen research ensemble" in ui.VERSION_SUMMARIES["v1_frozen"]
-    assert "Equal weighting · all three models · original external DDI evaluation" in ui.VERSION_SUMMARIES["v1_frozen"]
-    assert "Newer metadata-aware deployment version" in ui.VERSION_SUMMARIES["v2_adaptive"]
-    assert "Adaptive three-model behavior with metadata · two-model behavior without metadata" in ui.VERSION_SUMMARIES["v2_adaptive"]
-    assert "v1: Original externally evaluated three-model ensemble" in ui.VERSION_TRADEOFF
-    assert "v2: Newer metadata-aware version" in ui.VERSION_TRADEOFF
-    assert "better overall" not in ui.VERSION_TRADEOFF
-    assert "more accurate overall" not in ui.VERSION_TRADEOFF
+    assert ui.VERSION_LABELS == {"v1_frozen": "V1", "v2_adaptive": "V2"}
+    assert "V1 — Frozen" in ui.VERSION_COMPARISON
+    assert "V2 — Adaptive" in ui.VERSION_COMPARISON
+    assert "render_version_overview" not in page_copy
+    assert '[data-testid="stButton"] button {' not in styles.CLINICAL_COBALT_CSS
+    assert '[data-testid="stButton"] button[kind="primary"]' in styles.CLINICAL_COBALT_CSS
 
     field_copy = " ".join(value for value in source if isinstance(value, str))
     assert "Age in years" in field_copy
@@ -83,28 +81,6 @@ def test_refinement_uses_visible_controls_and_collapsed_information_sections():
     assert ("About This Model", False) in fake.expanders
     assert ("Project Highlights", False) in fake.expanders
     assert ("Next Steps", False) in fake.expanders
-
-
-def test_version_overview_renders_visible_summaries_and_tradeoff():
-    from app import ui
-
-    class FakeStreamlit:
-        def __init__(self): self.markdowns = []
-        def columns(self, count): return [_NullContext(self) for _ in range(count)]
-        def markdown(self, text, **_kwargs): self.markdowns.append(text)
-    class _NullContext:
-        def __init__(self, parent): self.parent = parent
-        def __enter__(self): return self.parent
-        def __exit__(self, *_args): return False
-
-    fake = FakeStreamlit()
-    ui.render_version_overview(fake)
-    rendered = " ".join(fake.markdowns)
-    assert "v1 Frozen" in rendered
-    assert "v2 Adaptive" in rendered
-    assert "Original frozen research ensemble" in rendered
-    assert "Newer metadata-aware deployment version" in rendered
-    assert "later post-hoc no-metadata comparison" in rendered
 
 
 def test_input_signature_change_invalidates_stale_prediction(monkeypatch):
