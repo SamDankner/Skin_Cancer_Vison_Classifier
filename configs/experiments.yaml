@@ -42,8 +42,6 @@ strategies:
         early_stopping_patience: 5
         early_stopping_min_delta: 0.0005
   multimodal:
-    # Keep parameter search opt-in until the validation-only metadata ablation
-    # is reviewed. The serious default in configs/multimodal.yaml excludes skin tone.
     enabled: true
     config: configs/multimodal.yaml
     search: true

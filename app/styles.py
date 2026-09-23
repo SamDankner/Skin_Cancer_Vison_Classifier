@@ -21,7 +21,6 @@ CLINICAL_COBALT_CSS = """
  .highlight-card, .next-card { background:#FFF; border:1px solid #D9E2EC; border-radius:12px; color:#17212B; font-weight:650; margin:.45rem 0; min-height:4.8rem; padding:1rem; }
  .next-card p { color:#5B6773; font-size:.88rem; font-weight:400; margin:.4rem 0 0; }
  .disclaimer { border-left: 3px solid #005396; background:#FFF; border-radius: 8px; padding: .85rem 1rem; color:#5B6773; font-size:.86rem; margin-top:1.5rem; }
- /* The previous all-button rule also captured uploader and popover controls. */
  [data-testid="stButton"] button[kind="primary"] { width:100%; background:#1345E9; color:#FFF; border:0; border-radius:8px; min-height:2.8rem; font-weight:700; letter-spacing:.02em; }
  [data-testid="stButton"] button[kind="primary"]:hover { background:#0D36B8; color:#FFF; }
  [data-testid="stButton"] button[kind="primary"]:disabled { background:#9AB4CE; color:#17212B; opacity:1; }
@@ -35,7 +34,6 @@ CLINICAL_COBALT_CSS = """
  [data-testid="stNumberInput"] input { color:#FFF !important; }
  [data-testid="stNumberInput"] input::placeholder { color:#D9E2EC; opacity:1; }
  [data-testid="stNumberInput"] [data-baseweb="input"]:focus-within { border-color:#005396; box-shadow:0 0 0 1px #005396; }
- /* Scope the select treatment to metadata BaseWeb controls; do not affect other menus. */
  [data-testid="stSelectbox"] [data-baseweb="select"] > div { background:transparent; border-color:#9AB4CE; }
  [data-testid="stSelectbox"] [data-baseweb="select"] [role="combobox"], [data-testid="stSelectbox"] [data-baseweb="select"] input { color:#FFF !important; }
  [data-testid="stSelectbox"] [data-baseweb="select"] input::placeholder { color:#D9E2EC; opacity:1; }
