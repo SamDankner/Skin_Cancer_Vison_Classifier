@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements-app.txt
 
 COPY app ./app
 COPY src ./src
-COPY configs/final_model.yaml ./configs/final_model.yaml
+COPY configs ./configs
 
 EXPOSE 8501
 
